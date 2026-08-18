@@ -28,7 +28,7 @@ export default function Sidebar({ user, currentView, onChangeView }: SidebarProp
   ];
 
   const externalNav = [
-    { name: 'Katalog Tender', id: 'catalog-ext', icon: BookOpen },
+    { name: 'Tender', id: 'catalog-ext', icon: BookOpen },
     { name: 'Posting & Stok Katalog Saya', id: 'my-vendor-catalog', icon: PackagePlus, badge: 'Stok' },
     { name: 'Bidding Saya', id: 'bidding', icon: FileText, badge: 'Riwayat' },
   ];

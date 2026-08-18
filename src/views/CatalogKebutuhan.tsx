@@ -502,7 +502,7 @@ export default function CatalogKebutuhan({ user, onBiddingClick }: CatalogProps)
               <span className="text-xs text-slate-400 font-medium">OPTIMA Pancaran Group</span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
-              Katalog Tender
+              Tender
             </h1>
             <p className="text-slate-500 text-sm mt-0.5">
               {isInternal 
