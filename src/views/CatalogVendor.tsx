@@ -56,6 +56,7 @@ export default function CatalogVendor({
   const [contactVendor, setContactVendor] = useState<VendorCatalogItem | null>(null);
   const [rfqSuccess, setRfqSuccess] = useState(false);
   const [rfqQty, setRfqQty] = useState(1);
+  const [rfqBidAmount, setRfqBidAmount] = useState(0);
   const [rfqNote, setRfqNote] = useState('');
 
   // Add / Edit item modal
@@ -266,6 +267,7 @@ export default function CatalogVendor({
   const handleOpenContact = (item: VendorCatalogItem) => {
     setContactVendor(item);
     setRfqQty(item.minOrder || 1);
+    setRfqBidAmount(item.price * (item.minOrder || 1));
     setRfqNote(`Halo ${item.companyName}, kami dari Pancaran Logistics tertarik dengan ${item.title}. Mohon informasi ketersediaan ${item.minOrder || 1} ${item.unit}.`);
     setRfqSuccess(false);
     setIsContactModalOpen(true);
@@ -855,12 +857,14 @@ export default function CatalogVendor({
                     />
                   </div>
                   <div>
-                    <label className="font-bold text-slate-700 block mb-1">Estimasi Total</label>
+                    <label className="font-bold text-slate-700 block mb-1">Estimasi Penawaran / Bids (Rp)</label>
                     <input
-                      type="text"
-                      disabled
-                      value={formatIDR(contactVendor.price * rfqQty)}
-                      className="w-full px-3 py-2 bg-slate-100 border border-slate-200 rounded-lg text-xs font-bold text-slate-800"
+                      type="number"
+                      value={rfqBidAmount}
+                      onChange={(e) => setRfqBidAmount(Number(e.target.value))}
+                      className="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs font-bold text-blue-600 bg-white"
+                      placeholder="Ketik estimasi penawaran..."
+                      required
                     />
                   </div>
                 </div>

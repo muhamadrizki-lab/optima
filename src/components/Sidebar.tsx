@@ -22,13 +22,13 @@ interface SidebarProps {
 export default function Sidebar({ user, currentView, onChangeView }: SidebarProps) {
   const internalNav = [
     { name: 'Dashboard Pengadaan', id: 'dashboard', icon: LayoutDashboard, badge: 'Overview' },
-    { name: 'Management Tender & Kebutuhan', id: 'catalog', icon: BookOpen },
+    { name: 'Management Tender', id: 'catalog', icon: BookOpen },
     { name: 'Katalog Vendor & Supplier', id: 'catalog-vendor', icon: ShoppingBag },
     { name: 'Management Akses & Akun', id: 'access', icon: Users },
   ];
 
   const externalNav = [
-    { name: 'Katalog Kebutuhan (Tender)', id: 'catalog-ext', icon: BookOpen },
+    { name: 'Katalog Tender', id: 'catalog-ext', icon: BookOpen },
     { name: 'Posting & Stok Katalog Saya', id: 'my-vendor-catalog', icon: PackagePlus, badge: 'Stok' },
     { name: 'Bidding Saya', id: 'bidding', icon: FileText, badge: 'Riwayat' },
   ];
