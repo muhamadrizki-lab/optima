@@ -36,6 +36,9 @@ export default function InternalDashboard({
   const [totalBids, setTotalBids] = useState(INITIAL_BIDS_DATA.length);
   const [totalInternalUsers, setTotalInternalUsers] = useState(2);
   const [totalExternalUsers, setTotalExternalUsers] = useState(2);
+  const [totalSuppliers, setTotalSuppliers] = useState(1);
+  const [totalVendorJasa, setTotalVendorJasa] = useState(1);
+  const [externalUsersList, setExternalUsersList] = useState<any[]>([]);
 
   useEffect(() => {
     // Load Kebutuhan Assets
@@ -63,8 +66,19 @@ export default function InternalDashboard({
         const parsed = JSON.parse(savedUsers);
         if (Array.isArray(parsed)) {
           setTotalInternalUsers(parsed.filter((u: any) => u.role === 'INTERNAL').length);
-          setTotalExternalUsers(parsed.filter((u: any) => u.role === 'EXTERNAL').length);
+          const externals = parsed.filter((u: any) => u.role === 'EXTERNAL');
+          setTotalExternalUsers(externals.length);
+          setExternalUsersList(externals);
+          setTotalSuppliers(externals.filter((u: any) => u.vendorType === 'SUPPLIER').length);
+          setTotalVendorJasa(externals.filter((u: any) => u.vendorType === 'VENDOR_JASA').length);
         }
+      } else {
+        // Initial defaults based on ManagementAkses state
+        const initialExternals = [
+          { id: '3', name: 'PT Surya Gemilang', email: 'vendor@suryagemilang.com', role: 'EXTERNAL', vendorType: 'SUPPLIER', status: 'ACTIVE' },
+          { id: '4', name: 'CV Makmur Jaya', email: 'info@makmurjaya.co.id', role: 'EXTERNAL', vendorType: 'VENDOR_JASA', status: 'PENDING' },
+        ];
+        setExternalUsersList(initialExternals);
       }
     } catch (e) {}
   }, []);
@@ -315,24 +329,33 @@ export default function InternalDashboard({
                     </>
                   )}
 
-                  {selectedStat.name === 'Total Akses External' && (
+                  {(selectedStat.name === 'Total Akses External' || selectedStat.name === 'Total Supplier' || selectedStat.name === 'Total Vendor') && (
                     <>
-                      <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200/60 flex items-center justify-between">
-                        <div>
-                          <p className="text-xs font-bold text-slate-800">PT Surya Gemilang</p>
-                          <p className="text-[11px] text-slate-500">vendor@suryagemilang.com • Supplier Utama</p>
-                        </div>
-                        <span className="px-2.5 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-bold rounded-lg">VERIFIED</span>
-                      </div>
-                      <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200/60 flex items-center justify-between">
-                        <div>
-                          <p className="text-xs font-bold text-slate-800">CV Makmur Jaya</p>
-                          <p className="text-[11px] text-slate-500">info@makmurjaya.co.id • Vendor Jasa</p>
-                        </div>
-                        <span className="px-2.5 py-1 bg-amber-50 text-amber-700 border border-amber-200 text-xs font-bold rounded-lg">PENDING</span>
-                      </div>
+                      {externalUsersList
+                        .filter(u => 
+                          selectedStat.name === 'Total Akses External' ? true :
+                          selectedStat.name === 'Total Supplier' ? u.vendorType === 'SUPPLIER' :
+                          u.vendorType === 'VENDOR_JASA'
+                        )
+                        .map(u => (
+                          <div key={u.id} className="p-3.5 bg-slate-50 rounded-xl border border-slate-200/60 flex items-center justify-between">
+                            <div>
+                              <p className="text-xs font-bold text-slate-800">{u.name}</p>
+                              <p className="text-[11px] text-slate-500">{u.email} • {u.vendorType === 'SUPPLIER' ? 'Supplier' : 'Vendor Jasa'}</p>
+                            </div>
+                            <span className={`px-2.5 py-1 text-xs font-bold rounded-lg border ${u.status === 'ACTIVE' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-amber-50 text-amber-700 border-amber-200'}`}>
+                              {u.status === 'ACTIVE' ? 'VERIFIED' : 'PENDING'}
+                            </span>
+                          </div>
+                      ))}
                     </>
                   )}
+                  
+                  <div className="pt-3 pb-1 text-center">
+                    <p className="text-[11px] font-medium text-slate-400 italic">
+                      Scroll ke bawah untuk melihat lebih banyak data...
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
@@ -452,16 +475,40 @@ export default function InternalDashboard({
 
             {/* Supplier & Vendor Big KPI Cards */}
             <div className="grid grid-cols-2 gap-4 mb-5">
-              <div className="bg-blue-50/70 p-4 rounded-xl border border-blue-100 flex flex-col items-center justify-center text-center">
+              <div 
+                onClick={() => setSelectedStat({
+                  name: 'Total Supplier',
+                  value: totalSuppliers.toString(),
+                  detail: 'Active Partners',
+                  icon: Building2,
+                  color: 'text-blue-600',
+                  bg: 'bg-blue-50',
+                  border: 'border-blue-100',
+                  actionView: 'access'
+                })}
+                className="bg-blue-50/70 hover:bg-blue-100/60 cursor-pointer p-4 rounded-xl border border-blue-100 flex flex-col items-center justify-center text-center transition-all hover:shadow-sm"
+              >
                 <span className="text-xs font-bold text-blue-600 uppercase tracking-wider mb-1">Total Supplier</span>
-                <span className="text-3xl font-black text-blue-900">142</span>
+                <span className="text-3xl font-black text-blue-900">{totalSuppliers}</span>
                 <span className="text-[11px] text-blue-600 font-medium mt-1 bg-blue-100/70 px-2 py-0.5 rounded-full">
                   Active Partners
                 </span>
               </div>
-              <div className="bg-emerald-50/70 p-4 rounded-xl border border-emerald-100 flex flex-col items-center justify-center text-center">
+              <div 
+                onClick={() => setSelectedStat({
+                  name: 'Total Vendor',
+                  value: totalVendorJasa.toString(),
+                  detail: 'Verified Vendors',
+                  icon: Wrench,
+                  color: 'text-emerald-600',
+                  bg: 'bg-emerald-50',
+                  border: 'border-emerald-100',
+                  actionView: 'access'
+                })}
+                className="bg-emerald-50/70 hover:bg-emerald-100/60 cursor-pointer p-4 rounded-xl border border-emerald-100 flex flex-col items-center justify-center text-center transition-all hover:shadow-sm"
+              >
                 <span className="text-xs font-bold text-emerald-600 uppercase tracking-wider mb-1">Total Vendor</span>
-                <span className="text-3xl font-black text-emerald-900">86</span>
+                <span className="text-3xl font-black text-emerald-900">{totalVendorJasa}</span>
                 <span className="text-[11px] text-emerald-600 font-medium mt-1 bg-emerald-100/70 px-2 py-0.5 rounded-full">
                   Verified Vendors
                 </span>
