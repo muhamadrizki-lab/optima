@@ -963,19 +963,19 @@ export default function CatalogKebutuhan({ user, onBiddingClick }: CatalogProps)
                                 <p className="text-xs font-medium text-slate-800 leading-relaxed">{item.top}</p>
                               </div>
 
-                              <div className="grid grid-cols-2 gap-2">
-                                <div className="bg-white p-2 rounded-xl border border-slate-200/70">
+                              <div className="space-y-2">
+                                <div className="bg-white p-2.5 rounded-xl border border-slate-200/70">
                                   <span className="text-[10px] font-bold text-slate-400 uppercase block mb-0.5 flex items-center">
                                     <Truck className="w-3.5 h-3.5 mr-1 text-blue-600 shrink-0" /> Pengiriman
                                   </span>
-                                  <p className="text-xs font-bold text-slate-800 truncate">{item.delivery}</p>
+                                  <p className="text-xs font-bold text-slate-800 leading-relaxed">{item.delivery}</p>
                                 </div>
 
-                                <div className="bg-white p-2 rounded-xl border border-slate-200/70">
+                                <div className="bg-white p-2.5 rounded-xl border border-slate-200/70">
                                   <span className="text-[10px] font-bold text-slate-400 uppercase block mb-0.5 flex items-center">
                                     <DollarSign className="w-3.5 h-3.5 mr-1 text-emerald-600 shrink-0" /> Pajak
                                   </span>
-                                  <p className="text-xs font-bold text-slate-800 truncate">{item.tax}</p>
+                                  <p className="text-xs font-bold text-slate-800 leading-relaxed">{item.tax}</p>
                                 </div>
                               </div>
                             </div>
