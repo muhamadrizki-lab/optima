@@ -21,7 +21,7 @@ interface SidebarProps {
 
 export default function Sidebar({ user, currentView, onChangeView }: SidebarProps) {
   const internalNav = [
-    { name: 'Dashboard Pengadaan', id: 'dashboard', icon: LayoutDashboard, badge: 'Overview' },
+    { name: 'Dashboard', id: 'dashboard', icon: LayoutDashboard, badge: 'Overview' },
     { name: 'Management Tender', id: 'catalog', icon: BookOpen },
     { name: 'Katalog Vendor & Supplier', id: 'catalog-vendor', icon: ShoppingBag },
     { name: 'Management Akses & Akun', id: 'access', icon: Users },

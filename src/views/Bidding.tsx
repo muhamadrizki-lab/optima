@@ -289,8 +289,13 @@ export default function Bidding({ user, onBack, initialReqId }: BiddingProps) {
     }, 5000);
   };
 
+  // Get bids matching user role
+  const userBids = user?.role === 'EXTERNAL' 
+    ? bids.filter(b => b.vendorEmail === user?.email || b.vendorId === user?.id)
+    : bids;
+
   // Filter History Items
-  const filteredBids = bids.filter((b) => {
+  const filteredBids = userBids.filter((b) => {
     const matchSearch = 
       b.id.toLowerCase().includes(searchHistory.toLowerCase()) ||
       b.reqTitle.toLowerCase().includes(searchHistory.toLowerCase()) ||
@@ -310,10 +315,10 @@ export default function Bidding({ user, onBack, initialReqId }: BiddingProps) {
   });
 
   // KPI calculations
-  const totalBidsCount = bids.length;
-  const acceptedBidsCount = bids.filter(b => b.status === 'ACCEPTED').length;
-  const pendingBidsCount = bids.filter(b => b.status === 'PENDING' || b.status === 'REVIEWED').length;
-  const negotiationBidsCount = bids.filter(b => b.status === 'NEGOTIATION').length;
+  const totalBidsCount = userBids.length;
+  const acceptedBidsCount = userBids.filter(b => b.status === 'ACCEPTED').length;
+  const pendingBidsCount = userBids.filter(b => b.status === 'PENDING' || b.status === 'REVIEWED').length;
+  const negotiationBidsCount = userBids.filter(b => b.status === 'NEGOTIATION').length;
 
   const getStatusBadge = (status: Bid['status']) => {
     switch (status) {
@@ -397,7 +402,7 @@ export default function Bidding({ user, onBack, initialReqId }: BiddingProps) {
 
           <div className="flex items-center gap-3 shrink-0">
             <span className="px-3.5 py-1.5 rounded-full text-xs font-bold bg-slate-100 text-slate-700 border border-slate-200">
-              Total: {bids.length} Riwayat Penawaran
+              Total: {userBids.length} Riwayat Penawaran
             </span>
             <button
               onClick={() => setShowSubmitModal(true)}

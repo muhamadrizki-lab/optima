@@ -460,8 +460,10 @@ export default function CatalogKebutuhan({ user, onBiddingClick }: CatalogProps)
       }
     ];
 
+    let allBidders: BidderItem[] = [];
+
     if (matchingRealBids.length > 0) {
-      const realConverted: BidderItem[] = matchingRealBids.map(b => ({
+      allBidders = matchingRealBids.map(b => ({
         vendorId: b.vendorId,
         vendorName: b.vendorName,
         vendorEmail: b.vendorEmail || 'vendor@gmail.com',
@@ -474,10 +476,15 @@ export default function CatalogKebutuhan({ user, onBiddingClick }: CatalogProps)
         status: tender.winnerVendorName === b.vendorName ? 'ACCEPTED' : b.status,
         notes: b.tncNotes || b.internalNotes
       }));
-      return realConverted;
+    } else {
+      allBidders = simulatedBidders.slice(0, Math.max(3, tender.bidsCount || 4));
     }
 
-    return simulatedBidders.slice(0, Math.max(3, tender.bidsCount || 4));
+    if (!isInternal && user) {
+      return allBidders.filter(b => b.vendorEmail === user.email || b.vendorId === user.id);
+    }
+
+    return allBidders;
   };
 
   const filteredItems = items.filter(item => {
