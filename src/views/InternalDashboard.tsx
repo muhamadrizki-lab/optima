@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { 
   Package, 
   FileText, 
@@ -14,7 +14,8 @@ import {
   CheckCircle2,
   Info,
   ExternalLink,
-  Boxes
+  Boxes,
+  X
 } from 'lucide-react';
 import { VendorCatalogItem } from '../types';
 import { INITIAL_VENDOR_CATALOG } from '../data/vendorCatalogData';
@@ -28,6 +29,8 @@ export default function InternalDashboard({
   vendorCatalogItems = INITIAL_VENDOR_CATALOG,
   onNavigate 
 }: InternalDashboardProps) {
+  const [selectedStat, setSelectedStat] = useState<any>(null);
+
   // Hitung jumlah jenis barang external (SKU / Ragam item unik, bukan total qty unit)
   const items = vendorCatalogItems && vendorCatalogItems.length > 0 ? vendorCatalogItems : INITIAL_VENDOR_CATALOG;
   const totalJenisBarangExternal = items.length;
@@ -139,8 +142,8 @@ export default function InternalDashboard({
           return (
             <div 
               key={idx} 
-              onClick={() => stat.actionView && onNavigate?.(stat.actionView)}
-              className={`bg-white rounded-2xl shadow-sm border ${stat.border} p-5 flex flex-col justify-between transition-all hover:shadow-md ${stat.actionView ? 'cursor-pointer hover:border-slate-300' : ''}`}
+              onClick={() => setSelectedStat(stat)}
+              className={`bg-white rounded-2xl shadow-sm border ${stat.border} p-5 flex flex-col justify-between transition-all hover:shadow-md cursor-pointer hover:border-slate-300`}
             >
               <div className="flex items-start justify-between mb-3">
                 <span className="text-xs font-bold text-slate-500 line-clamp-1">{stat.name}</span>
@@ -156,6 +159,170 @@ export default function InternalDashboard({
           );
         })}
       </div>
+
+      {/* Stat Detail Modal Popup */}
+      {selectedStat && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4 animate-fadeIn">
+          <div className="bg-white rounded-3xl shadow-2xl border border-slate-100 w-full max-w-2xl overflow-hidden animate-scaleUp">
+            <div className={`p-6 ${selectedStat.bg} border-b ${selectedStat.border} flex items-center justify-between`}>
+              <div className="flex items-center gap-3">
+                <div className={`p-3 rounded-2xl bg-white shadow-sm ${selectedStat.color}`}>
+                  <selectedStat.icon className="w-6 h-6" />
+                </div>
+                <div>
+                  <span className="text-xs font-bold uppercase tracking-wider text-slate-500">Detail Metrik Dashboard</span>
+                  <h3 className="text-xl font-black text-slate-900">{selectedStat.name}</h3>
+                </div>
+              </div>
+              <button 
+                onClick={() => setSelectedStat(null)}
+                className="p-2 bg-white/80 hover:bg-white text-slate-600 rounded-full transition-colors shadow-sm"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="p-6 space-y-6 max-h-[70vh] overflow-y-auto">
+              <div className="flex items-center justify-between bg-slate-50 p-4 rounded-2xl border border-slate-200/70">
+                <div>
+                  <p className="text-xs text-slate-500 font-semibold">Total Nilai / Kuantitas Terdata</p>
+                  <p className="text-3xl font-black text-slate-900 mt-0.5">{selectedStat.value}</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-xs text-slate-500 font-semibold">Keterangan Status</p>
+                  <p className="text-sm font-bold text-slate-700 mt-0.5">{selectedStat.detail}</p>
+                </div>
+              </div>
+
+              <div>
+                <h4 className="text-sm font-bold text-slate-800 mb-3">Rincian Informasi & Data Terkait:</h4>
+                <div className="space-y-2.5">
+                  {selectedStat.name === 'Total Kebutuhan Assets' && (
+                    <>
+                      <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200/60 flex items-center justify-between">
+                        <div>
+                          <p className="text-xs font-bold text-slate-800">Pembaruan Perangkat IT 2024</p>
+                          <p className="text-[11px] text-slate-500">REQ-001 • Pengadaan 50 Laptop & Aksesoris</p>
+                        </div>
+                        <span className="px-2.5 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-bold rounded-lg">DIBUKA</span>
+                      </div>
+                      <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200/60 flex items-center justify-between">
+                        <div>
+                          <p className="text-xs font-bold text-slate-800">Pengadaan Ban Truk Hino & Fuso</p>
+                          <p className="text-[11px] text-slate-500">REQ-002 • Radial Tubeless 11.00R20</p>
+                        </div>
+                        <span className="px-2.5 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-bold rounded-lg">DIBUKA</span>
+                      </div>
+                      <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200/60 flex items-center justify-between">
+                        <div>
+                          <p className="text-xs font-bold text-slate-800">Maintenance & Oli Mesin Shell Rimula</p>
+                          <p className="text-[11px] text-slate-500">REQ-003 • Pelumas Armada Long-Haul</p>
+                        </div>
+                        <span className="px-2.5 py-1 bg-amber-50 text-amber-700 border border-amber-200 text-xs font-bold rounded-lg">SEGERA</span>
+                      </div>
+                    </>
+                  )}
+
+                  {selectedStat.name === 'Total Penawaran' && (
+                    <>
+                      <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200/60 flex items-center justify-between">
+                        <div>
+                          <p className="text-xs font-bold text-slate-800">PT Surya Gemilang (Supplier)</p>
+                          <p className="text-[11px] text-slate-500">Penawaran Paket IT: Rp 680.000.000</p>
+                        </div>
+                        <span className="px-2.5 py-1 bg-blue-50 text-blue-700 border border-blue-200 text-xs font-bold rounded-lg">Terkirim</span>
+                      </div>
+                      <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200/60 flex items-center justify-between">
+                        <div>
+                          <p className="text-xs font-bold text-slate-800">PT Mandiri Ban Pratama</p>
+                          <p className="text-[11px] text-slate-500">Penawaran Ban Truk: Rp 215.000.000</p>
+                        </div>
+                        <span className="px-2.5 py-1 bg-blue-50 text-blue-700 border border-blue-200 text-xs font-bold rounded-lg">Terkirim</span>
+                      </div>
+                    </>
+                  )}
+
+                  {selectedStat.name === 'Jenis Barang External' && (
+                    <div className="space-y-2">
+                      {items.map((item, i) => (
+                        <div key={i} className="p-3 bg-slate-50 rounded-xl border border-slate-200/60 flex items-center justify-between">
+                          <div>
+                            <p className="text-xs font-bold text-slate-800">{item.title}</p>
+                            <p className="text-[11px] text-slate-500">{item.brand} • {item.vendorName}</p>
+                          </div>
+                          <span className="px-2 py-1 bg-indigo-50 text-indigo-700 font-bold text-xs rounded-md">
+                            {item.category}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {selectedStat.name === 'Total Akses Internal' && (
+                    <>
+                      <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200/60 flex items-center justify-between">
+                        <div>
+                          <p className="text-xs font-bold text-slate-800">Muhamad Rizki Alfian</p>
+                          <p className="text-[11px] text-slate-500">muhamad.rizki@pancaran-logistic.id • Admin Internal</p>
+                        </div>
+                        <span className="px-2.5 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-bold rounded-lg">AKTIF</span>
+                      </div>
+                      <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200/60 flex items-center justify-between">
+                        <div>
+                          <p className="text-xs font-bold text-slate-800">Budi Santoso</p>
+                          <p className="text-[11px] text-slate-500">budi.s@pancaran-logistic.id • Procurement Manager</p>
+                        </div>
+                        <span className="px-2.5 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-bold rounded-lg">AKTIF</span>
+                      </div>
+                    </>
+                  )}
+
+                  {selectedStat.name === 'Total Akses External' && (
+                    <>
+                      <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200/60 flex items-center justify-between">
+                        <div>
+                          <p className="text-xs font-bold text-slate-800">PT Surya Gemilang</p>
+                          <p className="text-[11px] text-slate-500">vendor@suryagemilang.com • Supplier Utama</p>
+                        </div>
+                        <span className="px-2.5 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-bold rounded-lg">VERIFIED</span>
+                      </div>
+                      <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200/60 flex items-center justify-between">
+                        <div>
+                          <p className="text-xs font-bold text-slate-800">CV Makmur Jaya</p>
+                          <p className="text-[11px] text-slate-500">info@makmurjaya.co.id • Vendor Jasa</p>
+                        </div>
+                        <span className="px-2.5 py-1 bg-amber-50 text-amber-700 border border-amber-200 text-xs font-bold rounded-lg">PENDING</span>
+                      </div>
+                    </>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            <div className="p-6 bg-slate-50 border-t border-slate-100 flex items-center justify-between gap-3">
+              <button
+                onClick={() => setSelectedStat(null)}
+                className="px-5 py-2.5 bg-white border border-slate-200 text-slate-700 rounded-xl font-bold text-xs hover:bg-slate-100 transition-colors"
+              >
+                Tutup
+              </button>
+              {selectedStat.actionView && onNavigate && (
+                <button
+                  onClick={() => {
+                    const view = selectedStat.actionView;
+                    setSelectedStat(null);
+                    onNavigate(view);
+                  }}
+                  className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold text-xs transition-colors flex items-center gap-2"
+                >
+                  <span>Buka Halaman Terkait</span>
+                  <ArrowRight className="w-4 h-4" />
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Main Grid: Jenis Barang Breakdown & Supplier/Vendor Overview */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">

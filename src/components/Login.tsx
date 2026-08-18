@@ -25,12 +25,72 @@ export default function Login({ onLogin, isModal = false, onClose }: LoginProps)
   const [regVendorType, setRegVendorType] = useState<VendorType>('SUPPLIER');
   const [regSuccess, setRegSuccess] = useState(false);
 
+  // Change password state
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
+  const [changeEmail, setChangeEmail] = useState('');
+  const [oldPassword, setOldPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [changeSuccess, setChangeSuccess] = useState(false);
+
+  const getStoredPassword = (userEmail: string) => {
+    try {
+      const passwordsMap = JSON.parse(localStorage.getItem('optima_user_passwords') || '{}');
+      if (passwordsMap[userEmail.toLowerCase()]) {
+        return passwordsMap[userEmail.toLowerCase()];
+      }
+    } catch (e) {}
+    return '12345678';
+  };
+
+  const setStoredPassword = (userEmail: string, newPass: string) => {
+    try {
+      const passwordsMap = JSON.parse(localStorage.getItem('optima_user_passwords') || '{}');
+      passwordsMap[userEmail.toLowerCase()] = newPass;
+      localStorage.setItem('optima_user_passwords', JSON.stringify(passwordsMap));
+    } catch (e) {}
+  };
+
+  const handleChangePasswordSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    if (!changeEmail || !oldPassword || !newPassword) {
+      setError('Semua kolom (Email, Password Lama, Password Baru) wajib diisi');
+      return;
+    }
+
+    const correctOld = getStoredPassword(changeEmail);
+    if (oldPassword !== correctOld) {
+      setError('Password lama salah! Mohon masukkan password lama yang benar.');
+      return;
+    }
+
+    setStoredPassword(changeEmail, newPassword);
+    setChangeSuccess(true);
+    setTimeout(() => {
+      setIsChangingPassword(false);
+      setChangeSuccess(false);
+      setEmail(changeEmail);
+      setPassword(newPassword);
+      setChangeEmail('');
+      setOldPassword('');
+      setNewPassword('');
+    }, 1500);
+  };
+
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-    const isPancaranInternal = email.toLowerCase().endsWith('@pancaran-logistic.id');
+    const trimmedEmail = email.trim().toLowerCase();
+    const isPancaranInternal = trimmedEmail.endsWith('@pancaran-logistic.id');
 
-    if (email === 'muhamad.rizki@pancaran-logistic.id' && password === '12345678') {
+    // Verify password against stored password
+    const correctPassword = getStoredPassword(email);
+    if (password !== correctPassword) {
+      setError('Password salah! Silakan masukkan password yang benar.');
+      return;
+    }
+
+    if (trimmedEmail === 'muhamad.rizki@pancaran-logistic.id') {
       onLogin({
         id: '1',
         email: email,
@@ -47,7 +107,7 @@ export default function Login({ onLogin, isModal = false, onClose }: LoginProps)
       const saved = localStorage.getItem('optima_access_users');
       if (saved) {
         const parsed = JSON.parse(saved);
-        const found = parsed.find((u: any) => u.email.toLowerCase() === email.toLowerCase());
+        const found = parsed.find((u: any) => u.email.toLowerCase() === trimmedEmail);
         if (found) {
           if (found.status === 'PENDING') {
             setError('Akun Anda masih berstatus PENDING dan menunggu approval dari Tim Internal.');
@@ -76,7 +136,7 @@ export default function Login({ onLogin, isModal = false, onClose }: LoginProps)
       console.error('Error checking user status:', err);
     }
 
-    if (isPancaranInternal && password.trim()) {
+    if (isPancaranInternal) {
       onLogin({
         id: String(Date.now()),
         email: email,
@@ -86,7 +146,7 @@ export default function Login({ onLogin, isModal = false, onClose }: LoginProps)
         role: 'INTERNAL',
         isInternalEmployee: true
       });
-    } else if (email === 'vendor@gmail.com' && password === '12345678') {
+    } else if (trimmedEmail === 'vendor@gmail.com') {
       onLogin({
         id: 'VEND-01',
         email: 'vendor@gmail.com',
@@ -97,7 +157,7 @@ export default function Login({ onLogin, isModal = false, onClose }: LoginProps)
         vendorType: 'SUPPLIER',
         isInternalEmployee: false
       });
-    } else if (email === 'external@example.com' && password === '12345678') {
+    } else if (trimmedEmail === 'external@example.com') {
       onLogin({
         id: '2',
         email: email,
@@ -108,7 +168,7 @@ export default function Login({ onLogin, isModal = false, onClose }: LoginProps)
         vendorType: 'SUPPLIER',
         isInternalEmployee: false
       });
-    } else if (email.trim() && password.trim()) {
+    } else if (email.trim()) {
       setError('Akun belum terdaftar atau belum disetujui (Pending Approval) oleh Tim Internal.');
     } else {
       setError('Masukkan email dan password yang valid');
@@ -195,10 +255,10 @@ export default function Login({ onLogin, isModal = false, onClose }: LoginProps)
         </div>
         
         <h2 className="text-[26px] sm:text-[28px] font-black text-slate-900 tracking-tight mb-1.5 leading-tight">
-          {isRegistering ? 'Daftar Akun Baru' : 'OPTIMA Portal'}
+          {isRegistering ? 'Daftar Akun Baru' : isChangingPassword ? 'Change password' : 'OPTIMA Portal'}
         </h2>
         <p className="text-xs text-slate-500 font-semibold leading-relaxed max-w-[320px]">
-          {isRegistering ? 'Lengkapi data diri dan tentukan tipe akses Anda' : 'Oriented Procurement, Targeted Integrated Management for Aligned Tender'}
+          {isRegistering ? 'Lengkapi data diri dan tentukan tipe akses Anda' : isChangingPassword ? 'Masukkan email, password lama, dan password baru' : 'Oriented Procurement, Targeted Integrated Management for Aligned Tender'}
         </p>
       </div>
 
@@ -347,6 +407,97 @@ export default function Login({ onLogin, isModal = false, onClose }: LoginProps)
             </button>
           </div>
         </form>
+      ) : isChangingPassword ? (
+        <form className="space-y-4" onSubmit={handleChangePasswordSubmit}>
+          <div>
+            <label htmlFor="changeEmail" className="block text-[13px] font-bold text-slate-700 mb-1.5">
+              Email Address
+            </label>
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                <Mail className="h-5 w-5 text-slate-400" strokeWidth={1.5} />
+              </div>
+              <input
+                id="changeEmail"
+                type="email"
+                required
+                value={changeEmail}
+                onChange={(e) => setChangeEmail(e.target.value)}
+                className="block w-full pl-11 pr-3 py-2.5 text-sm text-slate-900 bg-slate-50/50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-600 focus:border-blue-600 focus:bg-white transition-colors"
+                placeholder="email@pancaran-logistic.id"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label htmlFor="oldPassword" className="block text-[13px] font-bold text-slate-700 mb-1.5">
+              Password Lama
+            </label>
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                <Lock className="h-5 w-5 text-slate-400" strokeWidth={1.5} />
+              </div>
+              <input
+                id="oldPassword"
+                type="password"
+                required
+                value={oldPassword}
+                onChange={(e) => setOldPassword(e.target.value)}
+                className="block w-full pl-11 pr-3 py-2.5 text-sm text-slate-900 bg-slate-50/50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-600 focus:border-blue-600 focus:bg-white transition-colors font-medium tracking-wider"
+                placeholder="••••••••"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label htmlFor="newPassword" className="block text-[13px] font-bold text-slate-700 mb-1.5">
+              Password Baru
+            </label>
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                <Lock className="h-5 w-5 text-slate-400" strokeWidth={1.5} />
+              </div>
+              <input
+                id="newPassword"
+                type="password"
+                required
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                className="block w-full pl-11 pr-3 py-2.5 text-sm text-slate-900 bg-slate-50/50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-600 focus:border-blue-600 focus:bg-white transition-colors font-medium tracking-wider"
+                placeholder="••••••••"
+              />
+            </div>
+          </div>
+
+          {error && (
+            <div className="text-red-600 text-xs font-medium text-center bg-red-50 py-2 rounded-lg border border-red-100">
+              {error}
+            </div>
+          )}
+
+          {changeSuccess && (
+            <div className="text-emerald-600 text-xs font-medium text-center bg-emerald-50 py-2 rounded-lg border border-emerald-100 flex items-center justify-center gap-1.5">
+              <CheckCircle className="w-4 h-4" />
+              <span>Password berhasil diubah! Mengarahkan ke login...</span>
+            </div>
+          )}
+
+          <div className="pt-2 space-y-2">
+            <button
+              type="submit"
+              className="w-full flex justify-center py-3 px-4 rounded-xl shadow-sm text-sm font-bold text-white bg-[#5238FF] hover:bg-[#432AEE] transition-all"
+            >
+              Update Password
+            </button>
+            <button
+              type="button"
+              onClick={() => { setIsChangingPassword(false); setError(''); }}
+              className="w-full flex justify-center py-2 px-4 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-50 transition-colors"
+            >
+              Kembali ke Login
+            </button>
+          </div>
+        </form>
       ) : (
         <form className="space-y-4" onSubmit={handleLogin}>
           <div>
@@ -375,9 +526,13 @@ export default function Login({ onLogin, isModal = false, onClose }: LoginProps)
               <label htmlFor="password" className="block text-[13px] font-bold text-slate-700">
                 Password
               </label>
-              <a href="#" className="text-[12px] font-bold text-blue-600 hover:text-blue-700">
-                Forgot Password?
-              </a>
+              <button
+                type="button"
+                onClick={() => { setIsChangingPassword(true); setError(''); }}
+                className="text-[12px] font-bold text-blue-600 hover:text-blue-700 bg-transparent border-0 p-0 cursor-pointer"
+              >
+                Change password
+              </button>
             </div>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
