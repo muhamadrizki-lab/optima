@@ -6,12 +6,23 @@ export default function ManagementAkses() {
   const [activeTab, setActiveTab] = useState<'INTERNAL' | 'EXTERNAL'>('INTERNAL');
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const [users, setUsers] = useState<AccessDetail[]>([
-    { id: '1', name: 'Muhamad Rizki', email: 'muhamad.rizki@pancaran-logistic.id', role: 'INTERNAL', status: 'ACTIVE' },
-    { id: '2', name: 'Budi Santoso', email: 'budi.s@pancaran-logistic.id', role: 'INTERNAL', status: 'ACTIVE' },
-    { id: '3', name: 'PT Surya Gemilang', email: 'vendor@suryagemilang.com', role: 'EXTERNAL', vendorType: 'SUPPLIER', status: 'ACTIVE' },
-    { id: '4', name: 'CV Makmur Jaya', email: 'info@makmurjaya.co.id', role: 'EXTERNAL', vendorType: 'VENDOR_JASA', status: 'PENDING' },
-  ]);
+  const [users, setUsers] = useState<AccessDetail[]>(() => {
+    try {
+      const saved = localStorage.getItem('optima_access_users');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch (e) {
+      console.error('Error loading users:', e);
+    }
+    return [
+      { id: '1', name: 'Muhamad Rizki', email: 'muhamad.rizki@pancaran-logistic.id', role: 'INTERNAL', status: 'ACTIVE' },
+      { id: '2', name: 'Budi Santoso', email: 'budi.s@pancaran-logistic.id', role: 'INTERNAL', status: 'ACTIVE' },
+      { id: '3', name: 'PT Surya Gemilang', email: 'vendor@suryagemilang.com', role: 'EXTERNAL', vendorType: 'SUPPLIER', status: 'ACTIVE' },
+      { id: '4', name: 'CV Makmur Jaya', email: 'info@makmurjaya.co.id', role: 'EXTERNAL', vendorType: 'VENDOR_JASA', status: 'PENDING' },
+    ];
+  });
 
   const [formData, setFormData] = useState({
     name: '',
@@ -23,7 +34,13 @@ export default function ManagementAkses() {
   });
 
   const handleStatusChange = (id: string, newStatus: 'ACTIVE' | 'PENDING' | 'INACTIVE') => {
-    setUsers(users.map(u => u.id === id ? { ...u, status: newStatus } : u));
+    const updated = users.map(u => u.id === id ? { ...u, status: newStatus } : u);
+    setUsers(updated);
+    try {
+      localStorage.setItem('optima_access_users', JSON.stringify(updated));
+    } catch (e) {
+      console.error('Error saving users status:', e);
+    }
   };
 
   const handleRegister = (e: React.FormEvent) => {
@@ -41,7 +58,13 @@ export default function ManagementAkses() {
       status: 'PENDING',
     };
 
-    setUsers([newUser, ...users]);
+    const updated = [newUser, ...users];
+    setUsers(updated);
+    try {
+      localStorage.setItem('optima_access_users', JSON.stringify(updated));
+    } catch (e) {
+      console.error('Error saving new user:', e);
+    }
     setFormData({ name: '', companyName: '', phone: '', email: '', role: 'INTERNAL', vendorType: 'SUPPLIER' });
     setIsModalOpen(false);
   };

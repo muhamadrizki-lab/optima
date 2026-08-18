@@ -27,6 +27,7 @@ export default function Login({ onLogin, isModal = false, onClose }: LoginProps)
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
+    setError('');
     const isPancaranInternal = email.toLowerCase().endsWith('@pancaran-logistic.id');
 
     if (email === 'muhamad.rizki@pancaran-logistic.id' && password === '12345678') {
@@ -39,7 +40,43 @@ export default function Login({ onLogin, isModal = false, onClose }: LoginProps)
         role: 'INTERNAL',
         isInternalEmployee: true
       });
-    } else if (isPancaranInternal) {
+      return;
+    }
+
+    try {
+      const saved = localStorage.getItem('optima_access_users');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        const found = parsed.find((u: any) => u.email.toLowerCase() === email.toLowerCase());
+        if (found) {
+          if (found.status === 'PENDING') {
+            setError('Akun Anda masih berstatus PENDING dan menunggu approval dari Tim Internal.');
+            return;
+          }
+          if (found.status === 'INACTIVE') {
+            setError('Akun Anda tidak aktif atau ditolak oleh administrator.');
+            return;
+          }
+          if (found.status === 'ACTIVE') {
+            onLogin({
+              id: found.id,
+              email: found.email,
+              name: found.name,
+              companyName: found.companyName,
+              phone: found.phone || '0812-0000-0000',
+              role: found.role,
+              vendorType: found.vendorType,
+              isInternalEmployee: found.role === 'INTERNAL'
+            });
+            return;
+          }
+        }
+      }
+    } catch (err) {
+      console.error('Error checking user status:', err);
+    }
+
+    if (isPancaranInternal && password.trim()) {
       onLogin({
         id: String(Date.now()),
         email: email,
@@ -72,17 +109,7 @@ export default function Login({ onLogin, isModal = false, onClose }: LoginProps)
         isInternalEmployee: false
       });
     } else if (email.trim() && password.trim()) {
-      // External vendor partner login
-      onLogin({
-        id: '3',
-        email: email,
-        name: email.split('@')[0].toUpperCase() || 'Vendor Partner',
-        companyName: 'PT ' + (email.split('@')[0].toUpperCase() || 'Vendor Mitra'),
-        phone: '0812-3456-7890',
-        role: 'EXTERNAL',
-        vendorType: 'SUPPLIER',
-        isInternalEmployee: false
-      });
+      setError('Akun belum terdaftar atau belum disetujui (Pending Approval) oleh Tim Internal.');
     } else {
       setError('Masukkan email dan password yang valid');
     }
@@ -95,19 +122,48 @@ export default function Login({ onLogin, isModal = false, onClose }: LoginProps)
       return;
     }
     const isInternal = regRole === 'INTERNAL';
-    setRegSuccess(true);
-    setTimeout(() => {
-      onLogin({
+
+    try {
+      const saved = localStorage.getItem('optima_access_users');
+      const existing = saved ? JSON.parse(saved) : [
+        { id: '1', name: 'Muhamad Rizki', email: 'muhamad.rizki@pancaran-logistic.id', role: 'INTERNAL', status: 'ACTIVE' },
+        { id: '2', name: 'Budi Santoso', email: 'budi.s@pancaran-logistic.id', role: 'INTERNAL', status: 'ACTIVE' },
+        { id: '3', name: 'PT Surya Gemilang', email: 'vendor@suryagemilang.com', role: 'EXTERNAL', vendorType: 'SUPPLIER', status: 'ACTIVE' },
+        { id: '4', name: 'CV Makmur Jaya', email: 'info@makmurjaya.co.id', role: 'EXTERNAL', vendorType: 'VENDOR_JASA', status: 'PENDING' },
+      ];
+
+      if (existing.some((u: any) => u.email.toLowerCase() === regEmail.toLowerCase())) {
+        setError('Email sudah terdaftar. Silakan gunakan email lain atau login.');
+        return;
+      }
+
+      const newUserRecord = {
         id: String(Date.now()),
-        email: regEmail,
         name: regName,
-        companyName: regCompany,
-        phone: regPhone,
+        companyName: regCompany || (isInternal ? 'Pancaran Group' : 'PT ' + regName),
+        phone: regPhone || '0812-0000-0000',
+        email: regEmail,
         role: regRole,
         vendorType: regRole === 'EXTERNAL' ? regVendorType : undefined,
-        isInternalEmployee: isInternal
-      });
-    }, 1200);
+        status: 'PENDING'
+      };
+
+      localStorage.setItem('optima_access_users', JSON.stringify([newUserRecord, ...existing]));
+    } catch (err) {
+      console.error('Error saving registration:', err);
+    }
+
+    setRegSuccess(true);
+    setTimeout(() => {
+      setRegSuccess(false);
+      setIsRegistering(false);
+      setError('Registrasi berhasil! Akun Anda sedang menunggu approval dari Tim Internal.');
+      setRegName('');
+      setRegCompany('');
+      setRegPhone('');
+      setRegEmail('');
+      setRegPassword('');
+    }, 1500);
   };
 
   const setDemoAccount = (type: 'INTERNAL' | 'EXTERNAL') => {
