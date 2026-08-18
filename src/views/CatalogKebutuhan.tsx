@@ -24,7 +24,8 @@ import {
   RotateCcw,
   Sparkles,
   ChevronRight,
-  Clock
+  Clock,
+  Trash2
 } from 'lucide-react';
 import SafeImage from '../components/SafeImage';
 import PancaranLogo from '../components/PancaranLogo';
@@ -359,6 +360,18 @@ export default function CatalogKebutuhan({ user, onBiddingClick }: CatalogProps)
       setSettingWinnerTender({ ...settingWinnerTender, status: newStatus });
     }
     showToast(`Status tender ${tenderId} berhasil diubah menjadi ${newStatus === 'OPEN' ? 'DIBUKA' : 'DITUTUP'}.`);
+  };
+
+  const handleDeleteTender = (tenderId: string) => {
+    if (!window.confirm(`Apakah Anda yakin ingin menghapus tender ${tenderId}?`)) return;
+    const updated = items.filter(item => item.id !== tenderId);
+    setItems(updated);
+    try {
+      localStorage.setItem('optima_catalog_kebutuhan', JSON.stringify(updated));
+    } catch (e) {
+      console.error('Error deleting tender:', e);
+    }
+    showToast(`Tender ${tenderId} berhasil dihapus.`);
   };
 
   // Generate Bidders list for a given tender
@@ -830,7 +843,7 @@ export default function CatalogKebutuhan({ user, onBiddingClick }: CatalogProps)
                             </div>
                           </div>
 
-                          {/* Action for Internal: Setting & Pilih Pemenang */}
+                          {/* Action for Internal: Setting & Pilih Pemenang & Delete */}
                           {isInternal && (
                             <div className="flex items-center gap-2 mt-2 sm:mt-0 shrink-0">
                               <button
@@ -845,6 +858,13 @@ export default function CatalogKebutuhan({ user, onBiddingClick }: CatalogProps)
                                 <Settings className="w-3.5 h-3.5" />
                                 <Trophy className="w-3.5 h-3.5 text-amber-500" />
                                 <span>{hasWinner ? 'Setting Pemenang (Terpilih)' : 'Setting & Pilih Pemenang'}</span>
+                              </button>
+                              <button
+                                onClick={() => handleDeleteTender(item.id)}
+                                className="p-2 bg-rose-50 text-rose-600 border border-rose-200 rounded-xl hover:bg-rose-100 transition-all cursor-pointer"
+                                title="Hapus Tender"
+                              >
+                                <Trash2 className="w-4 h-4" />
                               </button>
                             </div>
                           )}
