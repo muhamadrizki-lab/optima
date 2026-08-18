@@ -33,8 +33,11 @@ export default function InternalDashboard({
   const [selectedStat, setSelectedStat] = useState<any>(null);
   
   const [totalKebutuhan, setTotalKebutuhan] = useState(5);
+  const [kebutuhanList, setKebutuhanList] = useState<any[]>([]);
   const [totalBids, setTotalBids] = useState(INITIAL_BIDS_DATA.length);
+  const [bidsList, setBidsList] = useState<any[]>(INITIAL_BIDS_DATA);
   const [totalInternalUsers, setTotalInternalUsers] = useState(2);
+  const [internalUsersList, setInternalUsersList] = useState<any[]>([]);
   const [totalExternalUsers, setTotalExternalUsers] = useState(2);
   const [totalSuppliers, setTotalSuppliers] = useState(1);
   const [totalVendorJasa, setTotalVendorJasa] = useState(1);
@@ -46,7 +49,17 @@ export default function InternalDashboard({
       const savedCatalog = localStorage.getItem('optima_catalog_kebutuhan');
       if (savedCatalog) {
         const parsed = JSON.parse(savedCatalog);
-        if (Array.isArray(parsed)) setTotalKebutuhan(parsed.length);
+        if (Array.isArray(parsed)) {
+          setTotalKebutuhan(parsed.length);
+          setKebutuhanList(parsed);
+        }
+      } else {
+        // Mock fallback if nothing in local storage yet for modal display purposes
+        setKebutuhanList([
+          { id: 'REQ-001', title: 'Pembaruan Perangkat IT 2024', description: 'Pengadaan 50 Laptop & Aksesoris', status: 'OPEN' },
+          { id: 'REQ-002', title: 'Pengadaan Ban Truk Hino & Fuso', description: 'Radial Tubeless 11.00R20', status: 'OPEN' },
+          { id: 'REQ-003', title: 'Maintenance & Oli Mesin Shell Rimula', description: 'Pelumas Armada Long-Haul', status: 'DRAFT' }
+        ]);
       }
     } catch (e) {}
 
@@ -55,7 +68,10 @@ export default function InternalDashboard({
       const savedBids = localStorage.getItem('optima_bids_history');
       if (savedBids) {
         const parsed = JSON.parse(savedBids);
-        if (Array.isArray(parsed)) setTotalBids(parsed.length);
+        if (Array.isArray(parsed)) {
+          setTotalBids(parsed.length);
+          setBidsList(parsed);
+        }
       }
     } catch (e) {}
 
@@ -65,7 +81,10 @@ export default function InternalDashboard({
       if (savedUsers) {
         const parsed = JSON.parse(savedUsers);
         if (Array.isArray(parsed)) {
-          setTotalInternalUsers(parsed.filter((u: any) => u.role === 'INTERNAL').length);
+          const internals = parsed.filter((u: any) => u.role === 'INTERNAL');
+          setTotalInternalUsers(internals.length);
+          setInternalUsersList(internals);
+          
           const externals = parsed.filter((u: any) => u.role === 'EXTERNAL');
           setTotalExternalUsers(externals.length);
           setExternalUsersList(externals);
@@ -74,6 +93,12 @@ export default function InternalDashboard({
         }
       } else {
         // Initial defaults based on ManagementAkses state
+        const initialInternals = [
+          { id: '1', name: 'Muhamad Rizki Alfian', email: 'muhamad.rizki@pancaran-logistic.id', role: 'INTERNAL', vendorType: 'ADMIN', status: 'ACTIVE' },
+          { id: '2', name: 'Budi Santoso', email: 'budi.s@pancaran-logistic.id', role: 'INTERNAL', vendorType: 'PROCUREMENT', status: 'ACTIVE' },
+        ];
+        setInternalUsersList(initialInternals);
+        
         const initialExternals = [
           { id: '3', name: 'PT Surya Gemilang', email: 'vendor@suryagemilang.com', role: 'EXTERNAL', vendorType: 'SUPPLIER', status: 'ACTIVE' },
           { id: '4', name: 'CV Makmur Jaya', email: 'info@makmurjaya.co.id', role: 'EXTERNAL', vendorType: 'VENDOR_JASA', status: 'PENDING' },
@@ -251,46 +276,33 @@ export default function InternalDashboard({
                 <div className="space-y-2.5">
                   {selectedStat.name === 'Total Kebutuhan Assets' && (
                     <>
-                      <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200/60 flex items-center justify-between">
-                        <div>
-                          <p className="text-xs font-bold text-slate-800">Pembaruan Perangkat IT 2024</p>
-                          <p className="text-[11px] text-slate-500">REQ-001 • Pengadaan 50 Laptop & Aksesoris</p>
+                      {kebutuhanList.map((item, idx) => (
+                        <div key={idx} className="p-3.5 bg-slate-50 rounded-xl border border-slate-200/60 flex items-center justify-between">
+                          <div>
+                            <p className="text-xs font-bold text-slate-800">{item.title}</p>
+                            <p className="text-[11px] text-slate-500">{item.id} • {item.description || item.title}</p>
+                          </div>
+                          <span className={`px-2.5 py-1 text-xs font-bold rounded-lg border ${item.status === 'OPEN' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : item.status === 'CLOSED' ? 'bg-slate-100 text-slate-700 border-slate-200' : 'bg-amber-50 text-amber-700 border-amber-200'}`}>
+                            {item.status === 'OPEN' ? 'DIBUKA' : item.status === 'CLOSED' ? 'SELESAI' : 'DRAFT/SEGERA'}
+                          </span>
                         </div>
-                        <span className="px-2.5 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-bold rounded-lg">DIBUKA</span>
-                      </div>
-                      <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200/60 flex items-center justify-between">
-                        <div>
-                          <p className="text-xs font-bold text-slate-800">Pengadaan Ban Truk Hino & Fuso</p>
-                          <p className="text-[11px] text-slate-500">REQ-002 • Radial Tubeless 11.00R20</p>
-                        </div>
-                        <span className="px-2.5 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-bold rounded-lg">DIBUKA</span>
-                      </div>
-                      <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200/60 flex items-center justify-between">
-                        <div>
-                          <p className="text-xs font-bold text-slate-800">Maintenance & Oli Mesin Shell Rimula</p>
-                          <p className="text-[11px] text-slate-500">REQ-003 • Pelumas Armada Long-Haul</p>
-                        </div>
-                        <span className="px-2.5 py-1 bg-amber-50 text-amber-700 border border-amber-200 text-xs font-bold rounded-lg">SEGERA</span>
-                      </div>
+                      ))}
                     </>
                   )}
 
                   {selectedStat.name === 'Total Penawaran' && (
                     <>
-                      <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200/60 flex items-center justify-between">
-                        <div>
-                          <p className="text-xs font-bold text-slate-800">PT Surya Gemilang (Supplier)</p>
-                          <p className="text-[11px] text-slate-500">Penawaran Paket IT: Rp 680.000.000</p>
+                      {bidsList.map((bid, idx) => (
+                        <div key={idx} className="p-3.5 bg-slate-50 rounded-xl border border-slate-200/60 flex items-center justify-between">
+                          <div>
+                            <p className="text-xs font-bold text-slate-800">{bid.vendorName}</p>
+                            <p className="text-[11px] text-slate-500">{bid.reqTitle}: Rp {bid.price?.toLocaleString('id-ID')}</p>
+                          </div>
+                          <span className={`px-2.5 py-1 text-xs font-bold rounded-lg border ${bid.status === 'ACCEPTED' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : bid.status === 'REJECTED' ? 'bg-rose-50 text-rose-700 border-rose-200' : bid.status === 'NEGOTIATION' ? 'bg-amber-50 text-amber-700 border-amber-200' : 'bg-blue-50 text-blue-700 border-blue-200'}`}>
+                            {bid.status === 'ACCEPTED' ? 'DITERIMA' : bid.status === 'REJECTED' ? 'DITOLAK' : bid.status === 'NEGOTIATION' ? 'NEGO' : 'TERKIRIM'}
+                          </span>
                         </div>
-                        <span className="px-2.5 py-1 bg-blue-50 text-blue-700 border border-blue-200 text-xs font-bold rounded-lg">Terkirim</span>
-                      </div>
-                      <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200/60 flex items-center justify-between">
-                        <div>
-                          <p className="text-xs font-bold text-slate-800">PT Mandiri Ban Pratama</p>
-                          <p className="text-[11px] text-slate-500">Penawaran Ban Truk: Rp 215.000.000</p>
-                        </div>
-                        <span className="px-2.5 py-1 bg-blue-50 text-blue-700 border border-blue-200 text-xs font-bold rounded-lg">Terkirim</span>
-                      </div>
+                      ))}
                     </>
                   )}
 
@@ -312,20 +324,17 @@ export default function InternalDashboard({
 
                   {selectedStat.name === 'Total Akses Internal' && (
                     <>
-                      <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200/60 flex items-center justify-between">
-                        <div>
-                          <p className="text-xs font-bold text-slate-800">Muhamad Rizki Alfian</p>
-                          <p className="text-[11px] text-slate-500">muhamad.rizki@pancaran-logistic.id • Admin Internal</p>
+                      {internalUsersList.map((u, idx) => (
+                        <div key={idx} className="p-3.5 bg-slate-50 rounded-xl border border-slate-200/60 flex items-center justify-between">
+                          <div>
+                            <p className="text-xs font-bold text-slate-800">{u.name}</p>
+                            <p className="text-[11px] text-slate-500">{u.email} • {u.vendorType || 'Karyawan'}</p>
+                          </div>
+                          <span className={`px-2.5 py-1 text-xs font-bold rounded-lg border ${u.status === 'ACTIVE' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-amber-50 text-amber-700 border-amber-200'}`}>
+                            {u.status === 'ACTIVE' ? 'AKTIF' : 'NONAKTIF'}
+                          </span>
                         </div>
-                        <span className="px-2.5 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-bold rounded-lg">AKTIF</span>
-                      </div>
-                      <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200/60 flex items-center justify-between">
-                        <div>
-                          <p className="text-xs font-bold text-slate-800">Budi Santoso</p>
-                          <p className="text-[11px] text-slate-500">budi.s@pancaran-logistic.id • Procurement Manager</p>
-                        </div>
-                        <span className="px-2.5 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-bold rounded-lg">AKTIF</span>
-                      </div>
+                      ))}
                     </>
                   )}
 
