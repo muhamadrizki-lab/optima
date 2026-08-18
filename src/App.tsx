@@ -127,7 +127,7 @@ export default function App() {
           />
         );
       case 'catalog-vendor':
-        return (
+        return isInternal ? (
           <CatalogVendor
             user={user}
             items={vendorCatalogItems}
@@ -136,6 +136,8 @@ export default function App() {
             onDeleteItem={handleDeleteVendorItem}
             onNavigateToMyCatalog={() => setCurrentView('my-vendor-catalog')}
           />
+        ) : (
+          <CatalogKebutuhan user={user} onBiddingClick={handleBiddingClick} />
         );
       case 'my-vendor-catalog':
         return user ? (

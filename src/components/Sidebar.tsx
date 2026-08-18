@@ -30,7 +30,6 @@ export default function Sidebar({ user, currentView, onChangeView }: SidebarProp
   const externalNav = [
     { name: 'Katalog Kebutuhan (Tender)', id: 'catalog-ext', icon: BookOpen },
     { name: 'Posting & Stok Katalog Saya', id: 'my-vendor-catalog', icon: PackagePlus, badge: 'Stok' },
-    { name: 'Katalog Vendor & Supplier', id: 'catalog-vendor', icon: ShoppingBag },
     { name: 'Bidding Saya', id: 'bidding', icon: FileText, badge: 'Riwayat' },
   ];
 
