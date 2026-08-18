@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Package, 
   FileText, 
@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import { VendorCatalogItem } from '../types';
 import { INITIAL_VENDOR_CATALOG } from '../data/vendorCatalogData';
+import { INITIAL_BIDS_DATA } from '../data/biddingData';
 
 interface InternalDashboardProps {
   vendorCatalogItems?: VendorCatalogItem[];
@@ -30,6 +31,43 @@ export default function InternalDashboard({
   onNavigate 
 }: InternalDashboardProps) {
   const [selectedStat, setSelectedStat] = useState<any>(null);
+  
+  const [totalKebutuhan, setTotalKebutuhan] = useState(5);
+  const [totalBids, setTotalBids] = useState(INITIAL_BIDS_DATA.length);
+  const [totalInternalUsers, setTotalInternalUsers] = useState(2);
+  const [totalExternalUsers, setTotalExternalUsers] = useState(2);
+
+  useEffect(() => {
+    // Load Kebutuhan Assets
+    try {
+      const savedCatalog = localStorage.getItem('optima_catalog_kebutuhan');
+      if (savedCatalog) {
+        const parsed = JSON.parse(savedCatalog);
+        if (Array.isArray(parsed)) setTotalKebutuhan(parsed.length);
+      }
+    } catch (e) {}
+
+    // Load Bids
+    try {
+      const savedBids = localStorage.getItem('optima_bids_history');
+      if (savedBids) {
+        const parsed = JSON.parse(savedBids);
+        if (Array.isArray(parsed)) setTotalBids(parsed.length);
+      }
+    } catch (e) {}
+
+    // Load Users
+    try {
+      const savedUsers = localStorage.getItem('optima_access_users');
+      if (savedUsers) {
+        const parsed = JSON.parse(savedUsers);
+        if (Array.isArray(parsed)) {
+          setTotalInternalUsers(parsed.filter((u: any) => u.role === 'INTERNAL').length);
+          setTotalExternalUsers(parsed.filter((u: any) => u.role === 'EXTERNAL').length);
+        }
+      }
+    } catch (e) {}
+  }, []);
 
   // Hitung jumlah jenis barang external (SKU / Ragam item unik, bukan total qty unit)
   const items = vendorCatalogItems && vendorCatalogItems.length > 0 ? vendorCatalogItems : INITIAL_VENDOR_CATALOG;
@@ -49,7 +87,7 @@ export default function InternalDashboard({
   const stats = [
     { 
       name: 'Total Kebutuhan Assets', 
-      value: '124', 
+      value: totalKebutuhan.toString(), 
       detail: 'Pengadaan aktif internal',
       icon: Package, 
       color: 'text-blue-600', 
@@ -59,7 +97,7 @@ export default function InternalDashboard({
     },
     { 
       name: 'Total Penawaran', 
-      value: '45', 
+      value: totalBids.toString(), 
       detail: 'Quotation bidding masuk',
       icon: FileText, 
       color: 'text-emerald-600', 
@@ -80,7 +118,7 @@ export default function InternalDashboard({
     },
     { 
       name: 'Total Akses Internal', 
-      value: '12', 
+      value: totalInternalUsers.toString(), 
       detail: 'User karyawan terdaftar',
       icon: Users, 
       color: 'text-amber-600', 
@@ -90,7 +128,7 @@ export default function InternalDashboard({
     },
     { 
       name: 'Total Akses External', 
-      value: '86', 
+      value: totalExternalUsers.toString(), 
       detail: 'Rekanan & vendor aktif',
       icon: Globe, 
       color: 'text-rose-600', 
