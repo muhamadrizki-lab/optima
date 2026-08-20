@@ -12,6 +12,15 @@ export interface User {
   isInternalEmployee?: boolean;
 }
 
+export interface SpecTableItem {
+  no: number;
+  nama: string;
+  brand: string;
+  qty: number;
+  uom: string;
+  ket: string;
+}
+
 export interface CatalogItem {
   id: string;
   title: string;
@@ -20,6 +29,7 @@ export interface CatalogItem {
   status: 'OPEN' | 'CLOSED';
   imageUrl?: string;
   specifications?: string[];
+  specTable?: SpecTableItem[];
   tnc?: string;
   top?: string;
   delivery?: string;

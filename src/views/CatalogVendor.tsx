@@ -110,10 +110,10 @@ export default function CatalogVendor({
 
   const categories = [
     { id: 'ALL', label: 'Semua Produk & Jasa', icon: SlidersHorizontal },
-    { id: 'BAN', label: 'Ban Truk & Mobil', icon: Disc },
-    { id: 'AKI', label: 'Aki & Kelistrikan', icon: Zap },
-    { id: 'SPARE_PART', label: 'Spare Part & Mesin', icon: Package },
-    { id: 'JASA', label: 'Jasa & Maintenance', icon: Wrench },
+    { id: 'BAN', label: 'Ban Truk', icon: Disc },
+    { id: 'AKI', label: 'Aki', icon: Zap },
+    { id: 'SPARE_PART', label: 'Spare Part', icon: Package },
+    { id: 'JASA', label: 'Jasa', icon: Wrench },
   ];
 
   const formatIDR = (val: number) => {
@@ -146,6 +146,27 @@ export default function CatalogVendor({
       if (sortBy === 'STOCK_HIGH') return b.stock - a.stock;
       return new Date(b.lastUpdated).getTime() - new Date(a.lastUpdated).getTime();
     });
+
+  const sortedTableItems = React.useMemo(() => {
+    return [...filteredItems].sort((a, b) => a.companyName.localeCompare(b.companyName));
+  }, [filteredItems]);
+
+  const getCompanyRowSpan = (index: number) => {
+    const current = sortedTableItems[index]?.companyName;
+    if (!current) return 1;
+    if (index > 0 && sortedTableItems[index - 1]?.companyName === current) {
+      return 0;
+    }
+    let count = 1;
+    for (let i = index + 1; i < sortedTableItems.length; i++) {
+      if (sortedTableItems[i]?.companyName === current) {
+        count++;
+      } else {
+        break;
+      }
+    }
+    return count;
+  };
 
   const handleOpenFormModal = (item?: VendorCatalogItem) => {
     if (item) {
@@ -601,7 +622,7 @@ export default function CatalogVendor({
           </button>
         </div>
       ) : viewMode === 'TABLE' ? (
-        /* TABLE VIEW (Sesuai Sketsa Gambar User) */
+        /* TABLE VIEW (Rowspan Merged for PT Name) */
         <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs border-collapse">
@@ -609,7 +630,7 @@ export default function CatalogVendor({
                 <tr className="bg-slate-100/90 border-b border-slate-200 text-slate-800 font-bold text-xs uppercase tracking-wider">
                   <th className="py-3.5 px-3 text-center w-12 border-r border-slate-200/60">No.</th>
                   <th className="py-3.5 px-3 text-center w-16 border-r border-slate-200/60">Foto</th>
-                  <th className="py-3.5 px-4 min-w-[170px] border-r border-slate-200/60">Nama PT</th>
+                  <th className="py-3.5 px-4 min-w-[170px] border-r border-slate-200/60 text-center">Nama PT</th>
                   <th className="py-3.5 px-3 min-w-[120px] border-r border-slate-200/60">Kategori</th>
                   <th className="py-3.5 px-3 text-center min-w-[100px] border-r border-slate-200/60">Stock</th>
                   <th className="py-3.5 px-3 min-w-[140px] border-r border-slate-200/60">Type</th>
@@ -619,52 +640,55 @@ export default function CatalogVendor({
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-200/70">
-                {filteredItems.map((item, index) => {
+                {sortedTableItems.map((item, index) => {
                   const isMyPost = user?.id === item.vendorId || (user?.email && item.vendorEmail === user.email);
+                  const companySpan = getCompanyRowSpan(index);
 
                   return (
                     <tr 
                       key={item.id} 
-                      className="hover:bg-blue-50/50 transition-colors group"
+                      className="hover:bg-blue-50/40 transition-colors group"
                     >
-                      {/* No. */}
-                      <td className="py-3 px-3 text-center font-bold text-slate-600 text-xs border-r border-slate-100">
-                        {index + 1}
-                      </td>
+                        {/* No. */}
+                        <td className="py-3 px-3 text-center font-bold text-slate-600 text-xs border-r border-slate-100">
+                          {index + 1}
+                        </td>
 
-                      {/* Foto (Thumbnail kecil di pojok kiri) */}
-                      <td className="py-3 px-3 text-center border-r border-slate-100">
-                        <div 
-                          onClick={() => setSelectedItemDetail(item)}
-                          className="w-12 h-12 rounded-lg bg-slate-100 overflow-hidden border border-slate-200 shrink-0 mx-auto cursor-pointer group-hover:scale-105 transition-transform shadow-xs"
-                          title="Klik untuk lihat detail gambar"
-                        >
-                          <SafeImage
-                            src={item.imageUrl}
-                            alt={item.title}
-                            category={item.category}
-                            className="w-full h-full object-cover"
-                            iconSize={20}
-                          />
-                        </div>
-                      </td>
-
-                      {/* Nama PT */}
-                      <td className="py-3 px-4 border-r border-slate-100">
-                        <div className="font-bold text-slate-900 flex items-center gap-1">
-                          <span 
-                            onClick={() => setSelectedCompanyModal(item.companyName)}
-                            className="hover:text-blue-600 hover:underline cursor-pointer truncate max-w-[180px]"
-                            title="Lihat detail data PT"
+                        {/* Foto (Thumbnail kecil di pojok kiri) */}
+                        <td className="py-3 px-3 text-center border-r border-slate-100">
+                          <div 
+                            onClick={() => setSelectedItemDetail(item)}
+                            className="w-12 h-12 rounded-lg bg-slate-100 overflow-hidden border border-slate-200 shrink-0 mx-auto cursor-pointer group-hover:scale-105 transition-transform shadow-xs"
+                            title="Klik untuk lihat detail gambar"
                           >
-                            {item.companyName}
-                          </span>
-                          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" title="Terverifikasi" />
-                        </div>
-                        <span className="text-[10px] text-slate-400 font-mono block mt-0.5">
-                          {item.vendorType === 'SUPPLIER' ? 'Supplier' : 'Vendor Jasa'}
-                        </span>
-                      </td>
+                            <SafeImage
+                              src={item.imageUrl}
+                              alt={item.title}
+                              category={item.category}
+                              className="w-full h-full object-cover"
+                              iconSize={20}
+                            />
+                          </div>
+                        </td>
+
+                        {/* Nama PT (Merges repeating PT names into one single cell) */}
+                        {companySpan > 0 && (
+                          <td 
+                            rowSpan={companySpan} 
+                            className="py-3 px-4 border-r border-slate-200 bg-slate-50/50 align-middle text-center font-bold text-slate-900"
+                          >
+                            <div className="flex items-center justify-center gap-1.5 p-1">
+                              <span 
+                                onClick={() => setSelectedCompanyModal(item.companyName)}
+                                className="hover:text-blue-600 hover:underline cursor-pointer font-bold text-slate-900 text-xs"
+                                title="Lihat detail data PT"
+                              >
+                                {item.companyName}
+                              </span>
+                              <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" title="Terverifikasi" />
+                            </div>
+                          </td>
+                        )}
 
                       {/* Kategori */}
                       <td className="py-3 px-3 border-r border-slate-100">
@@ -1287,10 +1311,10 @@ export default function CatalogVendor({
                     onChange={(e) => setFormData({ ...formData, category: e.target.value as ItemCategory })}
                     className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs font-medium bg-white"
                   >
-                    <option value="BAN">🚚 Ban Truk & Kendaraan</option>
-                    <option value="AKI">⚡ Aki & Kelistrikan</option>
-                    <option value="SPARE_PART">⚙️ Spare Part & Mesin</option>
-                    <option value="JASA">🔧 Jasa & Perawatan Armada</option>
+                    <option value="BAN">🚚 Ban Truk</option>
+                    <option value="AKI">⚡ Aki</option>
+                    <option value="SPARE_PART">⚙️ Spare Part</option>
+                    <option value="JASA">🔧 Jasa</option>
                     <option value="LAINNYA">📦 Lainnya</option>
                   </select>
                 </div>

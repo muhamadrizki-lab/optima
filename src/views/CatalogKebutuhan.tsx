@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { CatalogItem, User, Bid } from '../types';
+import { CatalogItem, User, Bid, SpecTableItem } from '../types';
 import { 
   Search, 
   Filter, 
@@ -60,6 +60,13 @@ const DEFAULT_CATALOG_ITEMS: CatalogItem[] = [
     status: 'OPEN',
     imageUrl: 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?auto=format&fit=crop&w=800&q=80',
     specifications: ['Intel Core i7 Gen 13', '16GB RAM DDR5', '512GB NVMe SSD', '14-inch IPS Display', 'Garansi Resmi 3 Tahun'],
+    specTable: [
+      { no: 1, nama: 'Laptop Workstation Engineering', brand: 'Lenovo ThinkPad P14s Gen 4 (i7-13700H, 16GB, 512GB SSD)', qty: 35, uom: 'unit', ket: 'Garansi resmi 3 tahun, include OS Win 11 Pro' },
+      { no: 2, nama: 'Laptop Operasional Logistik', brand: 'Lenovo ThinkBook 14 Gen 6 (i5-1335U, 16GB, 512GB SSD)', qty: 15, uom: 'unit', ket: 'Garansi resmi 3 tahun, tas backpack' },
+      { no: 3, nama: 'Docking Station USB-C', brand: 'ThinkPad Universal USB-C Dock', qty: 50, uom: 'pcs', ket: 'Dual 4K Display Support' },
+      { no: 4, nama: 'Wireless Mouse & Keyboard', brand: 'Logitech MK270 Combo', qty: 50, uom: 'set', ket: 'Baterai termasuk, garansi 1 tahun' },
+      { no: 5, nama: 'Monitor 24 inci IPS', brand: 'LG 24MP400-B 75Hz Full HD', qty: 20, uom: 'unit', ket: 'Garansi 3 tahun resmi LG Indonesia' }
+    ],
     tnc: 'Barang harus original dan bergaransi resmi dari distributor Indonesia.',
     top: 'Net 30 Hari setelah barang diterima dan invoice lengkap.',
     delivery: 'Gratis Pengiriman ke Head Office Jakarta',
@@ -77,6 +84,12 @@ const DEFAULT_CATALOG_ITEMS: CatalogItem[] = [
     status: 'OPEN',
     imageUrl: 'https://images.unsplash.com/photo-1621905252507-b35492cc74b4?auto=format&fit=crop&w=800&q=80',
     specifications: ['Cuci AC rutin per 3 bulan', 'Pengecekan freon dan kompresor', 'Respon perbaikan darurat 1x24 jam', 'Termasuk perbaikan minor', 'Total 45 unit AC Split & Cassette'],
+    specTable: [
+      { no: 1, nama: 'Cuci & Maintenance AC Split 1-2 PK', brand: 'Daikin / Panasonic / Sharp', qty: 35, uom: 'pcs', ket: 'Cuci rutin per 3 bulan (4x kunjungan setahun)' },
+      { no: 2, nama: 'Cuci & Maintenance AC Cassette 3-5 PK', brand: 'Daikin Inverter Heavy Duty', qty: 10, uom: 'pcs', ket: 'Pembersihan filter, kompresor & evaporator' },
+      { no: 3, nama: 'Pengecekan Freon R32/R410A & Oli Kompresor', brand: 'Standard Pressure Gauge Test', qty: 45, uom: 'pcs', ket: 'Termasuk penambahan freon minor & kelistrikan' },
+      { no: 4, nama: 'Perbaikan Minor & Response Emergency', brand: 'On-Call Service 1x24 Jam', qty: 1, uom: 'pcs', ket: 'Garansi pengerjaan minimal 14 hari' }
+    ],
     tnc: 'Teknisi wajib memiliki sertifikasi K3. Garansi pekerjaan service minimal 14 hari.',
     top: 'Tagihan bulanan, Net 14 Hari setelah BAST.',
     delivery: 'Service langsung di lokasi Head Office',
@@ -106,6 +119,11 @@ const DEFAULT_CATALOG_ITEMS: CatalogItem[] = [
       'Garansi aus pabrik minimal 50.000 KM',
       'Total pengadaan: 200 Pcs'
     ],
+    specTable: [
+      { no: 1, nama: 'Ban Radial Tubeless Heavy Duty (Drive Axle)', brand: 'Bridgestone R156 / GT Radial GTR926', qty: 120, uom: 'pcs', ket: 'Ukuran 11R22.5 16PR, Tahun Produksi 2026' },
+      { no: 2, nama: 'Ban Radial Tubeless Steering Axle', brand: 'Michelin X Multi Z2 / Bridgestone', qty: 80, uom: 'pcs', ket: 'Ukuran 11R22.5 18PR, Garansi 50.000 KM' },
+      { no: 3, nama: 'Pentil Ban Tubeless Heavy Duty Brass', brand: 'Alligator Germany Brass Valve', qty: 200, uom: 'pcs', ket: 'Material Kuningan Anti Leak & High Pressure' }
+    ],
     tnc: 'Barang asli SNI, melampirkan sertifikat distributor resmi dan garansi pabrikan.',
     top: 'Net 45 Hari setelah BAST dan pengujian berkala.',
     delivery: 'Pengiriman bertahap ke Pool Cakung & Cikarang',
@@ -129,6 +147,11 @@ const DEFAULT_CATALOG_ITEMS: CatalogItem[] = [
       'Sudah termasuk air zuur pabrik (khusus tipe basah) & packing safety',
       'Jumlah: 150 Unit'
     ],
+    specTable: [
+      { no: 1, nama: 'Aki Basah Heavy Duty Truck 100Ah', brand: 'GS Astra Hybrid N100 (95E41R)', qty: 100, uom: 'pcs', ket: 'Terisi Air Zuur Pabrik, Cold Cranking Amps > 650A' },
+      { no: 2, nama: 'Aki Kering Maintenance Free (MF)', brand: 'Incoe Gold MF N100', qty: 50, uom: 'pcs', ket: 'Bebas Perawatan, Garansi ganti baru 6 bulan' },
+      { no: 3, nama: 'Terminal Kepala Aki Tembaga Heavy Duty', brand: 'Brass Clamp Bolt 12V', qty: 300, uom: 'pcs', ket: 'Material Tembaga Lapis Timah Anti Korosi' }
+    ],
     tnc: 'Jaminan ganti baru (1-to-1 replacement) jika ada sel mati dalam masa garansi 6 bulan.',
     top: 'Net 30 Hari kalender.',
     delivery: 'Diantar langsung ke Pool Depo Logistik Sunter & Surabaya',
@@ -151,6 +174,12 @@ const DEFAULT_CATALOG_ITEMS: CatalogItem[] = [
       '50 Pcs Plat Kopling Clutch Disc Exedy 380mm',
       'Keaslian genuine/OEM 100% dengan garansi distributor'
     ],
+    specTable: [
+      { no: 1, nama: 'Kampas Rem (Brake Shoe) OEM', brand: 'Hino Genuine Parts / Ranger 500 Lohan', qty: 300, uom: 'pcs', ket: 'Non-Asbestos Heavy Duty OEM' },
+      { no: 2, nama: 'Filter Oli Combo High Efficiency', brand: 'Fleetguard LF16015', qty: 200, uom: 'pcs', ket: 'Standar ISO OEM Hino/Isuzu' },
+      { no: 3, nama: 'Filter Solar / Fuel Water Separator', brand: 'Fleetguard FS19732', qty: 200, uom: 'pcs', ket: 'Penyaringan air & kotoran solar B35/B40' },
+      { no: 4, nama: 'Plat Kopling (Clutch Disc) 380mm', brand: 'Exedy Japan Hino 500', qty: 50, uom: 'pcs', ket: 'Asli Exedy Heavy Duty Durability' }
+    ],
     tnc: 'Penyedia wajib melampirkan surat keagenan / dealer resmi spare parts.',
     top: 'Net 30 Hari.',
     delivery: 'Free delivery ke Gudang Pusat Sparepart Pancaran',
@@ -162,6 +191,42 @@ const DEFAULT_CATALOG_ITEMS: CatalogItem[] = [
   }
 ];
 
+export function getSpecTableForItem(item: CatalogItem): SpecTableItem[] {
+  if (item.specTable && item.specTable.length > 0) {
+    return item.specTable;
+  }
+  
+  if (item.specifications && item.specifications.length > 0) {
+    return item.specifications.map((spec, idx) => {
+      let qty = 1;
+      let uom = 'pcs';
+      let nama = spec;
+      let brand = 'Standard Specs';
+      let ket = 'Kebutuhan operasional';
+
+      const matchNum = spec.match(/^(\d+)\s*(unit|pcs|set|paket|buah|pasang|unit AC|Pcs)?\s+(.*)/i);
+      if (matchNum) {
+        qty = parseInt(matchNum[1], 10);
+        uom = matchNum[2] || 'pcs';
+        nama = matchNum[3];
+      }
+
+      return {
+        no: idx + 1,
+        nama: nama,
+        brand: brand,
+        qty: qty,
+        uom: uom,
+        ket: ket
+      };
+    });
+  }
+
+  return [
+    { no: 1, nama: item.title, brand: 'Standard', qty: 1, uom: 'pcs', ket: item.description || 'Spesifikasi standar' }
+  ];
+}
+
 export default function CatalogKebutuhan({ user, onBiddingClick }: CatalogProps) {
   const isInternal = user?.role === 'INTERNAL';
   
@@ -169,7 +234,16 @@ export default function CatalogKebutuhan({ user, onBiddingClick }: CatalogProps)
     try {
       const saved = localStorage.getItem('optima_catalog_kebutuhan');
       if (saved) {
-        return JSON.parse(saved);
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed.map((item: any) => {
+            const match = DEFAULT_CATALOG_ITEMS.find(d => d.id === item.id);
+            if (match && match.specTable && (!item.specTable || item.specTable.length === 0)) {
+              return { ...item, specTable: match.specTable };
+            }
+            return item;
+          });
+        }
       }
     } catch (e) {
       console.error('Error loading catalog items:', e);
@@ -416,117 +490,87 @@ export default function CatalogKebutuhan({ user, onBiddingClick }: CatalogProps)
     }
   };
 
-  // Generate Bidders list for a given tender
+  // Generate Bidders list for a given tender matching bidsCount exactly
   const getBiddersForTender = (tender: CatalogItem): BidderItem[] => {
+    const targetCount = Math.max(1, tender.bidsCount || 6);
+
     // Check if there are real bids in biddingData
     const matchingRealBids = INITIAL_BIDS_DATA.filter(b => b.reqId === tender.id);
     
-    const simulatedBidders: BidderItem[] = [
-      {
-        vendorId: 'VEND-01',
-        vendorName: 'PT. Teknologi Maju Bersama',
-        vendorEmail: 'sales@teknologimaju.com',
-        vendorPhone: '0812-3344-5566',
-        amount: tender.lowestBid || (tender.ownerEstimate ? tender.ownerEstimate * 0.91 : 680000000),
-        dateSubmitted: '2024-03-16',
-        warranty: '3 Tahun Garansi Resmi Onsite',
-        top: 'Net 30 Hari setelah BAST',
-        delivery: 'Gratis Pengiriman',
-        status: tender.winnerVendorName === 'PT. Teknologi Maju Bersama' ? 'ACCEPTED' : 'REVIEWED',
-        notes: 'Penawaran paling kompetitif dengan sertifikat authorized partner resmi.'
-      },
-      {
-        vendorId: 'VEND-02',
-        vendorName: 'PT Mandiri Ban Pratama',
-        vendorEmail: 'sales@mandiriban.co.id',
-        vendorPhone: '0812-8899-2341',
-        amount: 790000000,
-        dateSubmitted: '2026-08-16',
-        warranty: '12 Bulan / 60.000 KM Pabrik',
-        top: 'Net 45 Hari',
-        delivery: 'Free Delivery Pool Cakung',
-        status: tender.winnerVendorName === 'PT Mandiri Ban Pratama' ? 'ACCEPTED' : 'REVIEWED',
-        notes: 'Distributor resmi Bridgestone & Gajah Tunggal.'
-      },
-      {
-        vendorId: 'VEND-03',
-        vendorName: 'CV. Komputer Cemerlang',
-        vendorEmail: 'tender@komputercemerlang.co.id',
-        vendorPhone: '0813-9988-7766',
-        amount: tender.ownerEstimate ? tender.ownerEstimate * 0.94 : 705000000,
-        dateSubmitted: '2024-03-17',
-        warranty: '3 Tahun Garansi Distributor',
-        top: 'Net 30 Hari',
-        delivery: 'Gratis Pengiriman',
-        status: tender.winnerVendorName === 'CV. Komputer Cemerlang' ? 'ACCEPTED' : 'PENDING',
-        notes: 'Spesifikasi lengkap sesuai TOR tender.'
-      },
-      {
-        vendorId: 'VEND-04',
-        vendorName: 'PT Mitra Vendor Nusantara',
-        vendorEmail: 'vendor@gmail.com',
-        vendorPhone: '0812-9988-7766',
-        amount: tender.ownerEstimate ? tender.ownerEstimate * 0.96 : 720000000,
-        dateSubmitted: '2024-03-18',
-        warranty: '2 Tahun Garansi Unit',
-        top: 'Net 30 Hari (DP 10%)',
-        delivery: 'Free Delivery',
-        status: tender.winnerVendorName === 'PT Mitra Vendor Nusantara' ? 'ACCEPTED' : 'PENDING',
-        notes: 'Vendor rekanan aktif terverifikasi.'
-      },
-      {
-        vendorId: 'VEND-05',
-        vendorName: 'PT. Global Solusi Mandiri',
-        vendorEmail: 'info@globalsolusi.id',
-        vendorPhone: '0821-4455-8899',
-        amount: tender.highestBid || (tender.ownerEstimate ? tender.ownerEstimate * 1.04 : 785000000),
-        dateSubmitted: '2024-03-19',
-        warranty: '3 Tahun Premier Support',
-        top: 'Net 14 Hari',
-        delivery: 'Gratis Pengiriman',
-        status: 'REVIEWED',
-        notes: 'Paket bundling docking station & aksesoris lengkap.'
-      },
-      {
-        vendorId: 'VEND-06',
-        vendorName: 'PT Daya Sel Elektrika',
-        vendorEmail: 'b2b@dayaselelektrika.co.id',
-        vendorPhone: '0811-9876-5432',
-        amount: 255000000,
-        dateSubmitted: '2026-08-14',
-        warranty: '12 Bulan Ganti Baru',
-        top: 'Net 30 Hari',
-        delivery: 'Franco Marunda',
-        status: tender.winnerVendorName === 'PT Daya Sel Elektrika' ? 'ACCEPTED' : 'REVIEWED',
-        notes: 'Aki GS Astra Hybrid Heavy Duty.'
-      }
+    const realMapped: BidderItem[] = matchingRealBids.map(b => ({
+      vendorId: b.vendorId,
+      vendorName: b.vendorName,
+      vendorEmail: b.vendorEmail || 'vendor@gmail.com',
+      vendorPhone: b.vendorPhone || '0812-0000-0000',
+      amount: b.amount,
+      dateSubmitted: b.dateSubmitted,
+      warranty: b.warranty || '1 Tahun Garansi',
+      top: b.paymentMethod || 'Net 30 Hari',
+      delivery: b.deliveryOption || 'Free Delivery',
+      status: tender.winnerVendorName === b.vendorName ? 'ACCEPTED' : b.status,
+      notes: b.tncNotes || b.internalNotes
+    }));
+
+    const vendorPool = [
+      { name: 'PT Teknologi Maju Bersama', email: 'sales@teknologimaju.com', phone: '0812-3344-5566', ratio: 0.91, notes: 'Penawaran kompetitif & garansi resmi.' },
+      { name: 'PT Mandiri Ban Pratama', email: 'sales@mandiriban.co.id', phone: '0812-8899-2341', ratio: 0.93, notes: 'Distributor resmi Bridgestone & GT.' },
+      { name: 'CV Komputer Cemerlang', email: 'tender@komputercemerlang.co.id', phone: '0813-9988-7766', ratio: 0.94, notes: 'Spesifikasi lengkap sesuai TOR.' },
+      { name: 'PT Mitra Vendor Nusantara', email: 'vendor@gmail.com', phone: '0812-9988-7766', ratio: 0.96, notes: 'Vendor rekanan aktif terverifikasi.' },
+      { name: 'PT Global Solusi Mandiri', email: 'info@globalsolusi.id', phone: '0821-4455-8899', ratio: 1.02, notes: 'Paket bundling dukungan penuh.' },
+      { name: 'PT Daya Sel Elektrika', email: 'b2b@dayaselelektrika.co.id', phone: '0811-9876-5432', ratio: 0.95, notes: 'Suku cadang heavy duty asli.' },
+      { name: 'PT Surya Accu Dinamika', email: 'sales@suryaaccu.co.id', phone: '0812-1122-3344', ratio: 0.97, notes: 'Komponen original pabrik.' },
+      { name: 'CV Utama Sparepart Jaya', email: 'sales@utamasparepart.com', phone: '0813-2233-4455', ratio: 0.98, notes: 'Suku cadang OEM kualitas A.' },
+      { name: 'PT Fleet Guard System', email: 'corporate@fleetguard.co.id', phone: '0815-5566-7788', ratio: 0.99, notes: 'Pelumas & filter standar ISO.' },
+      { name: 'PT Trans Suku Cadang', email: 'procurement@transsukucadang.com', phone: '0817-6677-8899', ratio: 1.01, notes: 'Ready stock pengiriman cepat.' },
+      { name: 'PT Sentosa Bengkel Utama', email: 'service@sentosabengkel.co.id', phone: '0818-7788-9900', ratio: 1.03, notes: 'Servis mekanik tersertifikasi.' },
+      { name: 'PT Astra Otoparts Fleet', email: 'b2b@astraotoparts.co.id', phone: '0819-8899-0011', ratio: 0.92, notes: 'Garansi resmi Astra Otoparts.' },
+      { name: 'PT Bridgestone Tire Distributor', email: 'sales@bridgestonedist.co.id', phone: '0821-9900-1122', ratio: 0.95, notes: 'Distributor utama ban radial.' },
+      { name: 'PT Hino Parts Indonesia', email: 'fleet@hinoparts.co.id', phone: '0822-0011-2233', ratio: 0.96, notes: 'Genuine parts Hino Truck.' },
+      { name: 'CV Nusantara Auto Tech', email: 'info@nusantaraauto.co.id', phone: '0823-1122-3344', ratio: 0.97, notes: 'Paket perawatan armada lengkap.' }
     ];
 
-    let allBidders: BidderItem[] = [];
+    const result: BidderItem[] = [...realMapped];
 
-    if (matchingRealBids.length > 0) {
-      allBidders = matchingRealBids.map(b => ({
-        vendorId: b.vendorId,
-        vendorName: b.vendorName,
-        vendorEmail: b.vendorEmail || 'vendor@gmail.com',
-        vendorPhone: b.vendorPhone || '0812-0000-0000',
-        amount: b.amount,
-        dateSubmitted: b.dateSubmitted,
-        warranty: b.warranty || '1 Tahun Garansi',
-        top: b.paymentMethod || 'Net 30 Hari',
-        delivery: b.deliveryOption || 'Free Delivery',
-        status: tender.winnerVendorName === b.vendorName ? 'ACCEPTED' : b.status,
-        notes: b.tncNotes || b.internalNotes
-      }));
-    } else {
-      allBidders = simulatedBidders.slice(0, Math.max(3, tender.bidsCount || 4));
+    // Add generated bidders until reaching targetCount
+    let poolIndex = 0;
+    while (result.length < targetCount && poolIndex < vendorPool.length) {
+      const v = vendorPool[poolIndex];
+      poolIndex++;
+
+      // Skip if vendor already exists in realMapped
+      if (result.some(item => item.vendorName === v.name || item.vendorEmail === v.email)) {
+        continue;
+      }
+
+      const baseOe = tender.ownerEstimate || 500000000;
+      const calculatedAmount = Math.round(baseOe * v.ratio);
+
+      result.push({
+        vendorId: `VEND-${String(result.length + 1).padStart(2, '0')}`,
+        vendorName: v.name,
+        vendorEmail: v.email,
+        vendorPhone: v.phone,
+        amount: calculatedAmount,
+        dateSubmitted: '2026-08-18',
+        warranty: '1 Tahun Garansi Resmi',
+        top: 'Net 30 Hari',
+        delivery: 'Free Delivery Pool Cakung',
+        status: tender.winnerVendorName === v.name ? 'ACCEPTED' : 'REVIEWED',
+        notes: v.notes
+      });
     }
 
-    if (!isInternal && user) {
-      return allBidders.filter(b => b.vendorEmail === user.email || b.vendorId === user.id);
+    // Ensure winner matches status ACCEPTED if set
+    if (tender.winnerVendorName) {
+      return result.map(b => {
+        if (b.vendorName === tender.winnerVendorName) {
+          return { ...b, status: 'ACCEPTED' };
+        }
+        return b;
+      });
     }
 
-    return allBidders;
+    return result;
   };
 
   const filteredItems = items.filter(item => {
@@ -564,7 +608,7 @@ export default function CatalogKebutuhan({ user, onBiddingClick }: CatalogProps)
               <span className="text-xs text-slate-400 font-medium">OPTIMA Pancaran Group</span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
-              Tender
+              Pengadaan
             </h1>
             <p className="text-slate-500 text-sm mt-0.5">
               {isInternal 
@@ -1089,31 +1133,9 @@ export default function CatalogKebutuhan({ user, onBiddingClick }: CatalogProps)
                                 Diposting: {item.datePosted}
                               </span>
                             </div>
-                          </div>
-
-                          {/* Action for Internal: Setting & Pilih Pemenang & Delete */}
+                          </div>                          {/* Action for Internal: Delete */}
                           {isInternal && (
                             <div className="flex items-center gap-2 mt-2 sm:mt-0 shrink-0">
-                              <button
-                                onClick={() => handleStartEdit(item)}
-                                className="px-4 py-2 bg-amber-50 text-amber-700 border border-amber-200 rounded-xl text-xs font-bold transition-all hover:bg-amber-100 flex items-center gap-2 cursor-pointer"
-                                title="Edit Postingan Tender"
-                              >
-                                <Edit3 className="w-3.5 h-3.5 text-amber-600" />
-                                <span>Edit Tender</span>
-                              </button>
-                              <button
-                                onClick={() => openWinnerSettingModal(item)}
-                                className={`px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-xs flex items-center gap-2 cursor-pointer ${
-                                  hasWinner 
-                                    ? 'bg-slate-100 text-slate-800 border border-slate-300 hover:bg-slate-200' 
-                                    : 'bg-blue-50 text-blue-700 border border-blue-200 hover:bg-blue-100'
-                                }`}
-                                title="Atur penetapan pemenang, ubah status, atau review penawaran tender ini"
-                              >
-                                <Settings className="w-3.5 h-3.5 text-slate-600" />
-                                <span>{hasWinner ? 'Setting / Kelola Tender' : 'Setting & Pilih Pemenang'}</span>
-                              </button>
                               <button
                                 onClick={() => handleDeleteTender(item.id)}
                                 className="p-2 bg-rose-50 text-rose-600 border border-rose-200 rounded-xl hover:bg-rose-100 transition-all cursor-pointer"
@@ -1129,54 +1151,76 @@ export default function CatalogKebutuhan({ user, onBiddingClick }: CatalogProps)
                           {item.description}
                         </p>
 
-                        {/* Specifications & Terms Grid */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                          <div className="bg-blue-50/50 p-4 rounded-2xl border border-blue-100/90">
-                            <h4 className="text-xs font-bold text-blue-900 uppercase tracking-wider mb-2.5 flex items-center">
-                              <List className="w-4 h-4 mr-2 text-blue-600" />
-                              Spesifikasi Detail
-                            </h4>
-                            <ul className="list-disc list-inside text-xs text-slate-700 space-y-1.5 ml-0.5">
-                              {item.specifications?.map((spec, idx) => (
-                                <li key={idx} className="leading-snug">{spec}</li>
-                              ))}
-                            </ul>
-                          </div>
-
-                          <div className="bg-slate-50/80 p-4 rounded-2xl border border-slate-200/90 shadow-2xs space-y-2.5">
-                            <h4 className="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center">
-                              <FileText className="w-4 h-4 mr-2 text-indigo-600" />
-                              Syarat, Ketentuan, Pengiriman & Pajak
-                            </h4>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                              <div className="bg-white p-2.5 rounded-xl border border-slate-200/70">
-                                <span className="text-[10px] font-black text-indigo-600 uppercase tracking-wider block mb-0.5 flex items-center">
-                                  <ShieldCheck className="w-3.5 h-3.5 mr-1 text-indigo-600 shrink-0" /> TNC
-                                </span>
-                                <p className="text-xs font-medium text-slate-800 leading-relaxed">{item.tnc}</p>
-                              </div>
-
-                              <div className="bg-white p-2.5 rounded-xl border border-slate-200/70">
-                                <span className="text-[10px] font-black text-indigo-600 uppercase tracking-wider block mb-0.5 flex items-center">
-                                  <CreditCard className="w-3.5 h-3.5 mr-1 text-indigo-600 shrink-0" /> TOP (Term of Payment)
-                                </span>
-                                <p className="text-xs font-medium text-slate-800 leading-relaxed">{item.top}</p>
-                              </div>
-
-                              <div className="bg-white p-2.5 rounded-xl border border-slate-200/70">
-                                <span className="text-[10px] font-bold text-slate-400 uppercase block mb-0.5 flex items-center">
-                                  <Truck className="w-3.5 h-3.5 mr-1 text-blue-600 shrink-0" /> Pengiriman
-                                </span>
-                                <p className="text-xs font-bold text-slate-800 leading-relaxed">{item.delivery}</p>
-                              </div>
-
-                              <div className="bg-white p-2.5 rounded-xl border border-slate-200/70">
-                                <span className="text-[10px] font-bold text-slate-400 uppercase block mb-0.5 flex items-center">
-                                  <DollarSign className="w-3.5 h-3.5 mr-1 text-emerald-600 shrink-0" /> Pajak
-                                </span>
-                                <p className="text-xs font-bold text-slate-800 leading-relaxed">{item.tax}</p>
-                              </div>
+                        {/* Specifications Detail Table (BOQ) */}
+                        <div className="bg-white rounded-2xl border border-slate-200/90 shadow-2xs overflow-hidden mb-4">
+                          <div className="bg-slate-100/90 px-4 py-2.5 border-b border-slate-200 flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <List className="w-4 h-4 text-blue-600" />
+                              <span className="text-xs font-black text-slate-900 uppercase tracking-wider">
+                                Spesifikasi Detail (Rincian Item Kebutuhan)
+                              </span>
                             </div>
+                            <span className="text-[10px] font-extrabold text-blue-800 bg-blue-100 px-2.5 py-0.5 rounded-full border border-blue-200">
+                              {getSpecTableForItem(item).length} Item
+                            </span>
+                          </div>
+                          <div className="overflow-x-auto">
+                            <table className="w-full text-left text-xs border-collapse">
+                              <thead>
+                                <tr className="bg-slate-50 border-b border-slate-200 text-slate-800 font-bold text-[11px] uppercase tracking-wider">
+                                  <th className="py-2.5 px-3 text-center w-12 border-r border-slate-200/70">No.</th>
+                                  <th className="py-2.5 px-3.5 min-w-[160px] border-r border-slate-200/70">Nama</th>
+                                  <th className="py-2.5 px-3.5 min-w-[180px] border-r border-slate-200/70">Type/Brand</th>
+                                  <th className="py-2.5 px-3 text-center w-16 border-r border-slate-200/70">QTY</th>
+                                  <th className="py-2.5 px-3 text-center w-16 border-r border-slate-200/70">UOM</th>
+                                  <th className="py-2.5 px-3.5 min-w-[180px]">Ket</th>
+                                </tr>
+                              </thead>
+                              <tbody className="divide-y divide-slate-200/70 bg-white">
+                                {getSpecTableForItem(item).map((row) => (
+                                  <tr key={row.no} className="hover:bg-blue-50/40 transition-colors">
+                                    <td className="py-2 px-3 text-center font-bold text-slate-600 border-r border-slate-100 text-[11px]">{row.no}</td>
+                                    <td className="py-2 px-3.5 font-bold text-slate-900 border-r border-slate-100">{row.nama}</td>
+                                    <td className="py-2 px-3.5 text-slate-700 border-r border-slate-100 font-medium">{row.brand}</td>
+                                    <td className="py-2 px-3 text-center font-black text-blue-700 border-r border-slate-100 bg-blue-50/30">{row.qty}</td>
+                                    <td className="py-2 px-3 text-center font-bold text-slate-600 uppercase border-r border-slate-100 text-[10px]">{row.uom}</td>
+                                    <td className="py-2 px-3.5 text-slate-600 text-[11px]">{row.ket}</td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </div>
+                        </div>
+
+                        {/* Terms & Conditions Bar */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+                          <div className="bg-indigo-50/40 p-2.5 rounded-xl border border-indigo-100/80">
+                            <span className="text-[9px] font-black text-indigo-700 uppercase tracking-wider block mb-0.5 flex items-center">
+                              <ShieldCheck className="w-3 h-3 mr-1 text-indigo-600" />
+                              Terms & Conditions
+                            </span>
+                            <p className="text-[11px] font-semibold text-slate-800 leading-snug">{item.tnc}</p>
+                          </div>
+                          <div className="bg-blue-50/40 p-2.5 rounded-xl border border-blue-100/80">
+                            <span className="text-[9px] font-black text-blue-700 uppercase tracking-wider block mb-0.5 flex items-center">
+                              <CreditCard className="w-3 h-3 mr-1 text-blue-600" />
+                              TOP (Term of Payment)
+                            </span>
+                            <p className="text-[11px] font-semibold text-slate-800 leading-snug">{item.top}</p>
+                          </div>
+                          <div className="bg-emerald-50/40 p-2.5 rounded-xl border border-emerald-100/80">
+                            <span className="text-[9px] font-black text-emerald-700 uppercase tracking-wider block mb-0.5 flex items-center">
+                              <Truck className="w-3 h-3 mr-1 text-emerald-600" />
+                              Pengiriman / Lokasi
+                            </span>
+                            <p className="text-[11px] font-semibold text-slate-800 leading-snug">{item.delivery}</p>
+                          </div>
+                          <div className="bg-amber-50/40 p-2.5 rounded-xl border border-amber-100/80">
+                            <span className="text-[9px] font-black text-amber-700 uppercase tracking-wider block mb-0.5 flex items-center">
+                              <DollarSign className="w-3 h-3 mr-1 text-amber-600" />
+                              Ketentuan Pajak
+                            </span>
+                            <p className="text-[11px] font-semibold text-slate-800 leading-snug">{item.tax}</p>
                           </div>
                         </div>
 

@@ -273,7 +273,7 @@ export default function MyVendorCatalog({
             className="px-4 py-2.5 border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-xl text-sm font-semibold transition-colors flex items-center gap-1.5"
           >
             <Eye className="w-4 h-4 text-slate-500" />
-            Lihat Tender
+            Lihat Pengadaan
           </button>
           <button
             onClick={handleOpenAdd}
@@ -549,10 +549,10 @@ export default function MyVendorCatalog({
                     onChange={(e) => setFormData({ ...formData, category: e.target.value as ItemCategory })}
                     className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs font-medium bg-white"
                   >
-                    <option value="BAN">🚚 Ban Truk & Kendaraan</option>
-                    <option value="AKI">⚡ Aki & Kelistrikan</option>
-                    <option value="SPARE_PART">⚙️ Spare Part & Mesin</option>
-                    <option value="JASA">🔧 Jasa & Perawatan Armada</option>
+                    <option value="BAN">🚚 Ban Truk</option>
+                    <option value="AKI">⚡ Aki</option>
+                    <option value="SPARE_PART">⚙️ Spare Part</option>
+                    <option value="JASA">🔧 Jasa</option>
                     <option value="LAINNYA">📦 Lainnya</option>
                   </select>
                 </div>
@@ -570,9 +570,9 @@ export default function MyVendorCatalog({
                 </div>
               </div>
 
-              <div className="grid grid-cols-3 gap-3">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                 <div>
-                  <label className="font-bold text-slate-700 block mb-1">Harga Satuan (Rp) *</label>
+                  <label className="font-bold text-slate-700 block mb-1">Harga (Rp) *</label>
                   <input
                     type="number"
                     required
@@ -608,17 +608,17 @@ export default function MyVendorCatalog({
                     className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs font-bold text-emerald-600"
                   />
                 </div>
-              </div>
 
-              <div>
-                <label className="font-bold text-slate-700 block mb-1">Min. Pemesanan</label>
-                <input
-                  type="number"
-                  min={1}
-                  value={formData.minOrder}
-                  onChange={(e) => setFormData({ ...formData, minOrder: Number(e.target.value) })}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs"
-                />
+                <div>
+                  <label className="font-bold text-slate-700 block mb-1">Min. Order</label>
+                  <input
+                    type="number"
+                    min={1}
+                    value={formData.minOrder}
+                    onChange={(e) => setFormData({ ...formData, minOrder: Number(e.target.value) })}
+                    className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs"
+                  />
+                </div>
               </div>
 
               <ImageUploadInput

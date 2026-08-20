@@ -22,13 +22,13 @@ interface SidebarProps {
 export default function Sidebar({ user, currentView, onChangeView }: SidebarProps) {
   const internalNav = [
     { name: 'Dashboard', id: 'dashboard', icon: LayoutDashboard, badge: 'Overview' },
-    { name: 'Management Tender', id: 'catalog', icon: BookOpen },
+    { name: 'Management Pengadaan', id: 'catalog', icon: BookOpen },
     { name: 'Katalog Vendor & Supplier', id: 'catalog-vendor', icon: ShoppingBag },
     { name: 'Management Akses & Akun', id: 'access', icon: Users },
   ];
 
   const externalNav = [
-    { name: 'Lihat Tender', id: 'catalog-ext', icon: BookOpen },
+    { name: 'Lihat Pengadaan', id: 'catalog-ext', icon: BookOpen },
     { name: 'Posting & Stok Katalog Saya', id: 'my-vendor-catalog', icon: PackagePlus, badge: 'Stok' },
     { name: 'Bidding Saya', id: 'bidding', icon: FileText, badge: 'Riwayat' },
   ];
@@ -38,35 +38,6 @@ export default function Sidebar({ user, currentView, onChangeView }: SidebarProp
 
   return (
     <aside className="w-72 lg:w-80 bg-slate-900 text-white flex flex-col h-full border-r border-slate-800 shrink-0 select-none">
-      {/* Top Sidebar Header / Vendor Info Card */}
-      <div className="p-4 border-b border-slate-800/80 bg-slate-950/40">
-        <div className="flex items-center gap-3">
-          <PancaranLogo size={36} />
-          <div className="min-w-0 flex-1">
-            <div className="text-xs font-bold text-white tracking-wide truncate">
-              {user.companyName || user.name}
-            </div>
-            <div className="flex items-center gap-1.5 mt-0.5">
-              <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                user.role === 'INTERNAL' 
-                  ? 'bg-blue-900/60 text-blue-300 border border-blue-700/50' 
-                  : 'bg-emerald-900/60 text-emerald-300 border border-emerald-700/50'
-              }`}>
-                {user.role === 'INTERNAL' ? (
-                  <>
-                    <Shield className="w-2.5 h-2.5" /> Super Admin
-                  </>
-                ) : (
-                  <>
-                    <CheckCircle2 className="w-2.5 h-2.5" /> Verified Vendor
-                  </>
-                )}
-              </span>
-            </div>
-          </div>
-        </div>
-      </div>
-
       {/* Nav Menu Items */}
       <div className="flex-1 py-5 px-3 space-y-1.5 overflow-y-auto">
         <div className="px-3 mb-3 text-[11px] font-bold text-slate-400 uppercase tracking-wider">

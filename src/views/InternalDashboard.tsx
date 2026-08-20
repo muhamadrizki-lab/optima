@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { 
   Package, 
   FileText, 
@@ -15,7 +15,12 @@ import {
   Info,
   ExternalLink,
   Boxes,
-  X
+  X,
+  Wallet,
+  TrendingUp,
+  CreditCard,
+  DollarSign,
+  CheckCircle
 } from 'lucide-react';
 import { VendorCatalogItem } from '../types';
 import CompanyDetailModal from '../components/CompanyDetailModal';
@@ -46,22 +51,36 @@ export default function InternalDashboard({
   const [externalUsersList, setExternalUsersList] = useState<any[]>([]);
 
   useEffect(() => {
-    // Load Kebutuhan Assets
+    // Load Kebutuhan
     try {
       const savedCatalog = localStorage.getItem('optima_catalog_kebutuhan');
       if (savedCatalog) {
         const parsed = JSON.parse(savedCatalog);
-        if (Array.isArray(parsed)) {
+        if (Array.isArray(parsed) && parsed.length > 0) {
           setTotalKebutuhan(parsed.length);
           setKebutuhanList(parsed);
         }
       } else {
-        // Mock fallback if nothing in local storage yet for modal display purposes
-        setKebutuhanList([
-          { id: 'REQ-001', title: 'Pembaruan Perangkat IT 2024', description: 'Pengadaan 50 Laptop & Aksesoris', status: 'OPEN' },
-          { id: 'REQ-002', title: 'Pengadaan Ban Truk Hino & Fuso', description: 'Radial Tubeless 11.00R20', status: 'OPEN' },
-          { id: 'REQ-003', title: 'Maintenance & Oli Mesin Shell Rimula', description: 'Pelumas Armada Long-Haul', status: 'DRAFT' }
-        ]);
+        // Fallback default list with 1 won tender (REQ-003) for initial display
+        const defaultList = [
+          { id: 'REQ-001', title: 'Pembaruan Perangkat IT 2024', description: 'Pengadaan 50 Laptop & Aksesoris', status: 'OPEN', ownerEstimate: 750000000 },
+          { id: 'REQ-002', title: 'Pemeliharaan AC Tahunan (Service AC)', description: 'Kontrak tahunan service AC', status: 'OPEN', ownerEstimate: 120000000 },
+          { 
+            id: 'REQ-003', 
+            title: 'Pengadaan Ban Radial Truk Tronton 11R22.5 (200 Unit)', 
+            description: 'Pengadaan paket ban radial heavy duty tubeless', 
+            status: 'CLOSED', 
+            winnerVendorName: 'PT Mandiri Ban Pratama', 
+            winnerAmount: 790000000, 
+            winnerDate: '2026-08-16',
+            ownerEstimate: 850000000,
+            winnerNotes: 'Penawaran terbaik dengan rekam jejak terpercaya. PO terbit.'
+          },
+          { id: 'REQ-004', title: 'Pengadaan Aki Truk Heavy Duty 12V 100Ah N100', description: 'Penyediaan baterai aki basah & kering', status: 'OPEN', ownerEstimate: 267000000 },
+          { id: 'REQ-005', title: 'Pengadaan Suku Cadang Kampas Rem & Filter Armada', description: 'Paket suku cadang fast-moving', status: 'OPEN', ownerEstimate: 420000000 }
+        ];
+        setTotalKebutuhan(defaultList.length);
+        setKebutuhanList(defaultList);
       }
     } catch (e) {}
 
@@ -110,6 +129,67 @@ export default function InternalDashboard({
     } catch (e) {}
   }, []);
 
+  // Compute won internal procurements (pengeluaran belanja aktif)
+  const wonItems = useMemo(() => {
+    const list: Array<{
+      id: string;
+      title: string;
+      vendorName: string;
+      amount: number;
+      ownerEstimate: number;
+      date: string;
+      notes?: string;
+    }> = [];
+
+    // From kebutuhanList (tenders that have a winner or closed with winnerAmount)
+    kebutuhanList.forEach((item: any) => {
+      if (item.winnerAmount && Number(item.winnerAmount) > 0) {
+        list.push({
+          id: item.id,
+          title: item.title,
+          vendorName: item.winnerVendorName || 'Vendor Terpilih',
+          amount: Number(item.winnerAmount),
+          ownerEstimate: Number(item.ownerEstimate) || Number(item.winnerAmount),
+          date: item.winnerDate || item.datePosted || '2026-08-16',
+          notes: item.winnerNotes || 'Tender selesai, BAST & PO telah diterbitkan.'
+        });
+      }
+    });
+
+    // From accepted bids in bidsList
+    bidsList.forEach((bid: any) => {
+      if (bid.status === 'ACCEPTED') {
+        const price = Number(bid.price || bid.amount || 0);
+        if (price > 0 && !list.some(l => l.id === bid.reqId || l.title === bid.reqTitle)) {
+          list.push({
+            id: bid.reqId || `REQ-WIN-${bid.id}`,
+            title: bid.reqTitle || 'Pengadaan Logistik Internal',
+            vendorName: bid.vendorName,
+            amount: price,
+            ownerEstimate: price,
+            date: bid.dateSubmitted || 'Terbaru',
+            notes: bid.notes || 'Penawaran disetujui internal.'
+          });
+        }
+      }
+    });
+
+    return list;
+  }, [kebutuhanList, bidsList]);
+
+  // Total Nominal Pengeluaran
+  const totalPengeluaran = useMemo(() => {
+    return wonItems.reduce((acc, curr) => acc + curr.amount, 0);
+  }, [wonItems]);
+
+  const totalOwnerEstimateWon = useMemo(() => {
+    return wonItems.reduce((acc, curr) => acc + (curr.ownerEstimate || curr.amount), 0);
+  }, [wonItems]);
+
+  const totalPenghematan = useMemo(() => {
+    return Math.max(0, totalOwnerEstimateWon - totalPengeluaran);
+  }, [totalOwnerEstimateWon, totalPengeluaran]);
+
   // Hitung jumlah jenis barang external (SKU / Ragam item unik, bukan total qty unit)
   const items = vendorCatalogItems && vendorCatalogItems.length > 0 ? vendorCatalogItems : INITIAL_VENDOR_CATALOG;
   const totalJenisBarangExternal = items.length;
@@ -123,10 +203,9 @@ export default function InternalDashboard({
 
   // Rekanan & Brand unik
   const uniqueVendors = new Set(items.map(i => i.vendorName)).size;
-  const uniqueBrands = new Set(items.map(i => i.brand).filter(Boolean)).size;
 
   // Dapatkan daftar rekanan vendor & supplier unik dari katalog
-  const uniqueVendorList = React.useMemo(() => {
+  const uniqueVendorList = useMemo(() => {
     const seen = new Set<string>();
     const list: typeof items = [];
     for (const item of items) {
@@ -140,7 +219,7 @@ export default function InternalDashboard({
 
   const stats = [
     { 
-      name: 'Total Kebutuhan Assets', 
+      name: 'Total Kebutuhan', 
       value: totalKebutuhan.toString(), 
       detail: 'Pengadaan aktif internal',
       icon: Package, 
@@ -160,14 +239,25 @@ export default function InternalDashboard({
       actionView: 'catalog'
     },
     { 
+      name: 'Total Pengeluaran Belanja', 
+      value: totalPengeluaran > 0 ? `Rp ${(totalPengeluaran / 1000000).toLocaleString('id-ID')} Jt` : 'Rp 0',
+      fullValue: `Rp ${totalPengeluaran.toLocaleString('id-ID')}`,
+      detail: `${wonItems.length} Pengadaan Menang/PO`,
+      highlight: true,
+      icon: Wallet, 
+      color: 'text-emerald-700', 
+      bg: 'bg-emerald-50', 
+      border: 'border-emerald-300 ring-2 ring-emerald-500/15 shadow-xs',
+      actionView: 'catalog'
+    },
+    { 
       name: 'Jenis Barang External', 
       value: `${totalJenisBarangExternal} Jenis`, 
       detail: 'Ragam SKU katalog (Bukan Qty)',
-      highlight: true,
       icon: Layers, 
       color: 'text-indigo-600', 
       bg: 'bg-indigo-50', 
-      border: 'border-indigo-200 ring-2 ring-indigo-500/10',
+      border: 'border-indigo-100',
       actionView: 'catalog-vendor'
     },
     { 
@@ -193,11 +283,11 @@ export default function InternalDashboard({
   ];
 
   const categoryBreakdown = [
-    { label: 'Spare Part & Suku Cadang', count: jenisSparePart, icon: Package, color: 'bg-blue-600', textColor: 'text-blue-700', bgSoft: 'bg-blue-50' },
-    { label: 'Ban Truk & Kendaraan', count: jenisBan, icon: Disc, color: 'bg-amber-600', textColor: 'text-amber-700', bgSoft: 'bg-amber-50' },
-    { label: 'Aki & Kelistrikan Armada', count: jenisAki, icon: Zap, color: 'bg-emerald-600', textColor: 'text-emerald-700', bgSoft: 'bg-emerald-50' },
-    { label: 'Jasa & Perawatan Armada', count: jenisJasa, icon: Wrench, color: 'bg-purple-600', textColor: 'text-purple-700', bgSoft: 'bg-purple-50' },
-    ...(jenisLainnya > 0 ? [{ label: 'IT & Kebutuhan Lainnya', count: jenisLainnya, icon: Boxes, color: 'bg-slate-600', textColor: 'text-slate-700', bgSoft: 'bg-slate-50' }] : []),
+    { label: 'Spare Part', count: jenisSparePart, icon: Package, color: 'bg-blue-600', textColor: 'text-blue-700', bgSoft: 'bg-blue-50' },
+    { label: 'Ban Truk', count: jenisBan, icon: Disc, color: 'bg-amber-600', textColor: 'text-amber-700', bgSoft: 'bg-amber-50' },
+    { label: 'Aki', count: jenisAki, icon: Zap, color: 'bg-emerald-600', textColor: 'text-emerald-700', bgSoft: 'bg-emerald-50' },
+    { label: 'Jasa', count: jenisJasa, icon: Wrench, color: 'bg-purple-600', textColor: 'text-purple-700', bgSoft: 'bg-purple-50' },
+    ...(jenisLainnya > 0 ? [{ label: 'IT', count: jenisLainnya, icon: Boxes, color: 'bg-slate-600', textColor: 'text-slate-700', bgSoft: 'bg-slate-50' }] : []),
   ];
 
   return (
@@ -227,29 +317,168 @@ export default function InternalDashboard({
         )}
       </div>
 
-      {/* 5 Top Stat Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+      {/* Top Stat Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
         {stats.map((stat, idx) => {
           const Icon = stat.icon;
           return (
             <div 
               key={idx} 
               onClick={() => setSelectedStat(stat)}
-              className={`bg-white rounded-2xl shadow-sm border ${stat.border} p-5 flex flex-col justify-between transition-all hover:shadow-md cursor-pointer hover:border-slate-300`}
+              className={`bg-white rounded-2xl shadow-sm border ${stat.border} p-4 flex flex-col justify-between transition-all hover:shadow-md cursor-pointer hover:border-slate-300`}
             >
-              <div className="flex items-start justify-between mb-3">
-                <span className="text-xs font-bold text-slate-500 line-clamp-1">{stat.name}</span>
-                <div className={`p-2.5 rounded-xl ${stat.bg} ${stat.color} shrink-0`}>
-                  <Icon className="w-5 h-5" />
+              <div className="flex items-start justify-between mb-2.5">
+                <span className="text-[11px] font-bold text-slate-500 line-clamp-1">{stat.name}</span>
+                <div className={`p-2 rounded-xl ${stat.bg} ${stat.color} shrink-0`}>
+                  <Icon className="w-4 h-4" />
                 </div>
               </div>
               <div>
-                <p className="text-2xl font-black text-slate-900 tracking-tight">{stat.value}</p>
-                <p className="text-[11px] text-slate-400 font-medium mt-1">{stat.detail}</p>
+                <p className="text-xl font-black text-slate-900 tracking-tight">{stat.value}</p>
+                <p className="text-[10px] text-slate-400 font-medium mt-1 truncate">{stat.detail}</p>
               </div>
             </div>
           );
         })}
+      </div>
+
+      {/* Dedicated Section: Dashboard & Tracker Pengeluaran Belanja Internal */}
+      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-5">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-slate-100">
+          <div className="flex items-center gap-3">
+            <div className="p-3 bg-emerald-50 text-emerald-700 rounded-2xl border border-emerald-100 shrink-0">
+              <Wallet className="w-6 h-6" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h2 className="text-lg font-black text-slate-900">Dashboard Realisasi Pengeluaran Belanja Internal</h2>
+                <span className="px-2.5 py-0.5 text-[10px] font-bold rounded-full bg-emerald-100 text-emerald-800 uppercase tracking-wide">
+                  Otomatis Terkalkulasi
+                </span>
+              </div>
+              <p className="text-xs text-slate-500 mt-0.5">
+                Akumulasi belanja pengadaan barang & jasa internal yang telah menetapkan vendor pemenang dan menerbitkan PO.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3 self-start md:self-auto">
+            <div className="bg-slate-50 px-3.5 py-2 rounded-xl border border-slate-200 text-right">
+              <span className="text-[10px] font-bold text-slate-400 uppercase block">Total Pengeluaran Realisasi</span>
+              <span className="text-lg font-black text-emerald-700">Rp {totalPengeluaran.toLocaleString('id-ID')}</span>
+            </div>
+          </div>
+        </div>
+
+        {/* 3 Summary Financial Metric Pill Boxes */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="bg-emerald-50/60 p-4 rounded-xl border border-emerald-100 flex items-center gap-3">
+            <div className="p-2.5 bg-emerald-600 text-white rounded-xl shadow-xs">
+              <CreditCard className="w-5 h-5" />
+            </div>
+            <div>
+              <p className="text-[11px] font-bold text-emerald-800 uppercase">Total Realisasi Belanja (PO)</p>
+              <p className="text-lg font-black text-slate-900">Rp {totalPengeluaran.toLocaleString('id-ID')}</p>
+              <p className="text-[10px] text-emerald-700 font-medium">Dari {wonItems.length} tender menang aktif</p>
+            </div>
+          </div>
+
+          <div className="bg-blue-50/60 p-4 rounded-xl border border-blue-100 flex items-center gap-3">
+            <div className="p-2.5 bg-blue-600 text-white rounded-xl shadow-xs">
+              <DollarSign className="w-5 h-5" />
+            </div>
+            <div>
+              <p className="text-[11px] font-bold text-blue-800 uppercase">Estimasi OE Internal</p>
+              <p className="text-lg font-black text-slate-900">Rp {totalOwnerEstimateWon.toLocaleString('id-ID')}</p>
+              <p className="text-[10px] text-blue-700 font-medium">Pagu anggaran internal disiapkan</p>
+            </div>
+          </div>
+
+          <div className="bg-amber-50/60 p-4 rounded-xl border border-amber-100 flex items-center gap-3">
+            <div className="p-2.5 bg-amber-600 text-white rounded-xl shadow-xs">
+              <TrendingUp className="w-5 h-5" />
+            </div>
+            <div>
+              <p className="text-[11px] font-bold text-amber-800 uppercase">Efisiensi / Penghematan Anggaran</p>
+              <p className="text-lg font-black text-amber-900">Rp {totalPenghematan.toLocaleString('id-ID')}</p>
+              <p className="text-[10px] text-amber-700 font-medium">
+                {totalOwnerEstimateWon > 0 ? `${Math.round((totalPenghematan / totalOwnerEstimateWon) * 100)}% hemat dari OE` : '0% penghematan'}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* List Table of Won Procurement Items */}
+        <div className="space-y-3 pt-1">
+          <div className="flex items-center justify-between">
+            <h3 className="text-xs font-bold text-slate-700 uppercase tracking-wider">
+              Rincian Pengadaan Aktif Terkontrak (Selesai Bidding)
+            </h3>
+            {onNavigate && (
+              <button 
+                onClick={() => onNavigate('catalog')}
+                className="text-xs font-bold text-blue-600 hover:underline flex items-center gap-1"
+              >
+                <span>Lihat Semua Katalog Kebutuhan</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </button>
+            )}
+          </div>
+
+          {wonItems.length === 0 ? (
+            <div className="p-8 text-center bg-slate-50 rounded-xl border border-dashed border-slate-200">
+              <p className="text-xs font-semibold text-slate-500">Belum ada tender yang dimenangkan / disetujui PO.</p>
+              <p className="text-[11px] text-slate-400 mt-1">Pilih pemenang tender di halaman Catalog Kebutuhan untuk mengkalkulasi pengeluaran otomatis.</p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto rounded-xl border border-slate-200/80">
+              <table className="w-full text-left text-xs">
+                <thead>
+                  <tr className="bg-slate-100/80 border-b border-slate-200 text-slate-700 font-bold uppercase text-[11px]">
+                    <th className="py-3 px-3.5">ID & Nama Pengadaan</th>
+                    <th className="py-3 px-3.5">Vendor / Rekanan Menang</th>
+                    <th className="py-3 px-3.5 text-right">Penawaran Menang</th>
+                    <th className="py-3 px-3.5 text-right">Pagu OE Internal</th>
+                    <th className="py-3 px-3.5 text-center">Status PO</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-200/70 bg-white">
+                  {wonItems.map((won, idx) => (
+                    <tr key={idx} className="hover:bg-slate-50/70 transition-colors">
+                      <td className="py-3 px-3.5">
+                        <div className="font-bold text-slate-900">{won.title}</div>
+                        <div className="text-[11px] text-slate-400 font-mono">{won.id} • Tanggal: {won.date}</div>
+                      </td>
+                      <td className="py-3 px-3.5">
+                        <div 
+                          onClick={() => setSelectedCompanyModal(won.vendorName)}
+                          className="font-bold text-blue-600 hover:underline cursor-pointer flex items-center gap-1"
+                          title="Klik untuk lihat profil PT"
+                        >
+                          <span>{won.vendorName}</span>
+                          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                        </div>
+                        <div className="text-[11px] text-slate-400 truncate max-w-[200px]">{won.notes}</div>
+                      </td>
+                      <td className="py-3 px-3.5 text-right font-black text-emerald-700 text-sm">
+                        Rp {won.amount.toLocaleString('id-ID')}
+                      </td>
+                      <td className="py-3 px-3.5 text-right font-medium text-slate-500">
+                        {won.ownerEstimate > 0 ? `Rp ${won.ownerEstimate.toLocaleString('id-ID')}` : '-'}
+                      </td>
+                      <td className="py-3 px-3.5 text-center">
+                        <span className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-bold rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200">
+                          <CheckCircle className="w-3 h-3" />
+                          <span>TERBIT PO / MENANG</span>
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Stat Detail Modal Popup */}
@@ -278,7 +507,9 @@ export default function InternalDashboard({
               <div className="flex items-center justify-between bg-slate-50 p-4 rounded-2xl border border-slate-200/70">
                 <div>
                   <p className="text-xs text-slate-500 font-semibold">Total Nilai / Kuantitas Terdata</p>
-                  <p className="text-3xl font-black text-slate-900 mt-0.5">{selectedStat.value}</p>
+                  <p className="text-3xl font-black text-slate-900 mt-0.5">
+                    {selectedStat.fullValue || selectedStat.value}
+                  </p>
                 </div>
                 <div className="text-right">
                   <p className="text-xs text-slate-500 font-semibold">Keterangan Status</p>
@@ -289,7 +520,38 @@ export default function InternalDashboard({
               <div>
                 <h4 className="text-sm font-bold text-slate-800 mb-3">Rincian Informasi & Data Terkait:</h4>
                 <div className="space-y-2.5">
-                  {selectedStat.name === 'Total Kebutuhan Assets' && (
+                  {selectedStat.name === 'Total Pengeluaran Belanja' && (
+                    <>
+                      {wonItems.length === 0 ? (
+                        <p className="text-xs text-slate-500 text-center py-4">Belum ada pengadaan menang terdata.</p>
+                      ) : (
+                        wonItems.map((won, idx) => (
+                          <div key={idx} className="p-3.5 bg-slate-50 rounded-xl border border-slate-200/60 flex items-center justify-between gap-3">
+                            <div>
+                              <p className="text-xs font-bold text-slate-800">{won.title}</p>
+                              <p 
+                                onClick={() => {
+                                  setSelectedStat(null);
+                                  setSelectedCompanyModal(won.vendorName);
+                                }}
+                                className="text-[11px] text-blue-600 font-semibold hover:underline cursor-pointer"
+                              >
+                                {won.vendorName} • {won.id}
+                              </p>
+                            </div>
+                            <div className="text-right shrink-0">
+                              <p className="text-xs font-black text-emerald-700">Rp {won.amount.toLocaleString('id-ID')}</p>
+                              <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                                TERBIT PO
+                              </span>
+                            </div>
+                          </div>
+                        ))
+                      )}
+                    </>
+                  )}
+
+                  {selectedStat.name === 'Total Kebutuhan' && (
                     <>
                       {kebutuhanList.map((item, idx) => (
                         <div key={idx} className="p-3.5 bg-slate-50 rounded-xl border border-slate-200/60 flex items-center justify-between">
@@ -479,17 +741,7 @@ export default function InternalDashboard({
             </div>
           </div>
 
-          {/* Quick Metrics Footer */}
-          <div className="mt-6 pt-4 border-t border-slate-100 grid grid-cols-2 gap-3 text-center">
-            <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
-              <p className="text-[11px] text-slate-500 font-semibold">Brand / Pabrikan Terdaftar</p>
-              <p className="text-base font-bold text-slate-800">{uniqueBrands} Brand Ternama</p>
-            </div>
-            <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
-              <p className="text-[11px] text-slate-500 font-semibold">Vendor & Supplier Aktif</p>
-              <p className="text-base font-bold text-slate-800">{uniqueVendors} Mitra Pengisi Katalog</p>
-            </div>
-          </div>
+
         </div>
 
         {/* Right Column: Total Supplier & Vendor & Catalog Preview */}
