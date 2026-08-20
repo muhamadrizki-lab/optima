@@ -394,11 +394,17 @@ export default function MyVendorCatalog({
 
                       {/* Category */}
                       <td className="px-4 py-4 whitespace-nowrap">
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-100">
-                          {item.category === 'BAN' && <Disc className="w-3 h-3" />}
-                          {item.category === 'AKI' && <Zap className="w-3 h-3" />}
-                          {item.category === 'SPARE_PART' && <Package className="w-3 h-3" />}
-                          {item.category === 'JASA' && <Wrench className="w-3 h-3" />}
+                        <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold border ${
+                          item.category === 'BAN' ? 'bg-blue-100 text-blue-800 border-blue-300' :
+                          item.category === 'AKI' ? 'bg-amber-100 text-amber-900 border-amber-300' :
+                          item.category === 'SPARE_PART' ? 'bg-purple-100 text-purple-800 border-purple-300' :
+                          item.category === 'JASA' ? 'bg-emerald-100 text-emerald-800 border-emerald-300' :
+                          'bg-slate-100 text-slate-700 border-slate-300'
+                        }`}>
+                          {item.category === 'BAN' && <Disc className="w-3 h-3 text-blue-700" />}
+                          {item.category === 'AKI' && <Zap className="w-3 h-3 text-amber-700" />}
+                          {item.category === 'SPARE_PART' && <Package className="w-3 h-3 text-purple-700" />}
+                          {item.category === 'JASA' && <Wrench className="w-3 h-3 text-emerald-700" />}
                           {item.categoryLabel}
                         </span>
                       </td>

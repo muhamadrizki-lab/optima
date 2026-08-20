@@ -168,6 +168,12 @@ export default function CatalogVendor({
     return count;
   };
 
+  const isLastRowOfCompany = (index: number) => {
+    const current = sortedTableItems[index]?.companyName;
+    const next = sortedTableItems[index + 1]?.companyName;
+    return current !== next;
+  };
+
   const handleOpenFormModal = (item?: VendorCatalogItem) => {
     if (item) {
       setEditingItem(item);
@@ -639,42 +645,53 @@ export default function CatalogVendor({
                   <th className="py-3.5 px-3 text-center min-w-[110px]">AKSI</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-200/70">
+              <tbody className="bg-white">
                 {sortedTableItems.map((item, index) => {
                   const isMyPost = user?.id === item.vendorId || (user?.email && item.vendorEmail === user.email);
+                  const companySpan = getCompanyRowSpan(index);
+                  const isLastRow = isLastRowOfCompany(index);
 
                   return (
                     <tr 
                       key={item.id} 
-                      className="hover:bg-blue-50/40 transition-colors group"
+                      className={`hover:bg-blue-50/40 transition-colors group ${
+                        isLastRow 
+                          ? 'border-b-[3px] border-slate-400/80' 
+                          : 'border-b border-slate-200/70'
+                      }`}
                     >
                       {/* 1. NO. */}
                       <td className="py-3.5 px-3 text-center font-bold text-slate-600 text-xs border-r border-slate-100">
                         {index + 1}
                       </td>
 
-                      {/* 2. NAMA PT */}
-                      <td className="py-3.5 px-4 border-r border-slate-100 text-center font-bold text-slate-900 bg-slate-50/40">
-                        <div className="flex items-center justify-center gap-1.5 p-1">
-                          <span 
-                            onClick={() => setSelectedCompanyModal(item.companyName)}
-                            className="hover:text-blue-600 hover:underline cursor-pointer font-bold text-slate-900 text-xs"
-                            title="Lihat profil perusahaan"
-                          >
-                            {item.companyName}
-                          </span>
-                          <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" title="Terverifikasi" />
-                        </div>
-                      </td>
+                      {/* 2. NAMA PT (RowSpan merged for repeating company names) */}
+                      {companySpan > 0 && (
+                        <td 
+                          rowSpan={companySpan}
+                          className="py-3.5 px-4 border-r border-slate-200/90 text-center font-bold text-slate-900 bg-slate-50/80 align-middle shadow-2xs"
+                        >
+                          <div className="flex items-center justify-center gap-1.5 p-1">
+                            <span 
+                              onClick={() => setSelectedCompanyModal(item.companyName)}
+                              className="hover:text-blue-600 hover:underline cursor-pointer font-bold text-slate-900 text-xs leading-snug"
+                              title="Lihat profil perusahaan"
+                            >
+                              {item.companyName}
+                            </span>
+                            <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" title="Terverifikasi" />
+                          </div>
+                        </td>
+                      )}
 
                       {/* 3. KATEGORI */}
                       <td className="py-3.5 px-3 border-r border-slate-100 text-center">
-                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
-                          item.category === 'BAN' ? 'bg-blue-100 text-blue-800' :
-                          item.category === 'AKI' ? 'bg-amber-100 text-amber-800' :
-                          item.category === 'SPARE_PART' ? 'bg-purple-100 text-purple-800' :
-                          item.category === 'JASA' ? 'bg-indigo-100 text-indigo-800' :
-                          'bg-slate-100 text-slate-700'
+                        <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold border ${
+                          item.category === 'BAN' ? 'bg-blue-100 text-blue-800 border-blue-300' :
+                          item.category === 'AKI' ? 'bg-amber-100 text-amber-900 border-amber-300' :
+                          item.category === 'SPARE_PART' ? 'bg-purple-100 text-purple-800 border-purple-300' :
+                          item.category === 'JASA' ? 'bg-emerald-100 text-emerald-800 border-emerald-300' :
+                          'bg-slate-100 text-slate-700 border-slate-300'
                         }`}>
                           {item.categoryLabel}
                         </span>
@@ -1015,7 +1032,13 @@ export default function CatalogVendor({
                   }`}>
                     {selectedItemDetail.vendorType === 'SUPPLIER' ? 'Supplier Barang' : 'Vendor Jasa'}
                   </span>
-                  <span className="text-xs text-slate-600 font-semibold bg-slate-200/60 px-2 py-0.5 rounded-full border border-slate-300">
+                  <span className={`text-xs font-bold px-2.5 py-0.5 rounded-full border ${
+                    selectedItemDetail.category === 'BAN' ? 'bg-blue-100 text-blue-800 border-blue-300' :
+                    selectedItemDetail.category === 'AKI' ? 'bg-amber-100 text-amber-900 border-amber-300' :
+                    selectedItemDetail.category === 'SPARE_PART' ? 'bg-purple-100 text-purple-800 border-purple-300' :
+                    selectedItemDetail.category === 'JASA' ? 'bg-emerald-100 text-emerald-800 border-emerald-300' :
+                    'bg-slate-100 text-slate-700 border-slate-300'
+                  }`}>
                     {selectedItemDetail.categoryLabel}
                   </span>
                 </div>
