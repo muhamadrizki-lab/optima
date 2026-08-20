@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import { AccessDetail, Role, VendorType } from '../types';
+import CompanyDetailModal from '../components/CompanyDetailModal';
 import { Users, UserPlus, Shield, CheckCircle, XCircle, X } from 'lucide-react';
 
 export default function ManagementAkses() {
   const [activeTab, setActiveTab] = useState<'INTERNAL' | 'EXTERNAL'>('INTERNAL');
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedCompanyModal, setSelectedCompanyModal] = useState<string | null>(null);
 
   const [users, setUsers] = useState<AccessDetail[]>(() => {
     try {
@@ -136,7 +138,13 @@ export default function ManagementAkses() {
               {filteredUsers.map((user) => (
                 <tr key={user.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-medium text-gray-900">{user.name}</div>
+                    <div 
+                      onClick={() => setSelectedCompanyModal(user.name)}
+                      className="text-sm font-bold text-gray-900 hover:text-blue-600 hover:underline cursor-pointer"
+                      title="Klik untuk melihat Detail Pop-Up Data Perusahaan / PT"
+                    >
+                      {user.name}
+                    </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm text-gray-500">{user.email}</div>
@@ -305,6 +313,13 @@ export default function ManagementAkses() {
           </div>
         </div>
       )}
+
+      {/* Pop Up Detail Company Modal */}
+      <CompanyDetailModal
+        companyName={selectedCompanyModal}
+        isOpen={Boolean(selectedCompanyModal)}
+        onClose={() => setSelectedCompanyModal(null)}
+      />
     </div>
   );
 }

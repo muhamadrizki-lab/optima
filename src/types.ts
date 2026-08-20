@@ -94,8 +94,10 @@ export interface VendorCatalogItem {
   price: number;
   unit: string;
   stock: number;
-  minOrder: number;
+  minOrder?: number;
   condition: 'BARU' | 'REKONDISI' | 'LAYANAN';
+  availabilityType?: 'READY' | 'PREORDER' | 'INDENT';
+  top?: string;
   description: string;
   specifications: string[];
   imageUrl: string;

@@ -40,10 +40,12 @@ export default function MyVendorCatalog({
   onDeleteItem,
   onBrowseAllCatalog
 }: MyVendorCatalogProps) {
-  // Filter only items belonging to this vendor or user
-  const myItems = items.filter(
-    (item) => item.vendorId === user.id || item.vendorEmail === user.email || item.vendorName === user.companyName
-  );
+  // Filter only items belonging to this vendor or user (or show all if user is INTERNAL)
+  const myItems = user?.role === 'INTERNAL'
+    ? items
+    : items.filter(
+        (item) => item.vendorId === user.id || item.vendorEmail === user.email || (user.companyName && item.vendorName === user.companyName)
+      );
 
   const [searchQuery, setSearchQuery] = useState('');
   const [editingPriceId, setEditingPriceId] = useState<string | null>(null);
@@ -166,12 +168,13 @@ export default function MyVendorCatalog({
         category: formData.category,
         categoryLabel: getCatLabel(formData.category),
         brand: formData.brand,
-        partNumber: formData.partNumber,
         price: Number(formData.price),
         unit: formData.unit,
         stock: Number(formData.stock),
-        minOrder: Number(formData.minOrder),
+        minOrder: 1,
         condition: formData.condition,
+        availabilityType: formData.availabilityType,
+        top: formData.top,
         description: formData.description,
         specifications: specsArray,
         warranty: formData.warranty,
@@ -193,13 +196,14 @@ export default function MyVendorCatalog({
         category: formData.category,
         categoryLabel: getCatLabel(formData.category),
         title: formData.title,
-        partNumber: formData.partNumber,
         brand: formData.brand,
         price: Number(formData.price),
         unit: formData.unit,
         stock: Number(formData.stock),
-        minOrder: Number(formData.minOrder),
+        minOrder: 1,
         condition: formData.condition,
+        availabilityType: formData.availabilityType,
+        top: formData.top,
         description: formData.description,
         specifications: specsArray,
         warranty: formData.warranty,
@@ -488,9 +492,7 @@ export default function MyVendorCatalog({
                           </button>
                           <button
                             onClick={() => {
-                              if (confirm(`Yakin ingin menghapus ${item.title} dari katalog?`)) {
-                                onDeleteItem(item.id);
-                              }
+                              onDeleteItem(item.id);
                             }}
                             className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                             title="Hapus"

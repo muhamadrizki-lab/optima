@@ -18,6 +18,7 @@ import {
   X
 } from 'lucide-react';
 import { VendorCatalogItem } from '../types';
+import CompanyDetailModal from '../components/CompanyDetailModal';
 import { INITIAL_VENDOR_CATALOG } from '../data/vendorCatalogData';
 import { INITIAL_BIDS_DATA } from '../data/biddingData';
 
@@ -31,6 +32,7 @@ export default function InternalDashboard({
   onNavigate 
 }: InternalDashboardProps) {
   const [selectedStat, setSelectedStat] = useState<any>(null);
+  const [selectedCompanyModal, setSelectedCompanyModal] = useState<string | null>(null);
   
   const [totalKebutuhan, setTotalKebutuhan] = useState(5);
   const [kebutuhanList, setKebutuhanList] = useState<any[]>([]);
@@ -295,7 +297,13 @@ export default function InternalDashboard({
                       {bidsList.map((bid, idx) => (
                         <div key={idx} className="p-3.5 bg-slate-50 rounded-xl border border-slate-200/60 flex items-center justify-between">
                           <div>
-                            <p className="text-xs font-bold text-slate-800">{bid.vendorName}</p>
+                            <p 
+                              onClick={() => setSelectedCompanyModal(bid.vendorName)}
+                              className="text-xs font-bold text-slate-800 hover:text-blue-600 hover:underline cursor-pointer"
+                              title="Klik untuk melihat Detail Pop-Up Data Perusahaan / PT"
+                            >
+                              {bid.vendorName}
+                            </p>
                             <p className="text-[11px] text-slate-500">{bid.reqTitle}: Rp {bid.price?.toLocaleString('id-ID')}</p>
                           </div>
                           <span className={`px-2.5 py-1 text-xs font-bold rounded-lg border ${bid.status === 'ACCEPTED' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : bid.status === 'REJECTED' ? 'bg-rose-50 text-rose-700 border-rose-200' : bid.status === 'NEGOTIATION' ? 'bg-amber-50 text-amber-700 border-amber-200' : 'bg-blue-50 text-blue-700 border-blue-200'}`}>
@@ -559,6 +567,13 @@ export default function InternalDashboard({
         </div>
 
       </div>
+
+      {/* Pop Up Detail Company Modal */}
+      <CompanyDetailModal
+        companyName={selectedCompanyModal}
+        isOpen={Boolean(selectedCompanyModal)}
+        onClose={() => setSelectedCompanyModal(null)}
+      />
     </div>
   );
 }

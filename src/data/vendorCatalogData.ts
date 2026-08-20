@@ -28,7 +28,7 @@ export const INITIAL_VENDOR_CATALOG: VendorCatalogItem[] = [
       'Casing kokoh siap vulkanisir ulang (retreadable)',
       'Standar SNI & ISO 9001:2015'
     ],
-    imageUrl: 'https://images.unsplash.com/photo-1578844251758-2f71da64c96f?auto=format&fit=crop&w=800&q=80',
+    imageUrl: 'https://lh3.googleusercontent.com/d/1qBiOhku79gdPaOPdqdepfyQsy5-wRpWj=w800',
     warranty: 'Garansi Pabrik 12 Bulan / 50.000 KM',
     deliveryInfo: 'Ready stock Gudang Cakung & Cikarang. Pengiriman 1x24 jam area Jabodetabek.',
     location: 'Jakarta Timur / Bekasi',
@@ -60,7 +60,7 @@ export const INITIAL_VENDOR_CATALOG: VendorCatalogItem[] = [
       'Pola alur rib-lug memberikan traksi mantap dan daya rem kuat',
       'Sudah include flap dan ban dalam genuine GT'
     ],
-    imageUrl: 'https://images.unsplash.com/photo-1549490349-8643362247b5?auto=format&fit=crop&w=800&q=80',
+    imageUrl: 'https://lh3.googleusercontent.com/d/1idR9iTwN5eqbYJUgsszvZ0U9VRjcGJjj=w800',
     warranty: 'Garansi resmi GT 6 Bulan dari cacat produksi',
     deliveryInfo: 'Armada delivery gratis min. pembelian 10 set area DKI & Banten.',
     location: 'Tangerang, Banten',
@@ -89,10 +89,10 @@ export const INITIAL_VENDOR_CATALOG: VendorCatalogItem[] = [
     specifications: [
       'Ukuran: 295/80 R 22.5',
       'InfiniCoil Technology (Steel wire continuous reinforcement)',
-      'Rolling Resistance sangat rendah, menurunkan konsumsi solar',
+      'Rolling Resistance sangat rendah, lowering solar consumption',
       'Sangat tahan panas untuk operasional 24 jam non-stop'
     ],
-    imageUrl: 'https://images.unsplash.com/photo-1580273916550-e323be2ae537?auto=format&fit=crop&w=800&q=80',
+    imageUrl: 'https://lh3.googleusercontent.com/d/1Ok7UtidBO2N38Iki6ir6NM8AFy-WNrQx=w800',
     warranty: 'Garansi Resmi Michelin Indonesia 18 Bulan',
     deliveryInfo: 'Pengiriman langsung dari Main Hub Cileungsi.',
     location: 'Bogor / Jakarta',
@@ -126,7 +126,7 @@ export const INITIAL_VENDOR_CATALOG: VendorCatalogItem[] = [
       'Dimensi: 410 x 176 x 233 mm',
       'Plat timah berkadar kemurnian 99.99% tahan getaran mesin diesel'
     ],
-    imageUrl: 'https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?auto=format&fit=crop&w=800&q=80',
+    imageUrl: 'https://lh3.googleusercontent.com/d/11zkB8PwK5d6Q8nQbNb1PM0u5OY5B8q6Z=w800',
     warranty: 'Garansi resmi 6 Bulan / 20.000 KM',
     deliveryInfo: 'Siap kirim via kurir logistik khusus bahan kimia/aki. Packing kayu aman.',
     location: 'Jakarta Barat',
@@ -158,7 +158,7 @@ export const INITIAL_VENDOR_CATALOG: VendorCatalogItem[] = [
       'Magic Eye Indicator untuk cek kesehatan baterai instan',
       'Anti-spill & Anti-explosion filter terpasang'
     ],
-    imageUrl: 'https://images.unsplash.com/photo-1599819811279-d5ad9cccf838?auto=format&fit=crop&w=800&q=80',
+    imageUrl: 'https://lh3.googleusercontent.com/d/1C0Zg2prSZZYuOgcNa5W3qw1c0LAJDuKj=w800',
     warranty: 'Garansi Ganti Baru 12 Bulan',
     deliveryInfo: 'Tersedia layanan antar pasang pool area Jakarta.',
     location: 'Jakarta Pusat',
@@ -189,7 +189,7 @@ export const INITIAL_VENDOR_CATALOG: VendorCatalogItem[] = [
       'Tinggi daya cranking untuk starter mesin besar >10.000cc',
       'Casing reinforced polypropylene tahan panas ruang mesin'
     ],
-    imageUrl: 'https://images.unsplash.com/photo-1563720223185-11003d516935?auto=format&fit=crop&w=800&q=80',
+    imageUrl: 'https://lh3.googleusercontent.com/d/1pdlNZ1QcBLIZK58N6pDnuXKOS-Fqus-d=w800',
     warranty: 'Garansi Resmi Yuasa 6 Bulan',
     deliveryInfo: 'Stok tersedia di gudang Sunter.',
     location: 'Jakarta Utara',
@@ -223,7 +223,7 @@ export const INITIAL_VENDOR_CATALOG: VendorCatalogItem[] = [
       'Sudah termasuk rivet paku keling standar Hino',
       'Daya tahan rata-rata: 60.000 - 80.000 KM operasional'
     ],
-    imageUrl: 'https://images.unsplash.com/photo-1615906655593-ad0386982a0f?auto=format&fit=crop&w=800&q=80',
+    imageUrl: 'https://lh3.googleusercontent.com/d/1B6-cacduEi7C30thDV8Zcp8I9NtKBdKx=w800',
     warranty: 'Garansi keaslian 100% dan bebas cacat material',
     deliveryInfo: 'Pengiriman harian reguler Jabodetabek dan seluruh depo logistik.',
     location: 'Jakarta Timur',
@@ -254,7 +254,7 @@ export const INITIAL_VENDOR_CATALOG: VendorCatalogItem[] = [
       'Media: StrataPore 98.7% filtration efficiency',
       'Mencegah kerusakan supply pump dan nozzle injector akibat solar B35/B40'
     ],
-    imageUrl: 'https://images.unsplash.com/photo-1617814076367-b759c7d7e738?auto=format&fit=crop&w=800&q=80',
+    imageUrl: 'https://lh3.googleusercontent.com/d/1q2ArfrDn7icnIjVVHyfzluqL2KUDT9lA=w800',
     warranty: 'Garansi Original 100% Fleetguard Cummins Filtration',
     deliveryInfo: 'Bisa supply volume besar per karton/palet.',
     location: 'Bekasi Barat',
@@ -285,7 +285,7 @@ export const INITIAL_VENDOR_CATALOG: VendorCatalogItem[] = [
       'Facing: Ceramic-Organic Heavy Duty Facing',
       'Kompatibel: Isuzu Giga FVR34, FVM34, FVZ34'
     ],
-    imageUrl: 'https://images.unsplash.com/photo-1583121274602-3e2820c69888?auto=format&fit=crop&w=800&q=80',
+    imageUrl: 'https://lh3.googleusercontent.com/d/18KXQPUuVBhjF2JyFHBDjPWFW_9zKUW7F=w800',
     warranty: 'Garansi fungsi 6 Bulan / 30.000 KM',
     deliveryInfo: 'Ready stock siap antar di hari yang sama.',
     location: 'Jakarta Barat',
@@ -316,8 +316,8 @@ export const INITIAL_VENDOR_CATALOG: VendorCatalogItem[] = [
       'Karet sintetis 4-lapisan reinforced cord',
       'Tahan oli, ozon, dan getaran ekstrem jalan pantura'
     ],
-    imageUrl: 'https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?auto=format&fit=crop&w=800&q=80',
-    warranty: 'Garansi Pabrik 1 Tahun',
+    imageUrl: 'https://lh3.googleusercontent.com/d/15L7keFmGvikVjoL_COjtQ6tMC_JvRlw3=w800',
+    warranty: 'Garansi Pabrik 1Y',
     deliveryInfo: 'Pengiriman ekspres langsung ke workshop/depo armada.',
     location: 'Tangerang',
     lastUpdated: '2026-08-14',
@@ -413,7 +413,7 @@ export const INITIAL_VENDOR_CATALOG: VendorCatalogItem[] = [
       'Pilihan pola tapak: Highway Long-haul / Regional Lug',
       'Proses curing chamber tekanan & suhu terkontrol'
     ],
-    imageUrl: 'https://images.unsplash.com/photo-1549490349-8643362247b5?auto=format&fit=crop&w=800&q=80',
+    imageUrl: 'https://lh3.googleusercontent.com/d/17jgAbPFwFKuHo-X3B1tR9a82zIqIKU4j=w800',
     warranty: 'Garansi Tapak Tidak Lepas 6 Bulan',
     deliveryInfo: 'Jemput dan antar casing ban di pool armada pelanggan.',
     location: 'Tangerang',

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Bid } from '../types';
 import { INITIAL_BIDS_DATA } from '../data/biddingData';
 import PancaranLogo from '../components/PancaranLogo';
+import CompanyDetailModal from '../components/CompanyDetailModal';
 import { 
   Search, 
   Filter, 
@@ -36,6 +37,7 @@ export default function ManagementBidding() {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<'ALL' | 'ACCEPTED' | 'PENDING' | 'REVIEWED' | 'NEGOTIATION' | 'REJECTED'>('ALL');
   const [selectedBidDetail, setSelectedBidDetail] = useState<Bid | null>(null);
+  const [selectedCompanyModal, setSelectedCompanyModal] = useState<string | null>(null);
 
   const formatRp = (amount: number) => {
     return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(amount);
@@ -223,7 +225,13 @@ export default function ManagementBidding() {
                   </td>
 
                   <td className="px-6 py-4">
-                    <div className="font-bold text-slate-900">{bid.vendorName}</div>
+                    <div 
+                      onClick={() => setSelectedCompanyModal(bid.vendorName)}
+                      className="font-bold text-slate-900 hover:text-blue-600 hover:underline cursor-pointer"
+                      title="Klik untuk melihat Detail Pop-Up Data Perusahaan / PT"
+                    >
+                      {bid.vendorName}
+                    </div>
                     <div className="text-[11px] text-slate-400 font-medium">{bid.vendorEmail || 'vendor@gmail.com'}</div>
                   </td>
 
@@ -300,7 +308,13 @@ export default function ManagementBidding() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="bg-white p-4 rounded-2xl border border-slate-200">
                   <div className="text-xs font-bold text-slate-400 uppercase mb-2">Vendor Details</div>
-                  <div className="font-bold text-slate-900 text-sm">{selectedBidDetail.vendorName}</div>
+                  <div 
+                    onClick={() => setSelectedCompanyModal(selectedBidDetail.vendorName)}
+                    className="font-bold text-slate-900 text-sm hover:text-blue-600 hover:underline cursor-pointer"
+                    title="Klik untuk melihat Detail Pop-Up Data Perusahaan / PT"
+                  >
+                    {selectedBidDetail.vendorName}
+                  </div>
                   <div className="text-xs text-slate-500 mt-0.5">Email: {selectedBidDetail.vendorEmail || 'vendor@gmail.com'}</div>
                   <div className="text-xs text-slate-500">Telp: {selectedBidDetail.vendorPhone || '0812-9988-7766'}</div>
                 </div>
@@ -392,6 +406,13 @@ export default function ManagementBidding() {
           </div>
         </div>
       )}
+
+      {/* Pop Up Detail Company Modal */}
+      <CompanyDetailModal
+        companyName={selectedCompanyModal}
+        isOpen={Boolean(selectedCompanyModal)}
+        onClose={() => setSelectedCompanyModal(null)}
+      />
     </div>
   );
 }

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { VendorCatalogItem, ItemCategory, VendorType, User } from '../types';
 import SafeImage from '../components/SafeImage';
 import ImageUploadInput from '../components/ImageUploadInput';
+import CompanyDetailModal from '../components/CompanyDetailModal';
 import { 
   Search, 
   Filter, 
@@ -21,11 +22,14 @@ import {
   Plus, 
   Edit3, 
   Trash2, 
-  Eye, 
   ExternalLink,
   SlidersHorizontal,
   X,
-  AlertCircle
+  AlertCircle,
+  Table,
+  LayoutGrid,
+  ChevronDown,
+  ChevronUp
 } from 'lucide-react';
 
 interface CatalogVendorProps {
@@ -50,8 +54,11 @@ export default function CatalogVendor({
   const [selectedCategory, setSelectedCategory] = useState<string>('ALL'); // ALL, BAN, AKI, SPARE_PART, JASA
   const [selectedStatus, setSelectedStatus] = useState<string>('ALL'); // ALL, AVAILABLE, PRE_ORDER
   const [sortBy, setSortBy] = useState<'NEWEST' | 'PRICE_LOW' | 'PRICE_HIGH' | 'STOCK_HIGH'>('NEWEST');
+  const [viewMode, setViewMode] = useState<'TABLE' | 'CARD'>('TABLE');
+  const [isCategoryDropdownOpen, setIsCategoryDropdownOpen] = useState(false);
 
   const [selectedItemDetail, setSelectedItemDetail] = useState<VendorCatalogItem | null>(null);
+  const [selectedCompanyModal, setSelectedCompanyModal] = useState<string | null>(null);
   const [isContactModalOpen, setIsContactModalOpen] = useState(false);
   const [contactVendor, setContactVendor] = useState<VendorCatalogItem | null>(null);
   const [rfqSuccess, setRfqSuccess] = useState(false);
@@ -218,8 +225,10 @@ export default function CatalogVendor({
         price: Number(formData.price),
         unit: formData.unit,
         stock: Number(formData.stock),
-        minOrder: Number(formData.minOrder),
+        minOrder: 1,
         condition: formData.condition,
+        availabilityType: formData.availabilityType,
+        top: formData.top,
         description: formData.description,
         specifications: specsArray.length > 0 ? specsArray : ['Spesifikasi standar vendor'],
         warranty: formData.warranty,
@@ -247,8 +256,10 @@ export default function CatalogVendor({
         price: Number(formData.price),
         unit: formData.unit,
         stock: Number(formData.stock),
-        minOrder: Number(formData.minOrder),
+        minOrder: 1,
         condition: formData.condition,
+        availabilityType: formData.availabilityType,
+        top: formData.top,
         description: formData.description,
         specifications: specsArray.length > 0 ? specsArray : ['Spesifikasi standar vendor'],
         warranty: formData.warranty,
@@ -324,37 +335,102 @@ export default function CatalogVendor({
         </div>
       </div>
 
-      {/* Category Pills */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2.5">
-        {categories.map((cat) => {
-          const Icon = cat.icon;
-          const isSelected = selectedCategory === cat.id;
-          const count = cat.id === 'ALL' 
-            ? items.length 
-            : items.filter(i => i.category === cat.id).length;
+      {/* Category Dropdown (Filter Kategori Utama) */}
+      <div className="relative">
+        <button
+          onClick={() => setIsCategoryDropdownOpen(!isCategoryDropdownOpen)}
+          className="w-full flex items-center justify-between gap-3 p-4 bg-white hover:bg-slate-50 border border-slate-200 rounded-2xl shadow-sm transition-all cursor-pointer text-left focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-500"
+        >
+          {(() => {
+            const currentCategory = categories.find(cat => cat.id === selectedCategory) || categories[0];
+            const Icon = currentCategory.icon;
+            const count = currentCategory.id === 'ALL' 
+              ? items.length 
+              : items.filter(i => i.category === currentCategory.id).length;
 
-          return (
-            <button
-              key={cat.id}
-              onClick={() => setSelectedCategory(cat.id)}
-              className={`flex items-center gap-3 p-3.5 rounded-xl border text-left transition-all ${
-                isSelected
-                  ? 'bg-blue-600 border-blue-600 text-white shadow-md shadow-blue-600/20'
-                  : 'bg-white border-slate-200 text-slate-700 hover:border-slate-300 hover:bg-slate-50'
-              }`}
-            >
-              <div className={`p-2 rounded-lg ${isSelected ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-600'}`}>
-                <Icon className="w-4 h-4" />
-              </div>
-              <div className="min-w-0 flex-1">
-                <div className="text-xs font-bold truncate">{cat.label}</div>
-                <div className={`text-[11px] ${isSelected ? 'text-blue-100' : 'text-slate-400'}`}>
-                  {count} Jenis
+            return (
+              <>
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="p-2.5 rounded-xl bg-blue-50 text-blue-600">
+                    <Icon className="w-5 h-5" />
+                  </div>
+                  <div className="min-w-0">
+                    <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Kategori Terpilih</div>
+                    <div className="text-sm font-black text-slate-800 truncate">{currentCategory.label}</div>
+                  </div>
                 </div>
-              </div>
-            </button>
-          );
-        })}
+                <div className="flex items-center gap-3">
+                  <span className="text-xs bg-slate-100 text-slate-600 font-bold px-3 py-1.5 rounded-xl">
+                    {count} Jenis Barang
+                  </span>
+                  {isCategoryDropdownOpen ? (
+                    <ChevronUp className="w-5 h-5 text-slate-400" />
+                  ) : (
+                    <ChevronDown className="w-5 h-5 text-slate-400" />
+                  )}
+                </div>
+              </>
+            );
+          })()}
+        </button>
+
+        {isCategoryDropdownOpen && (
+          <>
+            {/* Backdrop layer to dismiss the dropdown easily */}
+            <div 
+              className="fixed inset-0 z-30" 
+              onClick={() => setIsCategoryDropdownOpen(false)} 
+            />
+            
+            {/* Dropdown Menu Container */}
+            <div className="absolute left-0 right-0 mt-2 bg-white border border-slate-200 rounded-2xl shadow-xl z-40 overflow-hidden divide-y divide-slate-100 animate-in fade-in slide-in-from-top-2 duration-150">
+              {categories.map((cat) => {
+                const Icon = cat.icon;
+                const isSelected = selectedCategory === cat.id;
+                const count = cat.id === 'ALL' 
+                  ? items.length 
+                  : items.filter(i => i.category === cat.id).length;
+
+                return (
+                  <button
+                    key={cat.id}
+                    onClick={() => {
+                      setSelectedCategory(cat.id);
+                      setIsCategoryDropdownOpen(false);
+                    }}
+                    className={`w-full flex items-center justify-between p-4 text-left transition-all hover:bg-slate-50 cursor-pointer ${
+                      isSelected ? 'bg-blue-50/50' : ''
+                    }`}
+                  >
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className={`p-2.5 rounded-xl transition-colors ${
+                        isSelected ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-600'
+                      }`}>
+                        <Icon className="w-4 h-4" />
+                      </div>
+                      <span className={`text-sm font-bold truncate ${
+                        isSelected ? 'text-blue-600' : 'text-slate-700'
+                      }`}>
+                        {cat.label}
+                      </span>
+                    </div>
+                    
+                    <div className="flex items-center gap-2">
+                      <span className={`text-xs font-semibold px-2.5 py-1 rounded-lg ${
+                        isSelected ? 'bg-blue-100 text-blue-800 font-bold' : 'bg-slate-100 text-slate-500'
+                      }`}>
+                        {count} Jenis Barang
+                      </span>
+                      {isSelected && (
+                        <span className="w-2 h-2 rounded-full bg-blue-600" />
+                      )}
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </>
+        )}
       </div>
 
       {/* Search & Filter Toolbar */}
@@ -407,7 +483,7 @@ export default function CatalogVendor({
             </button>
           </div>
 
-          {/* Sort Dropdown */}
+          {/* Sort Option */}
           <div className="shrink-0 flex items-center gap-2">
             <span className="text-xs text-slate-400 font-medium hidden lg:inline">Urutkan:</span>
             <select
@@ -423,63 +499,68 @@ export default function CatalogVendor({
           </div>
         </div>
 
-        {/* Filter tags bar */}
-        <div className="flex flex-wrap items-center gap-2 pt-1 border-t border-slate-100 text-xs text-slate-500">
-          <span className="font-semibold text-slate-700">Filter Cepat:</span>
-          
-          <button
-            onClick={() => setSelectedCategory(selectedCategory === 'BAN' ? 'ALL' : 'BAN')}
-            className={`px-2.5 py-1 rounded-full border transition-colors ${
-              selectedCategory === 'BAN' ? 'bg-amber-100 border-amber-300 text-amber-900 font-bold' : 'bg-slate-50 border-slate-200 hover:bg-slate-100'
-            }`}
-          >
-            🚚 Contoh Ban Truk (Ring 20 / 22.5)
-          </button>
 
-          <button
-            onClick={() => setSelectedCategory(selectedCategory === 'AKI' ? 'ALL' : 'AKI')}
-            className={`px-2.5 py-1 rounded-full border transition-colors ${
-              selectedCategory === 'AKI' ? 'bg-amber-100 border-amber-300 text-amber-900 font-bold' : 'bg-slate-50 border-slate-200 hover:bg-slate-100'
-            }`}
-          >
-            ⚡ Contoh Aki Mobil & Truk (GS Astra / Incoe / Yuasa)
-          </button>
-
-          <button
-            onClick={() => setSelectedCategory(selectedCategory === 'SPARE_PART' ? 'ALL' : 'SPARE_PART')}
-            className={`px-2.5 py-1 rounded-full border transition-colors ${
-              selectedCategory === 'SPARE_PART' ? 'bg-amber-100 border-amber-300 text-amber-900 font-bold' : 'bg-slate-50 border-slate-200 hover:bg-slate-100'
-            }`}
-          >
-            ⚙️ Contoh Spare Part (Rem, Filter, Plat Kopling)
-          </button>
-
-          <button
-            onClick={() => setSelectedCategory(selectedCategory === 'JASA' ? 'ALL' : 'JASA')}
-            className={`px-2.5 py-1 rounded-full border transition-colors ${
-              selectedCategory === 'JASA' ? 'bg-amber-100 border-amber-300 text-amber-900 font-bold' : 'bg-slate-50 border-slate-200 hover:bg-slate-100'
-            }`}
-          >
-            🛠️ Jasa Spooring, Kalibrasi & Vulkanisir
-          </button>
-
-          {(selectedCategory !== 'ALL' || selectedType !== 'ALL' || searchQuery) && (
-            <button
-              onClick={() => {
-                setSelectedCategory('ALL');
-                setSelectedType('ALL');
-                setSearchQuery('');
-              }}
-              className="text-red-600 hover:text-red-700 font-semibold ml-auto flex items-center gap-1"
-            >
-              <X className="w-3.5 h-3.5" />
-              Reset Semua Filter
-            </button>
-          )}
-        </div>
       </div>
 
-      {/* Catalog Grid */}
+      {/* Active Filter Banner */}
+      {(selectedCategory !== 'ALL' || selectedType !== 'ALL' || searchQuery) && (
+        <div className="bg-blue-50/90 border border-blue-200 rounded-2xl p-3.5 flex flex-wrap items-center justify-between gap-3 text-xs shadow-xs">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="font-bold text-blue-900 flex items-center gap-1.5">
+              <Filter className="w-4 h-4 text-blue-600" />
+              Filter Aktif:
+            </span>
+
+            {selectedCategory !== 'ALL' && (
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-blue-600 text-white font-bold rounded-xl text-xs shadow-xs">
+                Kategori: {categories.find(c => c.id === selectedCategory)?.label}
+                <X 
+                  className="w-3.5 h-3.5 cursor-pointer hover:bg-blue-700 rounded-full p-0.5" 
+                  onClick={() => setSelectedCategory('ALL')} 
+                />
+              </span>
+            )}
+
+            {selectedType !== 'ALL' && (
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-slate-800 text-white font-bold rounded-xl text-xs shadow-xs">
+                Jenis: {selectedType === 'SUPPLIER' ? 'Supplier Barang' : 'Vendor Jasa'}
+                <X 
+                  className="w-3.5 h-3.5 cursor-pointer hover:bg-slate-700 rounded-full p-0.5" 
+                  onClick={() => setSelectedType('ALL')} 
+                />
+              </span>
+            )}
+
+            {searchQuery && (
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-500 text-white font-bold rounded-xl text-xs shadow-xs">
+                Kata Kunci: "{searchQuery}"
+                <X 
+                  className="w-3.5 h-3.5 cursor-pointer hover:bg-amber-600 rounded-full p-0.5" 
+                  onClick={() => setSearchQuery('')} 
+                />
+              </span>
+            )}
+
+            <span className="text-slate-500 font-semibold ml-1">
+              ({filteredItems.length} dari {items.length} item ditemukan)
+            </span>
+          </div>
+
+          <button
+            onClick={() => {
+              setSelectedCategory('ALL');
+              setSelectedType('ALL');
+              setSearchQuery('');
+            }}
+            className="text-rose-600 hover:text-rose-700 font-bold hover:underline flex items-center gap-1 text-xs ml-auto"
+          >
+            <X className="w-3.5 h-3.5" />
+            Reset Filter
+          </button>
+        </div>
+      )}
+
+      {/* Catalog Grid / Table */}
       {filteredItems.length === 0 ? (
         <div className="bg-white rounded-2xl p-12 text-center border border-slate-200">
           <Package className="w-12 h-12 text-slate-300 mx-auto mb-3" />
@@ -498,30 +579,219 @@ export default function CatalogVendor({
             Tampilkan Semua Katalog
           </button>
         </div>
+      ) : viewMode === 'TABLE' ? (
+        /* TABLE VIEW (Sesuai Sketsa Gambar User) */
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs border-collapse">
+              <thead>
+                <tr className="bg-slate-100/90 border-b border-slate-200 text-slate-800 font-bold text-xs uppercase tracking-wider">
+                  <th className="py-3.5 px-3 text-center w-12 border-r border-slate-200/60">No.</th>
+                  <th className="py-3.5 px-3 text-center w-16 border-r border-slate-200/60">Foto</th>
+                  <th className="py-3.5 px-4 min-w-[170px] border-r border-slate-200/60">Nama PT</th>
+                  <th className="py-3.5 px-3 min-w-[120px] border-r border-slate-200/60">Kategori</th>
+                  <th className="py-3.5 px-3 text-center min-w-[100px] border-r border-slate-200/60">Stock</th>
+                  <th className="py-3.5 px-3 min-w-[140px] border-r border-slate-200/60">Type</th>
+                  <th className="py-3.5 px-4 min-w-[240px] border-r border-slate-200/60">Desc</th>
+                  <th className="py-3.5 px-4 text-right min-w-[130px] border-r border-slate-200/60">Harga</th>
+                  <th className="py-3.5 px-3 text-center min-w-[120px]">Aksi</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-200/70">
+                {filteredItems.map((item, index) => {
+                  const isMyPost = user?.id === item.vendorId || (user?.email && item.vendorEmail === user.email);
+
+                  return (
+                    <tr 
+                      key={item.id} 
+                      className="hover:bg-blue-50/50 transition-colors group"
+                    >
+                      {/* No. */}
+                      <td className="py-3 px-3 text-center font-bold text-slate-600 text-xs border-r border-slate-100">
+                        {index + 1}
+                      </td>
+
+                      {/* Foto (Thumbnail kecil di pojok kiri) */}
+                      <td className="py-3 px-3 text-center border-r border-slate-100">
+                        <div 
+                          onClick={() => setSelectedItemDetail(item)}
+                          className="w-12 h-12 rounded-lg bg-slate-100 overflow-hidden border border-slate-200 shrink-0 mx-auto cursor-pointer group-hover:scale-105 transition-transform shadow-xs"
+                          title="Klik untuk lihat detail gambar"
+                        >
+                          <SafeImage
+                            src={item.imageUrl}
+                            alt={item.title}
+                            category={item.category}
+                            className="w-full h-full object-cover"
+                            iconSize={20}
+                          />
+                        </div>
+                      </td>
+
+                      {/* Nama PT */}
+                      <td className="py-3 px-4 border-r border-slate-100">
+                        <div className="font-bold text-slate-900 flex items-center gap-1">
+                          <span 
+                            onClick={() => setSelectedCompanyModal(item.companyName)}
+                            className="hover:text-blue-600 hover:underline cursor-pointer truncate max-w-[180px]"
+                            title="Lihat detail data PT"
+                          >
+                            {item.companyName}
+                          </span>
+                          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" title="Terverifikasi" />
+                        </div>
+                        <span className="text-[10px] text-slate-400 font-mono block mt-0.5">
+                          {item.vendorType === 'SUPPLIER' ? 'Supplier' : 'Vendor Jasa'}
+                        </span>
+                      </td>
+
+                      {/* Kategori */}
+                      <td className="py-3 px-3 border-r border-slate-100">
+                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
+                          item.category === 'BAN' ? 'bg-blue-100 text-blue-800' :
+                          item.category === 'AKI' ? 'bg-amber-100 text-amber-800' :
+                          item.category === 'SPARE_PART' ? 'bg-purple-100 text-purple-800' :
+                          item.category === 'JASA' ? 'bg-indigo-100 text-indigo-800' :
+                          'bg-slate-100 text-slate-700'
+                        }`}>
+                          {item.categoryLabel}
+                        </span>
+                      </td>
+
+                      {/* Stock */}
+                      <td className="py-3 px-3 text-center border-r border-slate-100">
+                        <span className={`font-bold font-mono px-2 py-0.5 rounded text-xs ${
+                          item.stock > 0 ? 'text-emerald-700 bg-emerald-50' : 'text-rose-600 bg-rose-50'
+                        }`}>
+                          {item.stock} {item.unit}
+                        </span>
+                        <span className="block text-[10px] text-slate-400 mt-0.5">Min: {item.minOrder} {item.unit}</span>
+                      </td>
+
+                      {/* Type / Brand & Part Number */}
+                      <td className="py-3 px-3 border-r border-slate-100">
+                        <div className="font-semibold text-slate-800">{item.brand}</div>
+                        {item.partNumber && (
+                          <div className="text-[10px] font-mono text-slate-600 bg-slate-100 px-1.5 py-0.5 rounded inline-block mt-0.5 border border-slate-200">
+                            {item.partNumber}
+                          </div>
+                        )}
+                      </td>
+
+                      {/* Desc / Nama Barang & Spesifikasi */}
+                      <td className="py-3 px-4 border-r border-slate-100">
+                        <div 
+                          onClick={() => setSelectedItemDetail(item)}
+                          className="font-bold text-slate-900 hover:text-blue-600 cursor-pointer line-clamp-1 leading-snug"
+                          title={item.title}
+                        >
+                          {item.title}
+                        </div>
+                        <p className="text-[11px] text-slate-500 line-clamp-1 mt-0.5">
+                          {item.specifications[0] || item.description}
+                        </p>
+                      </td>
+
+                      {/* Harga */}
+                      <td className="py-3 px-4 text-right border-r border-slate-100">
+                        <div className="font-black text-blue-600 font-mono text-sm">
+                          {formatIDR(item.price)}
+                        </div>
+                        <span className="text-[10px] text-slate-400 font-normal">/{item.unit}</span>
+                      </td>
+
+                      {/* Aksi */}
+                      <td className="py-3 px-3 text-center">
+                        <div className="flex items-center justify-center gap-1">
+                          {user?.role === 'INTERNAL' ? (
+                            <>
+                              <button
+                                onClick={() => handleOpenFormModal(item)}
+                                className="p-1.5 text-slate-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg border border-slate-200 transition-colors"
+                                title="Edit Katalog"
+                              >
+                                <Edit3 className="w-3.5 h-3.5" />
+                              </button>
+                              {onDeleteItem && (
+                                <button
+                                  onClick={() => onDeleteItem(item.id)}
+                                  className="p-1.5 text-rose-500 hover:text-rose-700 hover:bg-rose-50 rounded-lg border border-slate-200 transition-colors"
+                                  title="Hapus Catalog"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </button>
+                              )}
+                              <button
+                                onClick={() => handleOpenContact(item)}
+                                className="px-2.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold transition-colors flex items-center gap-1 shadow-xs"
+                                title="Proses PO"
+                              >
+                                <Mail className="w-3 h-3" />
+                                PO
+                              </button>
+                            </>
+                          ) : isMyPost ? (
+                            <>
+                              <button
+                                onClick={() => handleOpenFormModal(item)}
+                                className="p-1.5 text-slate-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg border border-slate-200 transition-colors"
+                                title="Edit Postingan"
+                              >
+                                <Edit3 className="w-3.5 h-3.5" />
+                              </button>
+                              {onDeleteItem && (
+                                <button
+                                  onClick={() => onDeleteItem(item.id)}
+                                  className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg border border-slate-200 transition-colors"
+                                  title="Hapus"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </button>
+                              )}
+                            </>
+                          ) : (
+                            <button
+                              onClick={() => handleOpenContact(item)}
+                              className="px-2.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold transition-colors flex items-center gap-1 shadow-xs"
+                            >
+                              <Mail className="w-3 h-3" />
+                              PO
+                            </button>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+        <div className="grid grid-cols-1 gap-4">
           {filteredItems.map((item) => {
             const isMyPost = user?.id === item.vendorId || (user?.email && item.vendorEmail === user.email);
 
             return (
               <div
                 key={item.id}
-                className="bg-white rounded-2xl border border-slate-200 hover:border-blue-300 shadow-sm hover:shadow-md transition-all flex flex-col overflow-hidden group"
+                className="bg-white rounded-2xl border border-slate-200 hover:border-blue-300 shadow-sm hover:shadow-md transition-all flex flex-col md:flex-row overflow-hidden group"
               >
-                {/* Product Image & Badges */}
-                <div className="relative h-44 w-full bg-slate-100 overflow-hidden shrink-0">
+                {/* Product Image Banner (Left side) */}
+                <div 
+                  onClick={() => setSelectedItemDetail(item)}
+                  className="relative w-full md:w-72 lg:w-80 h-52 md:h-auto shrink-0 bg-slate-100 overflow-hidden cursor-pointer group-hover:opacity-95 transition-opacity"
+                >
                   <SafeImage
                     src={item.imageUrl}
                     alt={item.title}
                     category={item.category}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                    iconSize={32}
+                    iconSize={48}
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20 pointer-events-none" />
-
-                  {/* Top Badges */}
-                  <div className="absolute top-3 left-3 right-3 flex items-center justify-between gap-2">
-                    <span className={`px-2.5 py-1 rounded-full text-[11px] font-bold shadow-sm backdrop-blur-md ${
+                  {/* Floating Badges */}
+                  <div className="absolute top-3 left-3 right-3 flex items-center justify-between gap-2 pointer-events-none">
+                    <span className={`px-2.5 py-1 rounded-full text-[11px] font-bold shadow-md backdrop-blur-xs ${
                       item.vendorType === 'SUPPLIER'
                         ? 'bg-blue-600/90 text-white'
                         : 'bg-indigo-600/90 text-white'
@@ -529,7 +799,7 @@ export default function CatalogVendor({
                       {item.vendorType === 'SUPPLIER' ? '📦 Supplier Barang' : '🔧 Vendor Jasa'}
                     </span>
 
-                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-white/90 text-slate-800 backdrop-blur-md shadow-sm">
+                    <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-slate-900/80 text-white shadow-md backdrop-blur-xs">
                       {item.category === 'BAN' && 'Ban Truk'}
                       {item.category === 'AKI' && 'Aki & Baterai'}
                       {item.category === 'SPARE_PART' && 'Spare Part'}
@@ -538,44 +808,57 @@ export default function CatalogVendor({
                     </span>
                   </div>
 
-                  {/* Bottom Image Info */}
-                  <div className="absolute bottom-2.5 left-3 right-3 flex items-center justify-between text-white text-[11px] font-semibold">
-                    <div className="flex items-center gap-1 drop-shadow">
-                      <Building2 className="w-3.5 h-3.5 text-blue-300" />
-                      <span className="truncate max-w-[180px]">{item.brand}</span>
-                    </div>
-                    {item.partNumber && (
-                      <span className="text-[10px] bg-black/50 px-2 py-0.5 rounded text-slate-200 font-mono">
-                        {item.partNumber}
-                      </span>
-                    )}
-                  </div>
+                  {item.condition && (
+                    <span className="absolute bottom-2 left-2 px-2.5 py-0.5 bg-slate-900/80 text-white rounded text-[10px] font-bold backdrop-blur-xs">
+                      {item.condition}
+                    </span>
+                  )}
                 </div>
 
-                {/* Card Content */}
-                <div className="p-4 flex-1 flex flex-col justify-between space-y-3">
+                {/* Card Content (Right side / Kesamping) */}
+                <div className="p-5 flex-1 flex flex-col justify-between space-y-3 min-w-0">
                   <div>
-                    {/* Vendor Name */}
-                    <div className="flex items-center justify-between text-xs text-slate-500 mb-1">
-                      <span className="font-semibold text-slate-700 truncate">{item.companyName}</span>
-                      <span className="flex items-center gap-1 text-[11px] text-emerald-600 font-bold shrink-0">
-                        <CheckCircle2 className="w-3 h-3" />
-                        Terverifikasi
-                      </span>
+                    {/* Brand, Part Number, Vendor */}
+                    <div className="flex flex-wrap items-center justify-between gap-2 mb-2 bg-slate-50 p-2.5 rounded-xl border border-slate-100">
+                      <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-700">
+                        <Building2 className="w-4 h-4 text-blue-500 shrink-0" />
+                        <span className="truncate max-w-[180px]">{item.brand}</span>
+                      </div>
+                      
+                      <div className="flex items-center gap-3">
+                        {item.partNumber && (
+                          <span className="text-[11px] bg-slate-200/70 px-2.5 py-0.5 rounded-md text-slate-700 font-mono font-semibold border border-slate-300/50">
+                            {item.partNumber}
+                          </span>
+                        )}
+                        <div className="flex items-center gap-1 text-xs text-slate-500">
+                          <span 
+                            onClick={(e) => { e.stopPropagation(); setSelectedCompanyModal(item.companyName); }}
+                            className="font-bold text-slate-800 hover:text-blue-600 hover:underline cursor-pointer truncate max-w-[200px]"
+                            title="Klik untuk melihat Detail Pop-Up Data Perusahaan / PT"
+                          >
+                            {item.companyName}
+                          </span>
+                          <span className="flex items-center gap-0.5 text-[11px] text-emerald-600 font-bold shrink-0">
+                            <CheckCircle2 className="w-3.5 h-3.5" />
+                            Terverifikasi
+                          </span>
+                        </div>
+                      </div>
                     </div>
 
                     {/* Title */}
                     <h3 
                       onClick={() => setSelectedItemDetail(item)}
-                      className="text-sm font-bold text-slate-900 hover:text-blue-600 line-clamp-2 cursor-pointer leading-snug"
+                      className="text-base font-bold text-slate-900 hover:text-blue-600 cursor-pointer leading-snug"
                       title={item.title}
                     >
                       {item.title}
                     </h3>
 
-                    {/* Short specs preview */}
-                    <ul className="mt-2 space-y-1 text-[11px] text-slate-500">
-                      {item.specifications.slice(0, 2).map((spec, idx) => (
+                    {/* Specifications list */}
+                    <ul className="mt-2.5 grid grid-cols-1 md:grid-cols-2 gap-1.5 text-xs text-slate-600">
+                      {item.specifications.map((spec, idx) => (
                         <li key={idx} className="flex items-start gap-1.5 truncate">
                           <span className="text-blue-500 font-bold">•</span>
                           <span className="truncate">{spec}</span>
@@ -584,74 +867,94 @@ export default function CatalogVendor({
                     </ul>
                   </div>
 
-                  {/* Stock & Delivery Info */}
-                  <div className="pt-2 border-t border-slate-100 grid grid-cols-2 gap-2 text-[11px]">
-                    <div className="bg-slate-50 p-2 rounded-lg">
-                      <span className="text-slate-400 block text-[10px]">Ketersediaan</span>
-                      <span className={`font-bold ${item.stock > 0 ? 'text-emerald-700' : 'text-red-600'}`}>
-                        {item.vendorType === 'VENDOR_JASA' ? `Kapasitas: ${item.stock} unit` : `Stok: ${item.stock} ${item.unit}`}
-                      </span>
-                    </div>
+                  {/* Stock, Delivery & Pricing Row */}
+                  <div className="pt-3 border-t border-slate-100 flex flex-wrap items-end justify-between gap-3">
+                    <div className="flex flex-wrap items-center gap-3 text-xs">
+                      <div className="bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-100">
+                        <span className="text-slate-400 block text-[10px]">Ketersediaan</span>
+                        <span className={`font-bold ${item.stock > 0 ? 'text-emerald-700' : 'text-red-600'}`}>
+                          {item.vendorType === 'VENDOR_JASA' ? `Kapasitas: ${item.stock} unit` : `Stok: ${item.stock} ${item.unit}`}
+                        </span>
+                      </div>
 
-                    <div className="bg-slate-50 p-2 rounded-lg">
-                      <span className="text-slate-400 block text-[10px]">Min. Order / Garansi</span>
-                      <span className="font-semibold text-slate-800 truncate block">
-                        Min. {item.minOrder} {item.unit}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Pricing & CTA */}
-                  <div className="pt-2 border-t border-slate-100 flex items-center justify-between gap-2">
-                    <div>
-                      <span className="text-[10px] text-slate-400 font-medium block">Harga Satuan / Jasa:</span>
-                      <div className="text-base font-black text-blue-600">
-                        {formatIDR(item.price)}
-                        <span className="text-[11px] font-normal text-slate-500 ml-1">/{item.unit}</span>
+                      <div className="bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-100">
+                        <span className="text-slate-400 block text-[10px]">Min. Order / Garansi</span>
+                        <span className="font-semibold text-slate-800 truncate block">
+                          Min. {item.minOrder} {item.unit}
+                        </span>
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-1.5">
-                      {isMyPost ? (
-                        <>
-                          <button
-                            onClick={() => handleOpenFormModal(item)}
-                            className="p-2 text-slate-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg border border-slate-200 transition-colors"
-                            title="Edit Postingan"
-                          >
-                            <Edit3 className="w-4 h-4" />
-                          </button>
-                          {onDeleteItem && (
-                            <button
-                              onClick={() => {
-                                if (confirm(`Hapus katalog ${item.title}?`)) {
-                                  onDeleteItem(item.id);
-                                }
-                              }}
-                              className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg border border-slate-200 transition-colors"
-                              title="Hapus"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                          )}
-                        </>
-                      ) : (
-                        <button
-                          onClick={() => handleOpenContact(item)}
-                          className="px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold shadow-sm transition-colors flex items-center gap-1.5"
-                        >
-                          <Mail className="w-3.5 h-3.5" />
-                          Hubungi / PO
-                        </button>
-                      )}
+                    {/* Price & Actions */}
+                    <div className="flex items-center gap-4 ml-auto">
+                      <div className="text-right">
+                        <span className="text-[10px] text-slate-400 font-medium block">Harga Satuan / Jasa:</span>
+                        <div className="text-lg font-black text-blue-600">
+                          {formatIDR(item.price)}
+                          <span className="text-xs font-normal text-slate-500 ml-1">/{item.unit}</span>
+                        </div>
+                      </div>
 
-                      <button
-                        onClick={() => setSelectedItemDetail(item)}
-                        className="p-2 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-xl border border-slate-200 transition-colors"
-                        title="Lihat Spesifikasi Lengkap"
-                      >
-                        <Eye className="w-4 h-4" />
-                      </button>
+                      <div className="flex items-center gap-1.5">
+                        {user?.role === 'INTERNAL' ? (
+                          <>
+                            <button
+                              onClick={() => handleOpenFormModal(item)}
+                              className="p-2 text-slate-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg border border-slate-200 transition-colors"
+                              title="Edit Catalog"
+                            >
+                              <Edit3 className="w-4 h-4" />
+                            </button>
+                            {onDeleteItem && (
+                              <button
+                                onClick={() => {
+                                  onDeleteItem(item.id);
+                                }}
+                                className="p-2 text-rose-500 hover:text-rose-700 hover:bg-rose-50 rounded-lg border border-rose-200 transition-colors"
+                                title="Hapus Catalog (Internal)"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            )}
+                            <button
+                              onClick={() => handleOpenContact(item)}
+                              className="px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold shadow-sm transition-colors flex items-center gap-1.5"
+                            >
+                              <Mail className="w-3.5 h-3.5" />
+                              PO
+                            </button>
+                          </>
+                        ) : isMyPost ? (
+                          <>
+                            <button
+                              onClick={() => handleOpenFormModal(item)}
+                              className="p-2 text-slate-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg border border-slate-200 transition-colors"
+                              title="Edit Postingan"
+                            >
+                              <Edit3 className="w-4 h-4" />
+                            </button>
+                            {onDeleteItem && (
+                              <button
+                                onClick={() => {
+                                  onDeleteItem(item.id);
+                                }}
+                                className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg border border-slate-200 transition-colors"
+                                title="Hapus"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            )}
+                          </>
+                        ) : (
+                          <button
+                            onClick={() => handleOpenContact(item)}
+                            className="px-3.5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold shadow-sm transition-colors flex items-center gap-1.5"
+                          >
+                            <Mail className="w-3.5 h-3.5" />
+                            Hubungi / PO
+                          </button>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -665,38 +968,40 @@ export default function CatalogVendor({
       {selectedItemDetail && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 overflow-y-auto">
           <div className="bg-white rounded-3xl shadow-2xl max-w-2xl w-full overflow-hidden my-8">
-            <div className="relative h-60 w-full bg-slate-900 overflow-hidden">
-              <SafeImage
-                src={selectedItemDetail.imageUrl}
-                alt={selectedItemDetail.title}
-                category={selectedItemDetail.category}
-                className="w-full h-full object-cover opacity-80"
-                iconSize={48}
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/40 to-transparent pointer-events-none" />
-              <button
-                onClick={() => setSelectedItemDetail(null)}
-                className="absolute top-4 right-4 p-2 bg-black/50 hover:bg-black/80 text-white rounded-full transition-colors z-10"
-              >
-                <X className="w-5 h-5" />
-              </button>
-
-              <div className="absolute bottom-4 left-6 right-6 text-white">
-                <div className="flex items-center gap-2 mb-1.5">
+            <div className="relative bg-slate-50 border-b border-slate-100 p-6 flex items-start justify-between">
+              <div>
+                <div className="flex items-center gap-2 mb-2">
                   <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${
-                    selectedItemDetail.vendorType === 'SUPPLIER' ? 'bg-blue-500 text-white' : 'bg-indigo-500 text-white'
+                    selectedItemDetail.vendorType === 'SUPPLIER' ? 'bg-blue-100 text-blue-700' : 'bg-indigo-100 text-indigo-700'
                   }`}>
                     {selectedItemDetail.vendorType === 'SUPPLIER' ? 'Supplier Barang' : 'Vendor Jasa'}
                   </span>
-                  <span className="text-xs text-slate-300 font-semibold bg-white/20 px-2 py-0.5 rounded-full">
+                  <span className="text-xs text-slate-600 font-semibold bg-slate-200/60 px-2 py-0.5 rounded-full border border-slate-300">
                     {selectedItemDetail.categoryLabel}
                   </span>
                 </div>
-                <h2 className="text-xl font-bold leading-tight">{selectedItemDetail.title}</h2>
+                <h2 className="text-xl font-bold text-slate-900 leading-tight pr-10">{selectedItemDetail.title}</h2>
               </div>
+              <button
+                onClick={() => setSelectedItemDetail(null)}
+                className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-200 rounded-full transition-colors absolute top-4 right-4"
+              >
+                <X className="w-5 h-5" />
+              </button>
             </div>
 
             <div className="p-6 space-y-6 max-h-[60vh] overflow-y-auto">
+              {/* Product Image Banner */}
+              <div className="w-full h-56 bg-slate-100 rounded-2xl overflow-hidden relative border border-slate-200">
+                <SafeImage
+                  src={selectedItemDetail.imageUrl}
+                  alt={selectedItemDetail.title}
+                  category={selectedItemDetail.category}
+                  className="w-full h-full object-cover"
+                  iconSize={48}
+                />
+              </div>
+
               {/* Price & Stock Overview */}
               <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100 flex flex-wrap items-center justify-between gap-4">
                 <div>
@@ -769,7 +1074,13 @@ export default function CatalogVendor({
                 <div className="flex flex-wrap items-center justify-between gap-3 text-xs text-slate-700">
                   <div className="flex items-center gap-2">
                     <Building2 className="w-4 h-4 text-blue-600" />
-                    <span className="font-bold text-slate-900">{selectedItemDetail.companyName}</span>
+                    <span 
+                      onClick={() => setSelectedCompanyModal(selectedItemDetail.companyName)}
+                      className="font-bold text-slate-900 hover:text-blue-600 hover:underline cursor-pointer"
+                      title="Klik untuk melihat Detail Pop-Up Data Perusahaan / PT"
+                    >
+                      {selectedItemDetail.companyName}
+                    </span>
                   </div>
                   <div className="flex items-center gap-2">
                     <Phone className="w-4 h-4 text-blue-600" />
@@ -787,24 +1098,40 @@ export default function CatalogVendor({
               </div>
             </div>
 
-            <div className="p-4 bg-slate-50 border-t border-slate-100 flex justify-end gap-3">
-              <button
-                onClick={() => setSelectedItemDetail(null)}
-                className="px-4 py-2.5 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-200 transition-colors"
-              >
-                Tutup
-              </button>
-              <button
-                onClick={() => {
-                  const item = selectedItemDetail;
-                  setSelectedItemDetail(null);
-                  handleOpenContact(item);
-                }}
-                className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-bold shadow-sm transition-colors flex items-center gap-2"
-              >
-                <Mail className="w-4 h-4" />
-                Kirim Permintaan PO / RFQ
-              </button>
+            <div className="p-4 bg-slate-50 border-t border-slate-100 flex items-center justify-between gap-3">
+              <div>
+                {(user?.role === 'INTERNAL' || user?.id === selectedItemDetail.vendorId) && onDeleteItem && (
+                  <button
+                    onClick={() => {
+                      onDeleteItem(selectedItemDetail.id);
+                      setSelectedItemDetail(null);
+                    }}
+                    className="px-4 py-2.5 bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 rounded-xl text-xs font-bold transition-colors flex items-center gap-1.5"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                    Hapus Katalog
+                  </button>
+                )}
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setSelectedItemDetail(null)}
+                  className="px-4 py-2.5 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-200 transition-colors"
+                >
+                  Tutup
+                </button>
+                <button
+                  onClick={() => {
+                    const item = selectedItemDetail;
+                    setSelectedItemDetail(null);
+                    handleOpenContact(item);
+                  }}
+                  className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-bold shadow-sm transition-colors flex items-center gap-2"
+                >
+                  <Mail className="w-4 h-4" />
+                  Kirim Permintaan PO / RFQ
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -837,7 +1164,6 @@ export default function CatalogVendor({
             ) : (
               <form onSubmit={handleSendRFQ} className="p-6 space-y-4 text-xs">
                 <div className="p-3 bg-slate-50 rounded-xl border border-slate-100 flex items-center gap-3">
-                  <img src={contactVendor.imageUrl} alt="" className="w-12 h-12 rounded-lg object-cover" />
                   <div>
                     <div className="font-bold text-slate-900">{contactVendor.title}</div>
                     <div className="text-blue-600 font-bold">{formatIDR(contactVendor.price)} / {contactVendor.unit}</div>
@@ -1100,6 +1426,13 @@ export default function CatalogVendor({
           </div>
         </div>
       )}
+
+      {/* Pop Up Detail Company Modal */}
+      <CompanyDetailModal
+        companyName={selectedCompanyModal}
+        isOpen={Boolean(selectedCompanyModal)}
+        onClose={() => setSelectedCompanyModal(null)}
+      />
     </div>
   );
 }
