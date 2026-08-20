@@ -480,7 +480,7 @@ export default function CatalogVendor({
             </button>
           </div>
 
-          {/* Sort Option */}
+          {/* Sort Option & View Mode Toggle */}
           <div className="shrink-0 flex items-center gap-2">
             <span className="text-xs text-slate-400 font-medium hidden lg:inline">Urutkan:</span>
             <select
@@ -493,6 +493,30 @@ export default function CatalogVendor({
               <option value="PRICE_HIGH">Harga Tertinggi</option>
               <option value="STOCK_HIGH">Stok Terbanyak</option>
             </select>
+
+            {/* View Toggle */}
+            <div className="flex items-center bg-slate-100 p-1 rounded-xl border border-slate-200">
+              <button
+                onClick={() => setViewMode('TABLE')}
+                className={`p-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1 cursor-pointer ${
+                  viewMode === 'TABLE' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-500 hover:text-slate-800'
+                }`}
+                title="Tampilan Tabel (Seperti Gambar Contoh)"
+              >
+                <Table className="w-4 h-4" />
+                <span className="hidden sm:inline">Tabel</span>
+              </button>
+              <button
+                onClick={() => setViewMode('CARD')}
+                className={`p-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1 cursor-pointer ${
+                  viewMode === 'CARD' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-500 hover:text-slate-800'
+                }`}
+                title="Tampilan Kartu"
+              >
+                <LayoutGrid className="w-4 h-4" />
+                <span className="hidden sm:inline">Kartu</span>
+              </button>
+            </div>
           </div>
         </div>
 
