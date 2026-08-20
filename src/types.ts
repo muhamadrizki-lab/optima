@@ -26,6 +26,7 @@ export interface CatalogItem {
   title: string;
   description: string;
   datePosted: string;
+  deadline?: string;
   status: 'OPEN' | 'CLOSED';
   imageUrl?: string;
   specifications?: string[];

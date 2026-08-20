@@ -56,7 +56,8 @@ const DEFAULT_CATALOG_ITEMS: CatalogItem[] = [
     id: 'REQ-001', 
     title: 'Pembaruan Perangkat IT 2024', 
     description: 'Pengadaan 50 laptop baru dan aksesoris untuk tim engineering & operasional logistik.', 
-    datePosted: '2024-03-15', 
+    datePosted: '2026-08-15', 
+    deadline: '2026-08-31T17:00:00',
     status: 'OPEN',
     imageUrl: 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?auto=format&fit=crop&w=800&q=80',
     specifications: ['Intel Core i7 Gen 13', '16GB RAM DDR5', '512GB NVMe SSD', '14-inch IPS Display', 'Garansi Resmi 3 Tahun'],
@@ -80,7 +81,8 @@ const DEFAULT_CATALOG_ITEMS: CatalogItem[] = [
     id: 'REQ-002', 
     title: 'Pemeliharaan AC Tahunan (Service AC)', 
     description: 'Kontrak tahunan untuk pemeliharaan rutin dan perbaikan AC di seluruh area kantor pusat.', 
-    datePosted: '2024-03-20', 
+    datePosted: '2026-08-18', 
+    deadline: '2026-08-28T23:59:59',
     status: 'OPEN',
     imageUrl: 'https://images.unsplash.com/photo-1621905252507-b35492cc74b4?auto=format&fit=crop&w=800&q=80',
     specifications: ['Cuci AC rutin per 3 bulan', 'Pengecekan freon dan kompresor', 'Respon perbaikan darurat 1x24 jam', 'Termasuk perbaikan minor', 'Total 45 unit AC Split & Cassette'],
@@ -104,6 +106,7 @@ const DEFAULT_CATALOG_ITEMS: CatalogItem[] = [
     title: 'Pengadaan Ban Radial Truk Tronton 11R22.5 (200 Unit)',
     description: 'Pengadaan paket ban radial heavy duty tubeless untuk peremajaan roda 40 unit armada trailer logistik rute Jawa-Sumatera.',
     datePosted: '2026-08-10',
+    deadline: '2026-08-16T17:00:00',
     status: 'CLOSED',
     winnerVendorName: 'PT Mandiri Ban Pratama',
     winnerVendorId: 'VEND-01',
@@ -138,6 +141,7 @@ const DEFAULT_CATALOG_ITEMS: CatalogItem[] = [
     title: 'Pengadaan Aki Truk Heavy Duty 12V 100Ah N100 (150 Unit)',
     description: 'Kontrak penyediaan baterai aki basah & kering berdaya cranking tinggi untuk armada angkutan logistik Pancaran Group.',
     datePosted: '2026-08-12',
+    deadline: '2026-08-30T18:00:00',
     status: 'OPEN',
     imageUrl: 'https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?auto=format&fit=crop&w=800&q=80',
     specifications: [
@@ -166,6 +170,7 @@ const DEFAULT_CATALOG_ITEMS: CatalogItem[] = [
     title: 'Pengadaan Suku Cadang Kampas Rem & Filter Armada Hino/Isuzu',
     description: 'Paket pengadaan suku cadang fast-moving (Brake Shoe OEM, Filter Oli, Filter Solar Fleetguard) periode semester 2.',
     datePosted: '2026-08-15',
+    deadline: '2026-09-05T17:00:00',
     status: 'OPEN',
     imageUrl: 'https://images.unsplash.com/photo-1615906655593-ad0386982a0f?auto=format&fit=crop&w=800&q=80',
     specifications: [
@@ -227,6 +232,213 @@ export function getSpecTableForItem(item: CatalogItem): SpecTableItem[] {
   ];
 }
 
+export function calculateTenderTimeLeft(deadline?: string, status?: string) {
+  if (status === 'CLOSED') {
+    return { days: 0, hours: 0, minutes: 0, seconds: 0, isExpired: true, totalSeconds: 0 };
+  }
+  if (!deadline) {
+    return { days: 0, hours: 0, minutes: 0, seconds: 0, isExpired: false, totalSeconds: 0 };
+  }
+
+  // Handle ISO string or YYYY-MM-DD HH:mm or YYYY-MM-DD
+  const targetStr = deadline.includes('T') ? deadline : deadline.replace(' ', 'T');
+  const targetTime = new Date(targetStr).getTime();
+  const now = new Date().getTime();
+  const diff = targetTime - now;
+
+  if (isNaN(diff) || diff <= 0) {
+    return { days: 0, hours: 0, minutes: 0, seconds: 0, isExpired: true, totalSeconds: 0 };
+  }
+
+  const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+  const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+  const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+  const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+  const totalSeconds = Math.floor(diff / 1000);
+
+  return { days, hours, minutes, seconds, isExpired: false, totalSeconds };
+}
+
+export function formatDeadlineIndo(deadlineStr?: string) {
+  if (!deadlineStr) return 'Sesuai Jadwal Procurement';
+  try {
+    const targetStr = deadlineStr.includes('T') ? deadlineStr : deadlineStr.replace(' ', 'T');
+    const d = new Date(targetStr);
+    if (isNaN(d.getTime())) return deadlineStr;
+    const dateFormatted = d.toLocaleDateString('id-ID', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric'
+    });
+    const timeFormatted = d.toLocaleTimeString('id-ID', {
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+    return `${dateFormatted} • Pkl ${timeFormatted} WIB`;
+  } catch {
+    return deadlineStr;
+  }
+}
+
+export function TenderTimeBadge({ deadline, status }: { deadline?: string; status: 'OPEN' | 'CLOSED' }) {
+  const [timeLeft, setTimeLeft] = useState(() => calculateTenderTimeLeft(deadline, status));
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setTimeLeft(calculateTenderTimeLeft(deadline, status));
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [deadline, status]);
+
+  if (status === 'CLOSED' || timeLeft.isExpired) {
+    return (
+      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-black bg-slate-900/85 backdrop-blur-xs text-slate-200 border border-white/20 shadow-md">
+        <Clock className="w-3 h-3 text-slate-400" />
+        Ditutup
+      </span>
+    );
+  }
+
+  return (
+    <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-black backdrop-blur-xs text-white border shadow-md ${
+      timeLeft.days < 1
+        ? 'bg-rose-900/90 border-rose-400/50 text-rose-100 animate-pulse'
+        : timeLeft.days <= 3
+        ? 'bg-amber-900/90 border-amber-400/50 text-amber-100'
+        : 'bg-emerald-950/90 border-emerald-400/50 text-emerald-100'
+    }`}>
+      <Clock className={`w-3 h-3 ${timeLeft.days < 1 ? 'text-rose-400' : timeLeft.days <= 3 ? 'text-amber-400' : 'text-emerald-400'}`} />
+      <span>{timeLeft.days}h {timeLeft.hours}j {timeLeft.minutes}m {timeLeft.seconds}s</span>
+    </span>
+  );
+}
+
+export function TenderCountdownBar({ 
+  deadline, 
+  status, 
+  datePosted 
+}: { 
+  deadline?: string; 
+  status: 'OPEN' | 'CLOSED'; 
+  datePosted?: string;
+}) {
+  const [timeLeft, setTimeLeft] = useState(() => calculateTenderTimeLeft(deadline, status));
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setTimeLeft(calculateTenderTimeLeft(deadline, status));
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [deadline, status]);
+
+  const isClosed = status === 'CLOSED' || timeLeft.isExpired;
+
+  return (
+    <div className={`w-full p-3 sm:p-3.5 rounded-2xl border transition-all flex flex-col gap-2.5 shadow-xs ${
+      isClosed
+        ? 'bg-slate-50 border-slate-200 text-slate-700'
+        : timeLeft.days < 1
+        ? 'bg-gradient-to-b from-rose-50 to-white border-rose-200/90 text-rose-950 ring-1 ring-rose-300/40'
+        : timeLeft.days <= 3
+        ? 'bg-gradient-to-b from-amber-50 to-white border-amber-200/90 text-amber-950 ring-1 ring-amber-300/40'
+        : 'bg-gradient-to-b from-emerald-50/70 to-white border-emerald-200/90 text-emerald-950 ring-1 ring-emerald-300/40'
+    }`}>
+      {/* Top Header: Label & Status */}
+      <div className="flex items-center justify-between gap-2 border-b border-slate-100 pb-2">
+        <div className="flex items-center gap-1.5">
+          <Clock className={`w-4 h-4 ${
+            isClosed
+              ? 'text-slate-400'
+              : timeLeft.days < 1
+              ? 'text-rose-600 animate-pulse'
+              : timeLeft.days <= 3
+              ? 'text-amber-600'
+              : 'text-emerald-600'
+          }`} />
+          <span className="text-[10px] font-black uppercase tracking-wider text-slate-600">
+            {isClosed ? 'Status Waktu Tender' : 'Hitung Mundur Sisa Waktu'}
+          </span>
+        </div>
+        {isClosed ? (
+          <span className="text-[9px] font-black uppercase bg-slate-200 text-slate-700 px-2 py-0.5 rounded-md">
+            Selesai
+          </span>
+        ) : (
+          <span className={`text-[9px] font-black uppercase px-2 py-0.5 rounded-md ${
+            timeLeft.days < 1
+              ? 'bg-rose-600 text-white animate-pulse'
+              : timeLeft.days <= 3
+              ? 'bg-amber-600 text-white'
+              : 'bg-emerald-600 text-white'
+          }`}>
+            {timeLeft.days < 1 ? 'Segera Berakhir' : 'Aktif'}
+          </span>
+        )}
+      </div>
+
+      {/* Center: Large Countdown Digits */}
+      {isClosed ? (
+        <div className="py-2 text-center bg-slate-100/90 rounded-xl border border-slate-200/60">
+          <span className="text-xs font-black text-slate-600">🔒 Waktu Pengadaan Telah Berakhir</span>
+        </div>
+      ) : (
+        <div className="grid grid-cols-4 gap-1.5 text-center">
+          {/* Hari */}
+          <div className="bg-white px-1 py-1.5 rounded-xl border border-slate-200/80 shadow-2xs">
+            <span className="text-sm font-black text-slate-900 font-mono block leading-none">
+              {String(timeLeft.days).padStart(2, '0')}
+            </span>
+            <span className="text-[8px] font-bold text-slate-400 uppercase tracking-tight block mt-1 leading-none">
+              Hari
+            </span>
+          </div>
+          {/* Jam */}
+          <div className="bg-white px-1 py-1.5 rounded-xl border border-slate-200/80 shadow-2xs">
+            <span className="text-sm font-black text-slate-900 font-mono block leading-none">
+              {String(timeLeft.hours).padStart(2, '0')}
+            </span>
+            <span className="text-[8px] font-bold text-slate-400 uppercase tracking-tight block mt-1 leading-none">
+              Jam
+            </span>
+          </div>
+          {/* Menit */}
+          <div className="bg-white px-1 py-1.5 rounded-xl border border-slate-200/80 shadow-2xs">
+            <span className="text-sm font-black text-slate-900 font-mono block leading-none">
+              {String(timeLeft.minutes).padStart(2, '0')}
+            </span>
+            <span className="text-[8px] font-bold text-slate-400 uppercase tracking-tight block mt-1 leading-none">
+              Menit
+            </span>
+          </div>
+          {/* Detik */}
+          <div className={`px-1 py-1.5 rounded-xl border shadow-2xs ${
+            timeLeft.days < 1 
+              ? 'bg-rose-50 border-rose-300 text-rose-700 animate-pulse' 
+              : 'bg-emerald-50 border-emerald-200 text-emerald-700'
+          }`}>
+            <span className="text-sm font-black font-mono block leading-none">
+              {String(timeLeft.seconds).padStart(2, '0')}
+            </span>
+            <span className="text-[8px] font-bold uppercase tracking-tight block mt-1 leading-none opacity-80">
+              Detik
+            </span>
+          </div>
+        </div>
+      )}
+
+      {/* Bottom: Deadline Date Detail */}
+      <div className="pt-2 border-t border-slate-100 flex flex-col gap-0.5 text-left">
+        <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">
+          Batas Akhir (Deadline):
+        </span>
+        <div className="text-[11px] font-black text-blue-800 bg-blue-50/80 px-2 py-1 rounded-lg border border-blue-200/60 font-mono leading-tight">
+          {formatDeadlineIndo(deadline)}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function CatalogKebutuhan({ user, onBiddingClick }: CatalogProps) {
   const isInternal = user?.role === 'INTERNAL';
   
@@ -238,10 +450,12 @@ export default function CatalogKebutuhan({ user, onBiddingClick }: CatalogProps)
         if (Array.isArray(parsed) && parsed.length > 0) {
           return parsed.map((item: any) => {
             const match = DEFAULT_CATALOG_ITEMS.find(d => d.id === item.id);
-            if (match && match.specTable && (!item.specTable || item.specTable.length === 0)) {
-              return { ...item, specTable: match.specTable };
-            }
-            return item;
+            return {
+              ...item,
+              specTable: (item.specTable && item.specTable.length > 0) ? item.specTable : (match?.specTable || []),
+              deadline: item.deadline || match?.deadline || '2026-08-31T17:00:00',
+              datePosted: item.datePosted || match?.datePosted || '2026-08-15'
+            };
           });
         }
       }
@@ -281,6 +495,7 @@ export default function CatalogKebutuhan({ user, onBiddingClick }: CatalogProps)
     delivery: '',
     tax: 'Include PPH',
     ownerEstimate: 0,
+    deadline: '2026-08-31T17:00',
   });
   const [specList, setSpecList] = useState<string[]>(['', '', '']);
 
@@ -312,6 +527,7 @@ export default function CatalogKebutuhan({ user, onBiddingClick }: CatalogProps)
       ...newPost,
       id,
       datePosted,
+      deadline: newPost.deadline || '2026-08-31T17:00:00',
       specifications: specList.filter(s => s.trim() !== ''),
       ownerEstimate: Number(newPost.ownerEstimate) || 0,
       bidsCount: 0,
@@ -321,7 +537,7 @@ export default function CatalogKebutuhan({ user, onBiddingClick }: CatalogProps)
     
     setItems([item, ...items]);
     setIsCreating(false);
-    setNewPost({ status: 'OPEN', title: '', description: '', imageUrl: '', tnc: '', top: '', delivery: '', tax: 'Include PPH', ownerEstimate: 0 });
+    setNewPost({ status: 'OPEN', title: '', description: '', imageUrl: '', tnc: '', top: '', delivery: '', tax: 'Include PPH', ownerEstimate: 0, deadline: '2026-08-31T17:00' });
     setSpecList(['', '', '']);
     showToast(`Tender kebutuhan ${id} berhasil diposting!`);
   };
@@ -772,6 +988,19 @@ export default function CatalogKebutuhan({ user, onBiddingClick }: CatalogProps)
                   />
                 </div>
                 <div>
+                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1 flex items-center gap-1.5">
+                    <Clock className="w-3.5 h-3.5 text-blue-600" />
+                    Batas Akhir / Deadline Tender
+                  </label>
+                  <input 
+                    type="datetime-local" 
+                    required 
+                    value={editingTender.deadline ? (editingTender.deadline.length > 16 ? editingTender.deadline.substring(0, 16) : editingTender.deadline) : ''} 
+                    onChange={e => setEditingTender({...editingTender, deadline: e.target.value})} 
+                    className="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 font-mono font-semibold" 
+                  />
+                </div>
+                <div>
                   <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Metode & Lokasi Pengiriman</label>
                   <input 
                     type="text" 
@@ -970,6 +1199,19 @@ export default function CatalogKebutuhan({ user, onBiddingClick }: CatalogProps)
                   />
                 </div>
                 <div>
+                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1 flex items-center gap-1.5">
+                    <Clock className="w-3.5 h-3.5 text-blue-600" />
+                    Batas Akhir / Deadline Tender
+                  </label>
+                  <input 
+                    type="datetime-local" 
+                    required 
+                    value={newPost.deadline ? (newPost.deadline.length > 16 ? newPost.deadline.substring(0, 16) : newPost.deadline) : ''} 
+                    onChange={e => setNewPost({...newPost, deadline: e.target.value})} 
+                    className="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 font-mono font-semibold" 
+                  />
+                </div>
+                <div>
                   <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Metode & Lokasi Pengiriman</label>
                   <input 
                     type="text" 
@@ -1097,24 +1339,33 @@ export default function CatalogKebutuhan({ user, onBiddingClick }: CatalogProps)
                   >
                     <div className="flex flex-col lg:flex-row gap-6">
                       
-                      {/* Image & Status Badge */}
-                      <div className="w-full lg:w-72 h-52 rounded-2xl bg-slate-100 flex-shrink-0 overflow-hidden relative border border-slate-200">
-                        <SafeImage
-                          src={item.imageUrl}
-                          alt={item.title}
-                          category={item.title}
-                          className="w-full h-full object-cover"
-                          iconSize={40}
-                        />
-                        <div className="absolute top-3 right-3 z-10 flex flex-col items-end gap-1">
-                          <span className={`px-3 py-1 rounded-full text-xs font-black shadow-md ${
-                            item.status === 'OPEN' 
-                              ? 'bg-green-600 text-white' 
-                              : 'bg-slate-700 text-white'
-                          }`}>
-                            {item.status === 'OPEN' ? 'DIBUKA' : 'DITUTUP'}
-                          </span>
+                      {/* Left Column: Image & Countdown/Deadline underneath */}
+                      <div className="w-full lg:w-72 flex-shrink-0 flex flex-col gap-3">
+                        <div className="w-full h-52 rounded-2xl bg-slate-100 overflow-hidden relative border border-slate-200 shadow-2xs">
+                          <SafeImage
+                            src={item.imageUrl}
+                            alt={item.title}
+                            category={item.title}
+                            className="w-full h-full object-cover"
+                            iconSize={40}
+                          />
+                          <div className="absolute top-3 right-3 z-10 flex flex-col items-end gap-1">
+                            <span className={`px-3 py-1 rounded-full text-xs font-black shadow-md ${
+                              item.status === 'OPEN' 
+                                ? 'bg-green-600 text-white' 
+                                : 'bg-slate-700 text-white'
+                            }`}>
+                              {item.status === 'OPEN' ? 'DIBUKA' : 'DITUTUP'}
+                            </span>
+                          </div>
                         </div>
+
+                        {/* Live Countdown & Deadline Bar positioned directly under the photo */}
+                        <TenderCountdownBar 
+                          deadline={item.deadline} 
+                          status={item.status} 
+                          datePosted={item.datePosted} 
+                        />
                       </div>
 
                       {/* Content Section */}
@@ -1133,7 +1384,8 @@ export default function CatalogKebutuhan({ user, onBiddingClick }: CatalogProps)
                                 Diposting: {item.datePosted}
                               </span>
                             </div>
-                          </div>                          {/* Action for Internal: Delete */}
+                          </div>
+                          {/* Action for Internal: Delete */}
                           {isInternal && (
                             <div className="flex items-center gap-2 mt-2 sm:mt-0 shrink-0">
                               <button

@@ -363,48 +363,134 @@ export default function InternalDashboard({
           </div>
 
           <div className="flex items-center gap-3 self-start md:self-auto">
-            <div className="bg-slate-50 px-3.5 py-2 rounded-xl border border-slate-200 text-right">
-              <span className="text-[10px] font-bold text-slate-400 uppercase block">Total Pengeluaran Realisasi</span>
+            <div 
+              onClick={() => setSelectedStat({
+                name: 'Total Realisasi Belanja (PO)',
+                value: `Rp ${totalPengeluaran.toLocaleString('id-ID')}`,
+                detail: `Dari ${wonItems.length} tender menang aktif yang diterbitkan PO`,
+                icon: CreditCard,
+                color: 'text-emerald-700',
+                bg: 'bg-emerald-50',
+                border: 'border-emerald-100',
+                actionView: 'catalog'
+              })}
+              className="bg-slate-50 hover:bg-emerald-50/60 px-3.5 py-2 rounded-xl border border-slate-200 hover:border-emerald-300 text-right cursor-pointer transition-all hover:shadow-xs group"
+              title="Klik untuk melihat rincian realisasi pengeluaran"
+            >
+              <div className="flex items-center justify-end gap-1.5">
+                <span className="text-[10px] font-bold text-slate-400 group-hover:text-emerald-700 uppercase block">Total Pengeluaran Realisasi</span>
+                <span className="text-[9px] font-bold text-emerald-700 bg-emerald-100 px-1.5 py-0.2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">Detail</span>
+              </div>
               <span className="text-lg font-black text-emerald-700">Rp {totalPengeluaran.toLocaleString('id-ID')}</span>
             </div>
           </div>
         </div>
 
-        {/* 3 Summary Financial Metric Pill Boxes */}
+        {/* 3 Summary Financial Metric Pill Boxes (Clickable with rich detail pop-up) */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div className="bg-emerald-50/60 p-4 rounded-xl border border-emerald-100 flex items-center gap-3">
-            <div className="p-2.5 bg-emerald-600 text-white rounded-xl shadow-xs">
-              <CreditCard className="w-5 h-5" />
+          <div 
+            onClick={() => setSelectedStat({
+              name: 'Total Realisasi Belanja (PO)',
+              value: `Rp ${totalPengeluaran.toLocaleString('id-ID')}`,
+              detail: `Dari ${wonItems.length} tender menang aktif yang diterbitkan PO`,
+              icon: CreditCard,
+              color: 'text-emerald-700',
+              bg: 'bg-emerald-50',
+              border: 'border-emerald-100',
+              actionView: 'catalog'
+            })}
+            className="bg-emerald-50/60 hover:bg-emerald-50 p-4 rounded-xl border border-emerald-100 hover:border-emerald-300 flex items-center justify-between gap-3 cursor-pointer transition-all hover:shadow-md hover:scale-[1.01] group"
+            title="Klik untuk melihat rincian realisasi belanja (PO)"
+          >
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="p-2.5 bg-emerald-600 text-white rounded-xl shadow-xs group-hover:scale-105 transition-transform shrink-0">
+                <CreditCard className="w-5 h-5" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-[11px] font-bold text-emerald-800 uppercase group-hover:text-emerald-900 transition-colors">
+                  Total Realisasi Belanja (PO)
+                </p>
+                <p className="text-lg font-black text-slate-900 truncate">
+                  Rp {totalPengeluaran.toLocaleString('id-ID')}
+                </p>
+                <p className="text-[10px] text-emerald-700 font-medium truncate">
+                  Dari {wonItems.length} tender menang aktif
+                </p>
+              </div>
             </div>
-            <div>
-              <p className="text-[11px] font-bold text-emerald-800 uppercase">Total Realisasi Belanja (PO)</p>
-              <p className="text-lg font-black text-slate-900">Rp {totalPengeluaran.toLocaleString('id-ID')}</p>
-              <p className="text-[10px] text-emerald-700 font-medium">Dari {wonItems.length} tender menang aktif</p>
-            </div>
+            <span className="text-[10px] font-bold text-emerald-700 bg-emerald-100/80 px-2 py-0.5 rounded-full shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+              Lihat Detail
+            </span>
           </div>
 
-          <div className="bg-blue-50/60 p-4 rounded-xl border border-blue-100 flex items-center gap-3">
-            <div className="p-2.5 bg-blue-600 text-white rounded-xl shadow-xs">
-              <DollarSign className="w-5 h-5" />
+          <div 
+            onClick={() => setSelectedStat({
+              name: 'Estimasi OE Internal',
+              value: `Rp ${totalOwnerEstimateWon.toLocaleString('id-ID')}`,
+              detail: `Total pagu anggaran Owner Estimate (OE) untuk ${wonItems.length} pengadaan`,
+              icon: DollarSign,
+              color: 'text-blue-700',
+              bg: 'bg-blue-50',
+              border: 'border-blue-100',
+              actionView: 'catalog'
+            })}
+            className="bg-blue-50/60 hover:bg-blue-50 p-4 rounded-xl border border-blue-100 hover:border-blue-300 flex items-center justify-between gap-3 cursor-pointer transition-all hover:shadow-md hover:scale-[1.01] group"
+            title="Klik untuk melihat rincian pagu estimasi OE internal"
+          >
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="p-2.5 bg-blue-600 text-white rounded-xl shadow-xs group-hover:scale-105 transition-transform shrink-0">
+                <DollarSign className="w-5 h-5" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-[11px] font-bold text-blue-800 uppercase group-hover:text-blue-900 transition-colors">
+                  Estimasi OE Internal
+                </p>
+                <p className="text-lg font-black text-slate-900 truncate">
+                  Rp {totalOwnerEstimateWon.toLocaleString('id-ID')}
+                </p>
+                <p className="text-[10px] text-blue-700 font-medium truncate">
+                  Pagu anggaran internal disiapkan
+                </p>
+              </div>
             </div>
-            <div>
-              <p className="text-[11px] font-bold text-blue-800 uppercase">Estimasi OE Internal</p>
-              <p className="text-lg font-black text-slate-900">Rp {totalOwnerEstimateWon.toLocaleString('id-ID')}</p>
-              <p className="text-[10px] text-blue-700 font-medium">Pagu anggaran internal disiapkan</p>
-            </div>
+            <span className="text-[10px] font-bold text-blue-700 bg-blue-100/80 px-2 py-0.5 rounded-full shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+              Lihat Detail
+            </span>
           </div>
 
-          <div className="bg-amber-50/60 p-4 rounded-xl border border-amber-100 flex items-center gap-3">
-            <div className="p-2.5 bg-amber-600 text-white rounded-xl shadow-xs">
-              <TrendingUp className="w-5 h-5" />
+          <div 
+            onClick={() => setSelectedStat({
+              name: 'Efisiensi / Penghematan Anggaran',
+              value: `Rp ${totalPenghematan.toLocaleString('id-ID')}`,
+              detail: `${totalOwnerEstimateWon > 0 ? Math.round((totalPenghematan / totalOwnerEstimateWon) * 100) : 0}% efisiensi penghematan dari pagu OE`,
+              icon: TrendingUp,
+              color: 'text-amber-700',
+              bg: 'bg-amber-50',
+              border: 'border-amber-100',
+              actionView: 'catalog'
+            })}
+            className="bg-amber-50/60 hover:bg-amber-50 p-4 rounded-xl border border-amber-100 hover:border-amber-300 flex items-center justify-between gap-3 cursor-pointer transition-all hover:shadow-md hover:scale-[1.01] group"
+            title="Klik untuk melihat rincian efisiensi & penghematan anggaran"
+          >
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="p-2.5 bg-amber-600 text-white rounded-xl shadow-xs group-hover:scale-105 transition-transform shrink-0">
+                <TrendingUp className="w-5 h-5" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-[11px] font-bold text-amber-800 uppercase group-hover:text-amber-900 transition-colors">
+                  Efisiensi / Penghematan Anggaran
+                </p>
+                <p className="text-lg font-black text-amber-900 truncate">
+                  Rp {totalPenghematan.toLocaleString('id-ID')}
+                </p>
+                <p className="text-[10px] text-amber-700 font-medium truncate">
+                  {totalOwnerEstimateWon > 0 ? `${Math.round((totalPenghematan / totalOwnerEstimateWon) * 100)}% hemat dari OE` : '0% penghematan'}
+                </p>
+              </div>
             </div>
-            <div>
-              <p className="text-[11px] font-bold text-amber-800 uppercase">Efisiensi / Penghematan Anggaran</p>
-              <p className="text-lg font-black text-amber-900">Rp {totalPenghematan.toLocaleString('id-ID')}</p>
-              <p className="text-[10px] text-amber-700 font-medium">
-                {totalOwnerEstimateWon > 0 ? `${Math.round((totalPenghematan / totalOwnerEstimateWon) * 100)}% hemat dari OE` : '0% penghematan'}
-              </p>
-            </div>
+            <span className="text-[10px] font-bold text-amber-700 bg-amber-100/80 px-2 py-0.5 rounded-full shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+              Lihat Detail
+            </span>
           </div>
         </div>
 
@@ -520,35 +606,177 @@ export default function InternalDashboard({
               <div>
                 <h4 className="text-sm font-bold text-slate-800 mb-3">Rincian Informasi & Data Terkait:</h4>
                 <div className="space-y-2.5">
-                  {selectedStat.name === 'Total Pengeluaran Belanja' && (
-                    <>
+                  {(selectedStat.name === 'Total Pengeluaran Belanja' || selectedStat.name === 'Total Realisasi Belanja (PO)') && (
+                    <div className="space-y-3">
+                      <div className="p-4 bg-emerald-50 rounded-2xl border border-emerald-200/80 flex items-center justify-between">
+                        <div>
+                          <span className="text-[11px] font-bold text-emerald-800 uppercase tracking-wider block">
+                            Akumulasi Realisasi Belanja (PO Diterbitkan)
+                          </span>
+                          <span className="text-2xl font-black text-emerald-700 mt-0.5 block">
+                            Rp {totalPengeluaran.toLocaleString('id-ID')}
+                          </span>
+                        </div>
+                        <span className="text-xs font-bold bg-emerald-600 text-white px-3 py-1.5 rounded-xl shadow-xs">
+                          {wonItems.length} Kontrak Aktif
+                        </span>
+                      </div>
+
                       {wonItems.length === 0 ? (
                         <p className="text-xs text-slate-500 text-center py-4">Belum ada pengadaan menang terdata.</p>
                       ) : (
                         wonItems.map((won, idx) => (
-                          <div key={idx} className="p-3.5 bg-slate-50 rounded-xl border border-slate-200/60 flex items-center justify-between gap-3">
+                          <div key={idx} className="p-4 bg-white rounded-xl border border-slate-200/80 hover:border-emerald-300 transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
                             <div>
-                              <p className="text-xs font-bold text-slate-800">{won.title}</p>
+                              <span className="text-[10px] font-mono font-bold text-slate-400 uppercase bg-slate-100 px-1.5 py-0.5 rounded">
+                                {won.id}
+                              </span>
+                              <p className="text-xs font-bold text-slate-800 mt-1">{won.title}</p>
                               <p 
                                 onClick={() => {
                                   setSelectedStat(null);
                                   setSelectedCompanyModal(won.vendorName);
                                 }}
-                                className="text-[11px] text-blue-600 font-semibold hover:underline cursor-pointer"
+                                className="text-[11px] text-blue-600 font-semibold hover:underline cursor-pointer flex items-center gap-1 mt-0.5"
+                                title={`Klik untuk profil ${won.vendorName}`}
                               >
-                                {won.vendorName} • {won.id}
+                                <span>Rekanan: {won.vendorName}</span>
+                                <ExternalLink className="w-3 h-3 text-blue-500" />
                               </p>
+                              <p className="text-[10px] text-slate-400 mt-0.5">Tanggal: {won.date}</p>
                             </div>
-                            <div className="text-right shrink-0">
-                              <p className="text-xs font-black text-emerald-700">Rp {won.amount.toLocaleString('id-ID')}</p>
-                              <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
-                                TERBIT PO
+                            <div className="text-left sm:text-right shrink-0 border-t sm:border-t-0 pt-2 sm:pt-0 border-slate-100">
+                              <span className="text-[10px] font-bold text-slate-400 uppercase block">Nominal Realisasi PO</span>
+                              <p className="text-sm font-black text-emerald-700">Rp {won.amount.toLocaleString('id-ID')}</p>
+                              <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 inline-block mt-1">
+                                RESMI DITERBITKAN PO
                               </span>
                             </div>
                           </div>
                         ))
                       )}
-                    </>
+                    </div>
+                  )}
+
+                  {selectedStat.name === 'Estimasi OE Internal' && (
+                    <div className="space-y-3">
+                      <div className="p-4 bg-blue-50 rounded-2xl border border-blue-200/80 flex items-center justify-between">
+                        <div>
+                          <span className="text-[11px] font-bold text-blue-800 uppercase tracking-wider block">
+                            Total Pagu Anggaran Owner Estimate (OE)
+                          </span>
+                          <span className="text-2xl font-black text-blue-700 mt-0.5 block">
+                            Rp {totalOwnerEstimateWon.toLocaleString('id-ID')}
+                          </span>
+                        </div>
+                        <span className="text-xs font-bold bg-blue-600 text-white px-3 py-1.5 rounded-xl shadow-xs">
+                          {wonItems.length} Paket Pengadaan
+                        </span>
+                      </div>
+
+                      {wonItems.length === 0 ? (
+                        <p className="text-xs text-slate-500 text-center py-4">Belum ada data pagu OE internal aktif.</p>
+                      ) : (
+                        wonItems.map((won, idx) => (
+                          <div key={idx} className="p-4 bg-white rounded-xl border border-slate-200/80 hover:border-blue-300 transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
+                            <div>
+                              <span className="text-[10px] font-mono font-bold text-slate-400 uppercase bg-slate-100 px-1.5 py-0.5 rounded">
+                                {won.id}
+                              </span>
+                              <p className="text-xs font-bold text-slate-800 mt-1">{won.title}</p>
+                              <p 
+                                onClick={() => {
+                                  setSelectedStat(null);
+                                  setSelectedCompanyModal(won.vendorName);
+                                }}
+                                className="text-[11px] text-blue-600 font-semibold hover:underline cursor-pointer flex items-center gap-1 mt-0.5"
+                              >
+                                <span>Pemenang: {won.vendorName}</span>
+                                <ExternalLink className="w-3 h-3 text-blue-500" />
+                              </p>
+                            </div>
+                            <div className="text-left sm:text-right shrink-0 border-t sm:border-t-0 pt-2 sm:pt-0 border-slate-100">
+                              <div className="flex items-center sm:justify-end gap-3 text-xs">
+                                <div>
+                                  <span className="text-[10px] text-slate-400 block font-semibold">Pagu OE Internal:</span>
+                                  <span className="font-bold text-slate-700">Rp {(won.ownerEstimate || won.amount).toLocaleString('id-ID')}</span>
+                                </div>
+                                <div className="border-l border-slate-200 pl-3">
+                                  <span className="text-[10px] text-emerald-600 block font-semibold">Nilai Menang PO:</span>
+                                  <span className="font-black text-emerald-700">Rp {won.amount.toLocaleString('id-ID')}</span>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  )}
+
+                  {selectedStat.name === 'Efisiensi / Penghematan Anggaran' && (
+                    <div className="space-y-3">
+                      <div className="p-4 bg-amber-50 rounded-2xl border border-amber-200/80 flex items-center justify-between">
+                        <div>
+                          <span className="text-[11px] font-bold text-amber-800 uppercase tracking-wider block">
+                            Total Efisiensi Anggaran (Saving)
+                          </span>
+                          <span className="text-2xl font-black text-amber-800 mt-0.5 block">
+                            Rp {totalPenghematan.toLocaleString('id-ID')}
+                          </span>
+                        </div>
+                        <span className="text-xs font-bold bg-amber-600 text-white px-3 py-1.5 rounded-xl shadow-xs">
+                          {totalOwnerEstimateWon > 0 ? `${Math.round((totalPenghematan / totalOwnerEstimateWon) * 100)}% Hemat dari OE` : '0%'}
+                        </span>
+                      </div>
+
+                      {wonItems.length === 0 ? (
+                        <p className="text-xs text-slate-500 text-center py-4">Belum ada kalkulasi penghematan tender aktif.</p>
+                      ) : (
+                        wonItems.map((won, idx) => {
+                          const oe = won.ownerEstimate || won.amount;
+                          const saving = Math.max(0, oe - won.amount);
+                          const savingPercent = oe > 0 ? Math.round((saving / oe) * 100) : 0;
+                          return (
+                            <div key={idx} className="p-4 bg-white rounded-xl border border-slate-200/80 hover:border-amber-300 transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
+                              <div>
+                                <span className="text-[10px] font-mono font-bold text-slate-400 uppercase bg-slate-100 px-1.5 py-0.5 rounded">
+                                  {won.id}
+                                </span>
+                                <p className="text-xs font-bold text-slate-800 mt-1">{won.title}</p>
+                                <p 
+                                  onClick={() => {
+                                    setSelectedStat(null);
+                                    setSelectedCompanyModal(won.vendorName);
+                                  }}
+                                  className="text-[11px] text-blue-600 font-semibold hover:underline cursor-pointer flex items-center gap-1 mt-0.5"
+                                >
+                                  <span>Rekanan Pemenang: {won.vendorName}</span>
+                                  <ExternalLink className="w-3 h-3 text-blue-500" />
+                                </p>
+                                <div className="flex items-center gap-2 mt-1.5 text-[11px] text-slate-500">
+                                  <span>OE: <strong className="text-slate-700">Rp {oe.toLocaleString('id-ID')}</strong></span>
+                                  <span>•</span>
+                                  <span>PO: <strong className="text-emerald-700">Rp {won.amount.toLocaleString('id-ID')}</strong></span>
+                                </div>
+                              </div>
+                              <div className="text-left sm:text-right shrink-0 border-t sm:border-t-0 pt-2 sm:pt-0 border-slate-100">
+                                <span className="text-[10px] font-bold text-slate-400 uppercase block">Nominal Penghematan</span>
+                                <p className="text-sm font-black text-amber-700">
+                                  {saving > 0 ? `+ Rp ${saving.toLocaleString('id-ID')}` : 'Rp 0'}
+                                </p>
+                                <span className={`text-[10px] font-bold px-2 py-0.5 rounded border inline-block mt-1 ${
+                                  saving > 0 
+                                    ? 'bg-amber-50 text-amber-800 border-amber-200' 
+                                    : 'bg-slate-100 text-slate-600 border-slate-200'
+                                }`}>
+                                  {saving > 0 ? `Hemat ${savingPercent}%` : 'Sesuai Pagu OE'}
+                                </span>
+                              </div>
+                            </div>
+                          );
+                        })
+                      )}
+                    </div>
                   )}
 
                   {selectedStat.name === 'Total Kebutuhan' && (
@@ -756,7 +984,7 @@ export default function InternalDashboard({
             </div>
 
             {/* Supplier & Vendor Big KPI Cards */}
-            <div className="grid grid-cols-2 gap-4 mb-5">
+            <div className="grid grid-cols-2 gap-4">
               <div 
                 onClick={() => setSelectedStat({
                   name: 'Total Supplier',
@@ -796,54 +1024,7 @@ export default function InternalDashboard({
                 </span>
               </div>
             </div>
-
-            {/* Catalog Items Highlight */}
-            <div className="bg-slate-50 rounded-xl p-3.5 border border-slate-100">
-              <div className="flex items-center justify-between mb-2.5">
-                <span className="text-xs font-bold text-slate-700">Detail Nama Vendor & Supplier:</span>
-                <span className="text-[11px] font-semibold text-slate-500">{uniqueVendors} Rekanan Terdaftar</span>
-              </div>
-              <div className="space-y-2">
-                {uniqueVendorList.slice(0, 3).map((item, idx) => (
-                  <div 
-                    key={idx} 
-                    onClick={() => setSelectedCompanyModal(item.companyName)}
-                    className="bg-white p-2.5 rounded-lg border border-slate-200/70 flex items-center justify-between gap-2 hover:border-blue-300 hover:shadow-xs transition-all cursor-pointer group"
-                    title={`Klik untuk lihat profil detail ${item.companyName}`}
-                  >
-                    <div className="min-w-0">
-                      <p className="text-xs font-black text-slate-800 truncate group-hover:text-blue-600 transition-colors">
-                        {item.companyName}
-                      </p>
-                      <p className="text-[11px] text-slate-400">
-                        {item.brand ? `${item.brand} • ` : ''}
-                        <span className="font-medium text-slate-500">
-                          {item.vendorType === 'VENDOR_JASA' ? 'Penyedia Jasa Overhaul & Servis' : `Supplier ${item.categoryLabel || 'Suku Cadang'}`}
-                        </span>
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-1.5 shrink-0">
-                      <span className="px-2 py-0.5 text-[10px] font-bold rounded bg-slate-100 text-slate-700">
-                        {item.category || 'REKANAN'}
-                      </span>
-                      <ExternalLink className="w-3 h-3 text-slate-300 group-hover:text-blue-500 transition-colors" />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
           </div>
- 
-          {/* Action to explore full catalog */}
-          {onNavigate && (
-            <button
-              onClick={() => onNavigate('catalog-vendor')}
-              className="w-full mt-4 flex items-center justify-center gap-2 py-2.5 px-4 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold transition-colors"
-            >
-              <span>Eksplorasi Seluruh {uniqueVendors} Rekanan Vendor & Supplier</span>
-              <ArrowRight className="w-4 h-4" />
-            </button>
-          )}
         </div>
 
       </div>

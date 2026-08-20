@@ -654,41 +654,41 @@ export default function CatalogVendor({
                           {index + 1}
                         </td>
 
-                        {/* Foto (Thumbnail kecil di pojok kiri) */}
-                        <td className="py-3 px-3 text-center border-r border-slate-100">
-                          <div 
-                            onClick={() => setSelectedItemDetail(item)}
-                            className="w-12 h-12 rounded-lg bg-slate-100 overflow-hidden border border-slate-200 shrink-0 mx-auto cursor-pointer group-hover:scale-105 transition-transform shadow-xs"
-                            title="Klik untuk lihat detail gambar"
-                          >
-                            <SafeImage
-                              src={item.imageUrl}
-                              alt={item.title}
-                              category={item.category}
-                              className="w-full h-full object-cover"
-                              iconSize={20}
-                            />
+                      {/* Foto (Thumbnail kecil di pojok kiri) */}
+                      <td className="py-3 px-3 text-center border-r border-slate-100">
+                        <div 
+                          onClick={() => setSelectedItemDetail(item)}
+                          className="w-12 h-12 rounded-lg bg-slate-100 overflow-hidden border border-slate-200 shrink-0 mx-auto cursor-pointer group-hover:scale-105 transition-transform shadow-xs"
+                          title="Klik untuk lihat detail gambar"
+                        >
+                          <SafeImage
+                            src={item.imageUrl}
+                            alt={item.title}
+                            category={item.category}
+                            className="w-full h-full object-cover"
+                            iconSize={20}
+                          />
+                        </div>
+                      </td>
+
+                      {/* Nama PT (Merges repeating PT names into one single cell) */}
+                      {companySpan > 0 && (
+                        <td 
+                          rowSpan={companySpan} 
+                          className="py-3 px-4 border-r border-slate-200 bg-slate-50/50 align-middle text-center font-bold text-slate-900"
+                        >
+                          <div className="flex items-center justify-center gap-1.5 p-1">
+                            <span 
+                              onClick={() => setSelectedCompanyModal(item.companyName)}
+                              className="hover:text-blue-600 hover:underline cursor-pointer font-bold text-slate-900 text-xs"
+                              title="Lihat detail data PT"
+                            >
+                              {item.companyName}
+                            </span>
+                            <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" title="Terverifikasi" />
                           </div>
                         </td>
-
-                        {/* Nama PT (Merges repeating PT names into one single cell) */}
-                        {companySpan > 0 && (
-                          <td 
-                            rowSpan={companySpan} 
-                            className="py-3 px-4 border-r border-slate-200 bg-slate-50/50 align-middle text-center font-bold text-slate-900"
-                          >
-                            <div className="flex items-center justify-center gap-1.5 p-1">
-                              <span 
-                                onClick={() => setSelectedCompanyModal(item.companyName)}
-                                className="hover:text-blue-600 hover:underline cursor-pointer font-bold text-slate-900 text-xs"
-                                title="Lihat detail data PT"
-                              >
-                                {item.companyName}
-                              </span>
-                              <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" title="Terverifikasi" />
-                            </div>
-                          </td>
-                        )}
+                      )}
 
                       {/* Kategori */}
                       <td className="py-3 px-3 border-r border-slate-100">
@@ -701,6 +701,14 @@ export default function CatalogVendor({
                         }`}>
                           {item.categoryLabel}
                         </span>
+                      </td>
+
+                      {/* Harga */}
+                      <td className="py-3 px-4 text-right border-r border-slate-100">
+                        <div className="font-black text-blue-600 font-mono text-sm">
+                          {formatIDR(item.price)}
+                        </div>
+                        <span className="text-[10px] text-slate-400 font-normal">/{item.unit}</span>
                       </td>
 
                       {/* Stock */}
@@ -735,14 +743,6 @@ export default function CatalogVendor({
                         <p className="text-[11px] text-slate-500 line-clamp-1 mt-0.5">
                           {item.specifications[0] || item.description}
                         </p>
-                      </td>
-
-                      {/* Harga */}
-                      <td className="py-3 px-4 text-right border-r border-slate-100">
-                        <div className="font-black text-blue-600 font-mono text-sm">
-                          {formatIDR(item.price)}
-                        </div>
-                        <span className="text-[10px] text-slate-400 font-normal">/{item.unit}</span>
                       </td>
 
                       {/* Aksi */}
