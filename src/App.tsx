@@ -19,8 +19,42 @@ import CatalogVendor from './views/CatalogVendor';
 import MyVendorCatalog from './views/MyVendorCatalog';
 
 export default function App() {
-  const [user, setUser] = useState<User | null>(null);
-  const [currentView, setCurrentView] = useState<string>('catalog-ext');
+  const [user, setUser] = useState<User | null>(() => {
+    try {
+      const savedUser = localStorage.getItem('optima_user_session');
+      if (savedUser) {
+        return JSON.parse(savedUser);
+      }
+    } catch (e) {
+      console.error('Error loading user session:', e);
+    }
+    return null;
+  });
+
+  const [currentView, setCurrentView] = useState<string>(() => {
+    try {
+      const savedUser = localStorage.getItem('optima_user_session');
+      const savedView = localStorage.getItem('optima_current_view');
+      if (savedUser) {
+        const parsedUser = JSON.parse(savedUser);
+        if (savedView) {
+          const isInternal = parsedUser.role === 'INTERNAL' && Boolean(parsedUser.isInternalEmployee);
+          if (isInternal) {
+            return savedView;
+          } else {
+            if (['catalog-ext', 'catalog', 'bidding', 'my-vendor-catalog', 'catalog-vendor'].includes(savedView)) {
+              return savedView;
+            }
+          }
+        }
+        return parsedUser.role === 'INTERNAL' ? 'dashboard' : 'catalog-ext';
+      }
+    } catch (e) {
+      console.error('Error loading current view:', e);
+    }
+    return 'catalog-ext';
+  });
+
   const [showLoginModal, setShowLoginModal] = useState<boolean>(false);
   const [pendingAction, setPendingAction] = useState<string | null>(null);
 
@@ -44,6 +78,26 @@ export default function App() {
       console.error('Error saving vendor catalog:', e);
     }
   }, [vendorCatalogItems]);
+
+  useEffect(() => {
+    try {
+      if (user) {
+        localStorage.setItem('optima_user_session', JSON.stringify(user));
+      } else {
+        localStorage.removeItem('optima_user_session');
+      }
+    } catch (e) {
+      console.error('Error saving user session:', e);
+    }
+  }, [user]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('optima_current_view', currentView);
+    } catch (e) {
+      console.error('Error saving current view:', e);
+    }
+  }, [currentView]);
 
   const handleAddVendorItem = (item: VendorCatalogItem) => {
     setVendorCatalogItems(prev => [item, ...prev]);
@@ -73,6 +127,12 @@ export default function App() {
   const handleLogout = () => {
     setUser(null);
     setCurrentView('catalog-ext');
+    try {
+      localStorage.removeItem('optima_user_session');
+      localStorage.removeItem('optima_current_view');
+    } catch (e) {
+      console.error('Error removing session on logout:', e);
+    }
   };
 
   const handleChangeRole = (newRole: 'INTERNAL' | 'EXTERNAL') => {

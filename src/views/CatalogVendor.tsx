@@ -360,9 +360,6 @@ export default function CatalogVendor({
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
-                  <span className="text-xs bg-slate-100 text-slate-600 font-bold px-3 py-1.5 rounded-xl">
-                    {count} Jenis Barang
-                  </span>
                   {isCategoryDropdownOpen ? (
                     <ChevronUp className="w-5 h-5 text-slate-400" />
                   ) : (
