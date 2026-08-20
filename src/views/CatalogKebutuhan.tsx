@@ -180,6 +180,7 @@ export default function CatalogKebutuhan({ user, onBiddingClick }: CatalogProps)
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<'ALL' | 'OPEN' | 'CLOSED'>('ALL');
   const [isCreating, setIsCreating] = useState(false);
+  const [editingTender, setEditingTender] = useState<CatalogItem | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   // Modals
@@ -375,6 +376,46 @@ export default function CatalogKebutuhan({ user, onBiddingClick }: CatalogProps)
     showToast(`Tender ${tenderId} berhasil dihapus.`);
   };
 
+  const handleStartEdit = (item: CatalogItem) => {
+    setEditingTender(item);
+    setSpecList(item.specifications && item.specifications.length > 0 ? [...item.specifications] : ['', '', '']);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleEditSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingTender) return;
+
+    const updated = items.map(item => {
+      if (item.id === editingTender.id) {
+        return {
+          ...editingTender,
+          specifications: specList.filter(s => s.trim() !== ''),
+          ownerEstimate: Number(editingTender.ownerEstimate) || 0,
+        };
+      }
+      return item;
+    });
+
+    setItems(updated);
+    setEditingTender(null);
+    setSpecList(['', '', '']);
+    showToast(`Tender kebutuhan ${editingTender.id} berhasil diperbarui!`);
+  };
+
+  const handleEditImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        if (editingTender) {
+          setEditingTender({ ...editingTender, imageUrl: reader.result as string });
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   // Generate Bidders list for a given tender
   const getBiddersForTender = (tender: CatalogItem): BidderItem[] => {
     // Check if there are real bids in biddingData
@@ -533,7 +574,7 @@ export default function CatalogKebutuhan({ user, onBiddingClick }: CatalogProps)
           </div>
         </div>
 
-        {isInternal && !isCreating && (
+        {isInternal && !isCreating && !editingTender && (
           <button 
             onClick={() => setIsCreating(true)}
             className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl text-sm font-bold transition-all shadow-md shadow-blue-600/20 flex items-center gap-2 shrink-0 cursor-pointer"
@@ -544,8 +585,209 @@ export default function CatalogKebutuhan({ user, onBiddingClick }: CatalogProps)
         )}
       </div>
 
-      {/* Create New Post Form */}
-      {isCreating ? (
+      {/* Edit Post Form */}
+      {editingTender ? (
+        <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden p-6 sm:p-8 animate-in fade-in duration-200">
+          <div className="flex justify-between items-center mb-6 pb-4 border-b border-slate-100">
+            <div>
+              <span className="text-xs font-bold text-amber-600 uppercase tracking-wider">Form Edit Tender ({editingTender.id})</span>
+              <h2 className="text-xl font-black text-slate-900 mt-0.5">Ubah Postingan Paket Tender Kebutuhan</h2>
+            </div>
+            <button 
+              onClick={() => {
+                setEditingTender(null);
+                setSpecList(['', '', '']);
+              }} 
+              className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-colors cursor-pointer"
+            >
+              Batal
+            </button>
+          </div>
+          <form onSubmit={handleEditSubmit} className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Judul Paket Kebutuhan</label>
+                  <input 
+                    type="text" 
+                    required 
+                    placeholder="Contoh: Pengadaan 50 Unit Laptop Engineering 2026"
+                    value={editingTender.title} 
+                    onChange={e => setEditingTender({...editingTender, title: e.target.value})} 
+                    className="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white" 
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Deskripsi Singkat & Ruang Lingkup</label>
+                  <textarea 
+                    required 
+                    rows={3} 
+                    placeholder="Jelaskan kebutuhan pengadaan, volume, dan tujuan penggunaan..."
+                    value={editingTender.description} 
+                    onChange={e => setEditingTender({...editingTender, description: e.target.value})} 
+                    className="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
+                  ></textarea>
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Upload Foto / Ilustrasi Kebutuhan</label>
+                  <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-slate-200 border-dashed rounded-2xl hover:border-blue-500 transition-colors relative bg-slate-50/50">
+                    <div className="space-y-1 text-center w-full">
+                      {editingTender.imageUrl ? (
+                        <div className="relative w-full h-36 mx-auto mb-2">
+                          <img src={editingTender.imageUrl} alt="Preview" className="h-full w-full object-contain rounded-xl" />
+                          <button 
+                            type="button" 
+                            onClick={() => setEditingTender({...editingTender, imageUrl: ''})} 
+                            className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1.5 shadow-md hover:bg-red-600 transition-colors cursor-pointer"
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
+                        </div>
+                      ) : (
+                        <>
+                          <Upload className="mx-auto h-10 w-10 text-slate-400" />
+                          <div className="flex text-sm text-slate-600 justify-center mt-2">
+                            <label htmlFor="edit-file-upload" className="relative cursor-pointer font-bold text-blue-600 hover:text-blue-500">
+                              <span>Pilih file gambar</span>
+                              <input id="edit-file-upload" name="edit-file-upload" type="file" accept="image/*" className="sr-only" onChange={handleEditImageUpload} />
+                            </label>
+                            <p className="pl-1">atau drag & drop</p>
+                          </div>
+                          <p className="text-xs text-slate-400 mt-1">PNG, JPG, JPEG up to 5MB</p>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                </div>
+                <div>
+                  <div className="flex justify-between items-center mb-1.5">
+                    <label className="block text-xs font-bold text-slate-700 uppercase">Spesifikasi Detail Item</label>
+                    <button
+                      type="button"
+                      onClick={() => setSpecList([...specList, ''])}
+                      className="text-xs font-bold text-blue-600 hover:text-blue-700 bg-blue-50 hover:bg-blue-100 px-3 py-1 rounded-lg transition-colors cursor-pointer"
+                    >
+                      + Tambah Baris
+                    </button>
+                  </div>
+                  <div className="space-y-2">
+                    {specList.map((spec, index) => (
+                      <div key={index} className="flex items-center space-x-2">
+                        <input
+                          type="text"
+                          required={index === 0}
+                          value={spec}
+                          onChange={(e) => {
+                            const updated = [...specList];
+                            updated[index] = e.target.value;
+                            setSpecList(updated);
+                          }}
+                          placeholder={`Spesifikasi ${index + 1}`}
+                          className="w-full px-3.5 py-2 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500"
+                        />
+                        {specList.length > 1 && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const updated = specList.filter((_, i) => i !== index);
+                              setSpecList(updated);
+                            }}
+                            className="text-slate-400 hover:text-red-600 p-1.5 transition-colors cursor-pointer"
+                            title="Hapus"
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Terms & Conditions (TNC)</label>
+                  <textarea 
+                    required 
+                    rows={2} 
+                    placeholder="Contoh: Barang harus original dan bergaransi resmi dari distributor Indonesia." 
+                    value={editingTender.tnc || ''} 
+                    onChange={e => setEditingTender({...editingTender, tnc: e.target.value})} 
+                    className="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500"
+                  ></textarea>
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Term of Payment (TOP)</label>
+                  <input 
+                    type="text" 
+                    required 
+                    placeholder="Contoh: Net 30 Hari setelah barang diterima dan invoice lengkap." 
+                    value={editingTender.top || ''} 
+                    onChange={e => setEditingTender({...editingTender, top: e.target.value})} 
+                    className="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500" 
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Metode & Lokasi Pengiriman</label>
+                  <input 
+                    type="text" 
+                    required 
+                    placeholder="Contoh: Gratis Pengiriman ke Head Office Jakarta / Pool Cakung" 
+                    value={editingTender.delivery || ''} 
+                    onChange={e => setEditingTender({...editingTender, delivery: e.target.value})} 
+                    className="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500" 
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Ketentuan Pajak</label>
+                    <select 
+                      value={editingTender.tax || 'Include PPH'} 
+                      onChange={e => setEditingTender({...editingTender, tax: e.target.value})} 
+                      className="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 bg-white"
+                    >
+                      <option>Include PPH</option>
+                      <option>Exclude PPH</option>
+                      <option>Include PPN & PPH</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Owner Estimate (OE) Rp</label>
+                    <input 
+                      type="number" 
+                      required 
+                      min="0" 
+                      placeholder="Contoh: 750000000" 
+                      value={editingTender.ownerEstimate || ''} 
+                      onChange={e => setEditingTender({...editingTender, ownerEstimate: Number(e.target.value)})} 
+                      className="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 font-mono font-bold" 
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-3 pt-6 border-t border-slate-100">
+              <button 
+                type="button" 
+                onClick={() => {
+                  setEditingTender(null);
+                  setSpecList(['', '', '']);
+                }} 
+                className="px-6 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-sm transition-colors cursor-pointer"
+              >
+                Batal
+              </button>
+              <button 
+                type="submit" 
+                className="bg-amber-600 hover:bg-amber-700 text-white px-8 py-2.5 rounded-xl font-bold text-sm transition-all shadow-md shadow-amber-600/20 cursor-pointer"
+              >
+                Simpan Perubahan
+              </button>
+            </div>
+          </form>
+        </div>
+      ) : isCreating ? (
         <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden p-6 sm:p-8 animate-in fade-in duration-200">
           <div className="flex justify-between items-center mb-6 pb-4 border-b border-slate-100">
             <div>
@@ -853,6 +1095,14 @@ export default function CatalogKebutuhan({ user, onBiddingClick }: CatalogProps)
                           {isInternal && (
                             <div className="flex items-center gap-2 mt-2 sm:mt-0 shrink-0">
                               <button
+                                onClick={() => handleStartEdit(item)}
+                                className="px-4 py-2 bg-amber-50 text-amber-700 border border-amber-200 rounded-xl text-xs font-bold transition-all hover:bg-amber-100 flex items-center gap-2 cursor-pointer"
+                                title="Edit Postingan Tender"
+                              >
+                                <Edit3 className="w-3.5 h-3.5 text-amber-600" />
+                                <span>Edit Tender</span>
+                              </button>
+                              <button
                                 onClick={() => openWinnerSettingModal(item)}
                                 className={`px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-xs flex items-center gap-2 cursor-pointer ${
                                   hasWinner 
@@ -976,13 +1226,22 @@ export default function CatalogKebutuhan({ user, onBiddingClick }: CatalogProps)
                           {/* Right Action Buttons */}
                           <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
                             {isInternal && (
-                              <button
-                                onClick={() => openWinnerSettingModal(item)}
-                                className="w-full sm:w-auto px-4 py-2.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold transition-all shadow-sm flex items-center justify-center gap-2 cursor-pointer"
-                              >
-                                <Settings className="w-4 h-4 text-slate-300" />
-                                {hasWinner ? 'Kelola Tender' : 'Pilih Pemenang'}
-                              </button>
+                              <>
+                                <button
+                                  onClick={() => handleStartEdit(item)}
+                                  className="w-full sm:w-auto px-4 py-2.5 bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer"
+                                >
+                                  <Edit3 className="w-4 h-4 text-amber-600" />
+                                  Edit Tender
+                                </button>
+                                <button
+                                  onClick={() => openWinnerSettingModal(item)}
+                                  className="w-full sm:w-auto px-4 py-2.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold transition-all shadow-sm flex items-center justify-center gap-2 cursor-pointer"
+                                >
+                                  <Settings className="w-4 h-4 text-slate-300" />
+                                  {hasWinner ? 'Kelola Tender' : 'Pilih Pemenang'}
+                                </button>
+                              </>
                             )}
 
                             {!isInternal && item.status === 'OPEN' && !hasWinner && (
