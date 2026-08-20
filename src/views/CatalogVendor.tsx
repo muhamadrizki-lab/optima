@@ -703,14 +703,6 @@ export default function CatalogVendor({
                         </span>
                       </td>
 
-                      {/* Harga */}
-                      <td className="py-3 px-4 text-right border-r border-slate-100">
-                        <div className="font-black text-blue-600 font-mono text-sm">
-                          {formatIDR(item.price)}
-                        </div>
-                        <span className="text-[10px] text-slate-400 font-normal">/{item.unit}</span>
-                      </td>
-
                       {/* Stock */}
                       <td className="py-3 px-3 text-center border-r border-slate-100">
                         <span className={`font-bold font-mono px-2 py-0.5 rounded text-xs ${
@@ -743,6 +735,14 @@ export default function CatalogVendor({
                         <p className="text-[11px] text-slate-500 line-clamp-1 mt-0.5">
                           {item.specifications[0] || item.description}
                         </p>
+                      </td>
+
+                      {/* Harga */}
+                      <td className="py-3 px-4 text-right border-r border-slate-100">
+                        <div className="font-black text-blue-600 font-mono text-sm">
+                          {formatIDR(item.price)}
+                        </div>
+                        <span className="text-[10px] text-slate-400 font-normal">/{item.unit}</span>
                       </td>
 
                       {/* Aksi */}
