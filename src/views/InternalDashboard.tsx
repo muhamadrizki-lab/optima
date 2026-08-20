@@ -540,14 +540,24 @@ export default function InternalDashboard({
               </div>
               <div className="space-y-2">
                 {items.slice(0, 3).map((item, idx) => (
-                  <div key={idx} className="bg-white p-2.5 rounded-lg border border-slate-200/70 flex items-center justify-between gap-2">
+                  <div 
+                    key={idx} 
+                    onClick={() => setSelectedCompanyModal(item.companyName)}
+                    className="bg-white p-2.5 rounded-lg border border-slate-200/70 flex items-center justify-between gap-2 hover:border-blue-300 hover:shadow-xs transition-all cursor-pointer group"
+                    title={`Klik untuk lihat profil detail ${item.companyName}`}
+                  >
                     <div className="min-w-0">
-                      <p className="text-xs font-bold text-slate-800 truncate">{item.title}</p>
-                      <p className="text-[11px] text-slate-400">{item.brand} • {item.companyName}</p>
+                      <p className="text-xs font-bold text-slate-800 truncate group-hover:text-blue-600 transition-colors">{item.title}</p>
+                      <p className="text-[11px] text-slate-400">
+                        {item.brand} • <span className="font-semibold text-slate-600 group-hover:text-blue-600 group-hover:underline transition-all">{item.companyName}</span>
+                      </p>
                     </div>
-                    <span className="px-2 py-0.5 text-[10px] font-bold rounded bg-slate-100 text-slate-700 shrink-0">
-                      {item.category}
-                    </span>
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      <span className="px-2 py-0.5 text-[10px] font-bold rounded bg-slate-100 text-slate-700">
+                        {item.category}
+                      </span>
+                      <ExternalLink className="w-3 h-3 text-slate-300 group-hover:text-blue-500 transition-colors" />
+                    </div>
                   </div>
                 ))}
               </div>

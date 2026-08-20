@@ -210,29 +210,6 @@ export default function CompanyDetailModal({ companyName, isOpen, onClose, custo
           </div>
         </div>
 
-        {/* Quick Highlights Bar */}
-        <div className="grid grid-cols-4 bg-slate-50 border-b border-slate-200/80 p-3 text-center text-xs divide-x divide-slate-200/80">
-          <div>
-            <span className="text-[10px] text-slate-400 font-bold uppercase block">Rating Vendor</span>
-            <div className="font-black text-slate-800 flex items-center justify-center gap-1 mt-0.5">
-              <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
-              <span>{data.rating} / 5.0</span>
-            </div>
-          </div>
-          <div>
-            <span className="text-[10px] text-slate-400 font-bold uppercase block">PO Selesai</span>
-            <span className="font-black text-blue-600 mt-0.5 block">{data.completedOrders} Order</span>
-          </div>
-          <div>
-            <span className="text-[10px] text-slate-400 font-bold uppercase block">Term of Payment</span>
-            <span className="font-black text-slate-800 mt-0.5 block">{data.top}</span>
-          </div>
-          <div>
-            <span className="text-[10px] text-slate-400 font-bold uppercase block">Status Legalitas</span>
-            <span className="font-black text-emerald-600 mt-0.5 block">Lengkap & Valid</span>
-          </div>
-        </div>
-
         {/* Modal Body */}
         <div className="p-6 space-y-5 text-slate-700 text-xs overflow-y-auto max-h-[60vh]">
           {/* Spesialisasi / Deskripsi */}
@@ -302,20 +279,6 @@ export default function CompanyDetailModal({ companyName, isOpen, onClose, custo
             </p>
           </div>
 
-          {/* Dokumen Terlampir */}
-          <div className="space-y-2">
-            <span className="font-bold text-slate-800 block text-xs">Dokumen Verifikasi Rekanan (Verified Badge):</span>
-            <div className="grid grid-cols-2 gap-2">
-              <div className="p-2.5 rounded-xl bg-emerald-50/70 border border-emerald-100 flex items-center gap-2 text-[11px]">
-                <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                <span className="font-bold text-slate-800 truncate">NIB_Usaha_Verified.pdf</span>
-              </div>
-              <div className="p-2.5 rounded-xl bg-emerald-50/70 border border-emerald-100 flex items-center gap-2 text-[11px]">
-                <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                <span className="font-bold text-slate-800 truncate">NPWP_Perusahaan_Aktif.pdf</span>
-              </div>
-            </div>
-          </div>
         </div>
 
         {/* Modal Footer */}
