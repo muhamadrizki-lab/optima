@@ -1308,29 +1308,16 @@ export default function CatalogVendor({
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="font-bold text-slate-700 block mb-1">Merk / Brand *</label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="Contoh: Bridgestone, GS Astra, Hino, Denso"
-                    value={formData.brand}
-                    onChange={(e) => setFormData({ ...formData, brand: e.target.value })}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs"
-                  />
-                </div>
-
-                <div>
-                  <label className="font-bold text-slate-700 block mb-1">Part Number / Kode Item</label>
-                  <input
-                    type="text"
-                    placeholder="Contoh: BRDG-11R22.5 / GSA-N100"
-                    value={formData.partNumber}
-                    onChange={(e) => setFormData({ ...formData, partNumber: e.target.value })}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs font-mono"
-                  />
-                </div>
+              <div>
+                <label className="font-bold text-slate-700 block mb-1">Merk / Brand *</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="Contoh: Bridgestone, GS Astra, Hino, Denso"
+                  value={formData.brand}
+                  onChange={(e) => setFormData({ ...formData, brand: e.target.value })}
+                  className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs"
+                />
               </div>
 
               <div className="grid grid-cols-3 gap-3">

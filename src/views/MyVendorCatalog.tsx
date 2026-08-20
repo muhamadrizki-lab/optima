@@ -610,28 +610,15 @@ export default function MyVendorCatalog({
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="font-bold text-slate-700 block mb-1">Part Number / Kode</label>
-                  <input
-                    type="text"
-                    value={formData.partNumber}
-                    onChange={(e) => setFormData({ ...formData, partNumber: e.target.value })}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs font-mono"
-                    placeholder="Contoh: BRDG-11R22.5"
-                  />
-                </div>
-
-                <div>
-                  <label className="font-bold text-slate-700 block mb-1">Min. Pemesanan</label>
-                  <input
-                    type="number"
-                    min={1}
-                    value={formData.minOrder}
-                    onChange={(e) => setFormData({ ...formData, minOrder: Number(e.target.value) })}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs"
-                  />
-                </div>
+              <div>
+                <label className="font-bold text-slate-700 block mb-1">Min. Pemesanan</label>
+                <input
+                  type="number"
+                  min={1}
+                  value={formData.minOrder}
+                  onChange={(e) => setFormData({ ...formData, minOrder: Number(e.target.value) })}
+                  className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs"
+                />
               </div>
 
               <ImageUploadInput
