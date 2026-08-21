@@ -17,14 +17,14 @@ export default function Header({ user, onLoginClick, onLogout, onChangeRole }: H
 
   return (
     <>
-      <header className="h-[72px] bg-white border-b border-slate-200 flex items-center justify-between px-6 z-20 w-full shrink-0 shadow-xs relative">
+      <header className="h-[76px] bg-white border-b border-slate-200 flex items-center justify-between px-6 z-20 w-full shrink-0 shadow-xs relative">
         {/* Left side: Logo */}
-        <PancaranLogo size={42} showText={true} />
+        <PancaranLogo size={46} showText={true} />
 
         {/* Right side: Actions & Profile */}
         <div className="flex items-center space-x-3 sm:space-x-5">
           {user && user.isInternalEmployee && (
-            <div className="flex items-center h-[72px]" title="Mode Pratinjau Role (Khusus Tim Internal)">
+            <div className="flex items-center h-[76px]" title="Mode Pratinjau Role (Khusus Tim Internal)">
               {/* Globe / External View Toggle */}
               <div 
                 onClick={() => onChangeRole?.('EXTERNAL')}

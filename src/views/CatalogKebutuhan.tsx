@@ -30,6 +30,7 @@ import {
 import SafeImage from '../components/SafeImage';
 import PancaranLogo from '../components/PancaranLogo';
 import CompanyDetailModal from '../components/CompanyDetailModal';
+import SpecTableEditor, { createDefaultSpecTableRows } from '../components/SpecTableEditor';
 import { INITIAL_BIDS_DATA } from '../data/biddingData';
 
 interface CatalogProps {
@@ -498,6 +499,11 @@ export default function CatalogKebutuhan({ user, onBiddingClick }: CatalogProps)
     deadline: '2026-08-31T17:00',
   });
   const [specList, setSpecList] = useState<string[]>(['', '', '']);
+  const [createSpecTable, setCreateSpecTable] = useState<SpecTableItem[]>([
+    { no: 1, nama: '', brand: '', qty: 1, uom: 'pcs', ket: '' },
+    { no: 2, nama: '', brand: '', qty: 1, uom: 'pcs', ket: '' }
+  ]);
+  const [editSpecTable, setEditSpecTable] = useState<SpecTableItem[]>([]);
 
   // Sync with LocalStorage
   useEffect(() => {
@@ -523,12 +529,19 @@ export default function CatalogKebutuhan({ user, onBiddingClick }: CatalogProps)
     e.preventDefault();
     const id = `REQ-00${items.length + 1}`;
     const datePosted = new Date().toISOString().split('T')[0];
+
+    const validTable = createSpecTable.filter(r => r.nama.trim() || r.brand.trim());
+    const finalTable = validTable.length > 0 ? validTable.map((r, i) => ({ ...r, no: i + 1 })) : createSpecTable;
+
+    const generatedSpecs = finalTable.map(r => `${r.nama}${r.brand ? ' - ' + r.brand : ''} (${r.qty} ${r.uom})${r.ket ? ' - ' + r.ket : ''}`);
+
     const item: CatalogItem = {
       ...newPost,
       id,
       datePosted,
       deadline: newPost.deadline || '2026-08-31T17:00:00',
-      specifications: specList.filter(s => s.trim() !== ''),
+      specifications: generatedSpecs.length > 0 ? generatedSpecs : specList.filter(s => s.trim() !== ''),
+      specTable: finalTable,
       ownerEstimate: Number(newPost.ownerEstimate) || 0,
       bidsCount: 0,
       lowestBid: 0,
@@ -539,6 +552,10 @@ export default function CatalogKebutuhan({ user, onBiddingClick }: CatalogProps)
     setIsCreating(false);
     setNewPost({ status: 'OPEN', title: '', description: '', imageUrl: '', tnc: '', top: '', delivery: '', tax: 'Include PPH', ownerEstimate: 0, deadline: '2026-08-31T17:00' });
     setSpecList(['', '', '']);
+    setCreateSpecTable([
+      { no: 1, nama: '', brand: '', qty: 1, uom: 'pcs', ket: '' },
+      { no: 2, nama: '', brand: '', qty: 1, uom: 'pcs', ket: '' }
+    ]);
     showToast(`Tender kebutuhan ${id} berhasil diposting!`);
   };
 
@@ -668,6 +685,8 @@ export default function CatalogKebutuhan({ user, onBiddingClick }: CatalogProps)
 
   const handleStartEdit = (item: CatalogItem) => {
     setEditingTender(item);
+    const existingTable = getSpecTableForItem(item);
+    setEditSpecTable(existingTable && existingTable.length > 0 ? existingTable : createDefaultSpecTableRows());
     setSpecList(item.specifications && item.specifications.length > 0 ? [...item.specifications] : ['', '', '']);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -676,11 +695,16 @@ export default function CatalogKebutuhan({ user, onBiddingClick }: CatalogProps)
     e.preventDefault();
     if (!editingTender) return;
 
+    const validTable = editSpecTable.filter(r => r.nama.trim() || r.brand.trim());
+    const finalTable = validTable.length > 0 ? validTable.map((r, i) => ({ ...r, no: i + 1 })) : editSpecTable;
+    const generatedSpecs = finalTable.map(r => `${r.nama}${r.brand ? ' - ' + r.brand : ''} (${r.qty} ${r.uom})${r.ket ? ' - ' + r.ket : ''}`);
+
     const updated = items.map(item => {
       if (item.id === editingTender.id) {
         return {
           ...editingTender,
-          specifications: specList.filter(s => s.trim() !== ''),
+          specifications: generatedSpecs.length > 0 ? generatedSpecs : specList.filter(s => s.trim() !== ''),
+          specTable: finalTable,
           ownerEstimate: Number(editingTender.ownerEstimate) || 0,
         };
       }
@@ -690,6 +714,7 @@ export default function CatalogKebutuhan({ user, onBiddingClick }: CatalogProps)
     setItems(updated);
     setEditingTender(null);
     setSpecList(['', '', '']);
+    setEditSpecTable([]);
     showToast(`Tender kebutuhan ${editingTender.id} berhasil diperbarui!`);
   };
 
@@ -919,49 +944,13 @@ export default function CatalogKebutuhan({ user, onBiddingClick }: CatalogProps)
                     </div>
                   </div>
                 </div>
-                <div>
-                  <div className="flex justify-between items-center mb-1.5">
-                    <label className="block text-xs font-bold text-slate-700 uppercase">Spesifikasi Detail Item</label>
-                    <button
-                      type="button"
-                      onClick={() => setSpecList([...specList, ''])}
-                      className="text-xs font-bold text-blue-600 hover:text-blue-700 bg-blue-50 hover:bg-blue-100 px-3 py-1 rounded-lg transition-colors cursor-pointer"
-                    >
-                      + Tambah Baris
-                    </button>
-                  </div>
-                  <div className="space-y-2">
-                    {specList.map((spec, index) => (
-                      <div key={index} className="flex items-center space-x-2">
-                        <input
-                          type="text"
-                          required={index === 0}
-                          value={spec}
-                          onChange={(e) => {
-                            const updated = [...specList];
-                            updated[index] = e.target.value;
-                            setSpecList(updated);
-                          }}
-                          placeholder={`Spesifikasi ${index + 1}`}
-                          className="w-full px-3.5 py-2 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500"
-                        />
-                        {specList.length > 1 && (
-                          <button
-                            type="button"
-                            onClick={() => {
-                              const updated = specList.filter((_, i) => i !== index);
-                              setSpecList(updated);
-                            }}
-                            className="text-slate-400 hover:text-red-600 p-1.5 transition-colors cursor-pointer"
-                            title="Hapus"
-                          >
-                            <X className="w-4 h-4" />
-                          </button>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                </div>
+                {/* Dynamic Spec Table Editor */}
+                <SpecTableEditor
+                  items={editSpecTable}
+                  onChange={(newTable) => setEditSpecTable(newTable)}
+                  title="Tabel Rincian Spesifikasi & BOQ (Minimal 2 Baris)"
+                  subtitle="Tentukan rincian komponen/item kebutuhan. Disediakan minimal 2 baris awal dan bisa ditambah baris sebanyak kebutuhan."
+                />
               </div>
 
               <div className="space-y-4">
@@ -1130,49 +1119,13 @@ export default function CatalogKebutuhan({ user, onBiddingClick }: CatalogProps)
                     </div>
                   </div>
                 </div>
-                <div>
-                  <div className="flex justify-between items-center mb-1.5">
-                    <label className="block text-xs font-bold text-slate-700 uppercase">Spesifikasi Detail Item</label>
-                    <button
-                      type="button"
-                      onClick={() => setSpecList([...specList, ''])}
-                      className="text-xs font-bold text-blue-600 hover:text-blue-700 bg-blue-50 hover:bg-blue-100 px-3 py-1 rounded-lg transition-colors cursor-pointer"
-                    >
-                      + Tambah Baris
-                    </button>
-                  </div>
-                  <div className="space-y-2">
-                    {specList.map((spec, index) => (
-                      <div key={index} className="flex items-center space-x-2">
-                        <input
-                          type="text"
-                          required={index === 0}
-                          value={spec}
-                          onChange={(e) => {
-                            const updated = [...specList];
-                            updated[index] = e.target.value;
-                            setSpecList(updated);
-                          }}
-                          placeholder={`Spesifikasi ${index + 1}`}
-                          className="w-full px-3.5 py-2 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500"
-                        />
-                        {specList.length > 1 && (
-                          <button
-                            type="button"
-                            onClick={() => {
-                              const updated = specList.filter((_, i) => i !== index);
-                              setSpecList(updated);
-                            }}
-                            className="text-slate-400 hover:text-red-600 p-1.5 transition-colors cursor-pointer"
-                            title="Hapus"
-                          >
-                            <X className="w-4 h-4" />
-                          </button>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                </div>
+                {/* Dynamic Spec Table Editor */}
+                <SpecTableEditor
+                  items={createSpecTable}
+                  onChange={(newTable) => setCreateSpecTable(newTable)}
+                  title="Tabel Rincian Spesifikasi & BOQ (Minimal 2 Baris)"
+                  subtitle="Tentukan rincian komponen/item kebutuhan. Disediakan minimal 2 baris awal dan bisa ditambah baris sebanyak kebutuhan."
+                />
               </div>
 
               <div className="space-y-4">

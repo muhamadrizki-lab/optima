@@ -250,13 +250,24 @@ export default function Login({ onLogin, isModal = false, onClose }: LoginProps)
       )}
 
       <div className="flex flex-col items-center mb-6 text-center">
-        <div className="w-14 h-14 bg-white border border-slate-200 rounded-2xl shadow-sm flex items-center justify-center p-1 mb-4 overflow-hidden">
-          <img src="https://lh3.googleusercontent.com/d/1LmpjB5qAX8ev5_JRzYQDwjM58RxHl18X=w1000" referrerPolicy="no-referrer" alt="Pancaran Logo" className="w-full h-full object-contain" />
-        </div>
-        
-        <h2 className="text-[26px] sm:text-[28px] font-black text-slate-900 tracking-tight mb-1.5 leading-tight">
-          {isRegistering ? 'Daftar Akun Baru' : isChangingPassword ? 'Change password' : 'OPTIMA Portal'}
-        </h2>
+        {isRegistering ? (
+          <h2 className="text-[26px] sm:text-[28px] font-black text-slate-900 tracking-tight mb-1.5 leading-tight">
+            Daftar Akun Baru
+          </h2>
+        ) : isChangingPassword ? (
+          <h2 className="text-[26px] sm:text-[28px] font-black text-slate-900 tracking-tight mb-1.5 leading-tight">
+            Change password
+          </h2>
+        ) : (
+          <div className="flex justify-center mb-3">
+            <img 
+              src="https://lh3.googleusercontent.com/d/122sAgfSnTqphroy2r3vNvOfmAuftH_Po"
+              alt="Platinum Pancaran"
+              className="h-10 sm:h-11 object-contain max-w-[220px]"
+              referrerPolicy="no-referrer"
+            />
+          </div>
+        )}
         <p className="text-xs text-slate-500 font-semibold leading-relaxed max-w-[320px]">
           {isRegistering ? 'Lengkapi data diri dan tentukan tipe akses Anda' : isChangingPassword ? 'Masukkan email, password lama, dan password baru' : 'Oriented Procurement, Targeted Integrated Management for Aligned Tender'}
         </p>

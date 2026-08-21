@@ -111,6 +111,7 @@ export interface VendorCatalogItem {
   top?: string;
   description: string;
   specifications: string[];
+  specTable?: SpecTableItem[];
   imageUrl: string;
   warranty?: string;
   deliveryInfo?: string;

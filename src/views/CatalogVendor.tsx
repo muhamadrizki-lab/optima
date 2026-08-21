@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
-import { VendorCatalogItem, ItemCategory, VendorType, User } from '../types';
+import { VendorCatalogItem, ItemCategory, VendorType, User, SpecTableItem } from '../types';
 import SafeImage from '../components/SafeImage';
 import ImageUploadInput from '../components/ImageUploadInput';
 import CompanyDetailModal from '../components/CompanyDetailModal';
+import { SpecTableEditor, createDefaultSpecTableRows } from '../components/SpecTableEditor';
+import { SpecTableView, parseFallbackSpecsToTable } from '../components/SpecTableView';
 import { 
   Search, 
   Filter, 
@@ -83,6 +85,7 @@ export default function CatalogVendor({
     condition: 'BARU' | 'REKONDISI' | 'LAYANAN';
     description: string;
     specifications: string;
+    specTable: SpecTableItem[];
     warranty: string;
     deliveryInfo: string;
     location: string;
@@ -101,6 +104,7 @@ export default function CatalogVendor({
     condition: 'BARU',
     description: '',
     specifications: '',
+    specTable: createDefaultSpecTableRows(),
     warranty: 'Garansi 6 Bulan',
     deliveryInfo: 'Pengiriman 1-2 hari kerja',
     location: 'Jabodetabek',
@@ -177,6 +181,10 @@ export default function CatalogVendor({
   const handleOpenFormModal = (item?: VendorCatalogItem) => {
     if (item) {
       setEditingItem(item);
+      const existingTable = (item.specTable && item.specTable.length > 0)
+        ? item.specTable
+        : parseFallbackSpecsToTable(item.specifications);
+
       setFormData({
         title: item.title,
         category: item.category,
@@ -190,6 +198,7 @@ export default function CatalogVendor({
         condition: item.condition,
         description: item.description,
         specifications: item.specifications.join('\n'),
+        specTable: existingTable.length > 0 ? existingTable : createDefaultSpecTableRows(),
         warranty: item.warranty || '',
         deliveryInfo: item.deliveryInfo || '',
         location: item.location || '',
@@ -210,7 +219,11 @@ export default function CatalogVendor({
         minOrder: 1,
         condition: 'BARU',
         description: '',
-        specifications: 'Spesifikasi item...\nKesesuaian tipe kendaraan...',
+        specifications: '',
+        specTable: [
+          { no: 1, nama: '', brand: '', qty: 1, uom: 'pcs', ket: '' },
+          { no: 2, nama: '', brand: '', qty: 1, uom: 'pcs', ket: '' }
+        ],
         warranty: 'Garansi 6 Bulan',
         deliveryInfo: 'Siap kirim 1-2 hari kerja area Jabodetabek',
         location: 'Jakarta',
@@ -225,10 +238,16 @@ export default function CatalogVendor({
     e.preventDefault();
     if (!formData.title || formData.price <= 0) return;
 
-    const specsArray = formData.specifications
-      .split('\n')
-      .map(s => s.trim())
-      .filter(Boolean);
+    // Filter valid rows in specTable
+    const validTable = formData.specTable.filter(r => r.nama.trim() || r.brand.trim());
+    const finalTable = validTable.length > 0 ? validTable.map((r, i) => ({ ...r, no: i + 1 })) : formData.specTable;
+
+    const specsArray = finalTable.length > 0
+      ? finalTable.map(r => `${r.nama}${r.brand ? ' - ' + r.brand : ''} (${r.qty} ${r.uom})${r.ket ? ' - ' + r.ket : ''}`)
+      : formData.specifications
+          .split('\n')
+          .map(s => s.trim())
+          .filter(Boolean);
 
     const getCategoryLabel = (cat: ItemCategory) => {
       switch (cat) {
@@ -258,6 +277,7 @@ export default function CatalogVendor({
         top: formData.top,
         description: formData.description,
         specifications: specsArray.length > 0 ? specsArray : ['Spesifikasi standar vendor'],
+        specTable: finalTable,
         warranty: formData.warranty,
         deliveryInfo: formData.deliveryInfo,
         location: formData.location,
@@ -289,6 +309,7 @@ export default function CatalogVendor({
         top: formData.top,
         description: formData.description,
         specifications: specsArray.length > 0 ? specsArray : ['Spesifikasi standar vendor'],
+        specTable: finalTable,
         warranty: formData.warranty,
         deliveryInfo: formData.deliveryInfo,
         location: formData.location,
@@ -1099,17 +1120,11 @@ export default function CatalogVendor({
               </div>
 
               {/* Specifications */}
-              <div>
-                <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">Spesifikasi Detail Teknis</h4>
-                <div className="bg-slate-50 rounded-xl p-4 border border-slate-100 space-y-2">
-                  {selectedItemDetail.specifications.map((spec, i) => (
-                    <div key={i} className="flex items-start gap-2 text-xs text-slate-700">
-                      <CheckCircle2 className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />
-                      <span>{spec}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
+              <SpecTableView 
+                items={selectedItemDetail.specTable} 
+                fallbackSpecs={selectedItemDetail.specifications} 
+                title="SPESIFIKASI DETAIL (RINCIAN ITEM)"
+              />
 
               {/* Delivery & Warranty info */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
@@ -1292,14 +1307,14 @@ export default function CatalogVendor({
       {/* Add / Edit Form Modal */}
       {isFormModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 overflow-y-auto">
-          <div className="bg-white rounded-3xl shadow-2xl max-w-xl w-full overflow-hidden my-8">
+          <div className="bg-white rounded-3xl shadow-2xl max-w-3xl w-full overflow-hidden my-8">
             <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between">
               <div>
                 <h3 className="text-lg font-bold text-slate-900">
                   {editingItem ? 'Edit Postingan Katalog' : 'Posting Produk / Jasa ke Katalog'}
                 </h3>
                 <p className="text-xs text-slate-500 mt-0.5">
-                  Internal procurement dapat melihat stok & memesan barang/jasa ini.
+                  Internal procurement dapat melihat stok & memesan barang/jasa ini dengan rincian tabel spesifikasi.
                 </p>
               </div>
               <button onClick={() => setIsFormModalOpen(false)} className="text-slate-400 hover:text-slate-600">
@@ -1307,7 +1322,7 @@ export default function CatalogVendor({
               </button>
             </div>
 
-            <form onSubmit={handleFormSubmit} className="p-6 space-y-4 max-h-[70vh] overflow-y-auto text-xs">
+            <form onSubmit={handleFormSubmit} className="p-6 space-y-4 max-h-[75vh] overflow-y-auto text-xs">
               <div>
                 <label className="font-bold text-slate-700 block mb-1">Nama Produk / Layanan Jasa *</label>
                 <input
@@ -1421,16 +1436,13 @@ export default function CatalogVendor({
                 />
               </div>
 
-              <div>
-                <label className="font-bold text-slate-700 block mb-1">Spesifikasi Detail (1 baris per spesifikasi)</label>
-                <textarea
-                  rows={3}
-                  value={formData.specifications}
-                  onChange={(e) => setFormData({ ...formData, specifications: e.target.value })}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs font-mono"
-                  placeholder="Ukuran: 11R22.5 16PR&#10;Tipe: All-Position Radial&#10;SNI & ISO Terdaftar"
-                />
-              </div>
+              {/* Dynamic Specification Table Input (Minimal 2 Baris + Tambah Baris) */}
+              <SpecTableEditor
+                items={formData.specTable}
+                onChange={(newTable) => setFormData({ ...formData, specTable: newTable })}
+                title="Rincian Spesifikasi & Sub-Item (Tabel Detail)"
+                subtitle="Masukkan rincian item per baris. Disediakan minimal 2 baris awal dan bisa ditambah baris sebanyak kebutuhan."
+              />
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
@@ -1460,13 +1472,13 @@ export default function CatalogVendor({
                 <button
                   type="button"
                   onClick={() => setIsFormModalOpen(false)}
-                  className="px-4 py-2 border border-slate-200 rounded-xl font-semibold text-slate-600 hover:bg-slate-50"
+                  className="px-4 py-2 border border-slate-200 rounded-xl font-semibold text-slate-600 hover:bg-slate-50 cursor-pointer"
                 >
                   Batal
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 shadow-sm"
+                  className="px-5 py-2 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 shadow-sm cursor-pointer"
                 >
                   {editingItem ? 'Simpan Perubahan' : 'Posting ke Katalog'}
                 </button>
