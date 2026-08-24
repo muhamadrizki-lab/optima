@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Disc, BatteryCharging, Wrench, Laptop, Wind, Package, Layers, Truck } from 'lucide-react';
+import { Disc, BatteryCharging, Wrench, Laptop, Wind, Package, Layers, Truck, Image as ImageIcon } from 'lucide-react';
 
 interface SafeImageProps {
   src?: string;
@@ -89,16 +89,9 @@ export default function SafeImage({
 
   if (!src || hasError) {
     return (
-      <div className={`w-full h-full flex flex-col items-center justify-center p-3 bg-gradient-to-br ${catInfo.bg} bg-slate-50 border border-slate-100 select-none relative`}>
-        <div className={`p-3 rounded-full bg-white shadow-sm mb-2 ${catInfo.text}`}>
-          <IconComponent size={iconSize} />
-        </div>
-        <span className="text-[11px] font-semibold text-slate-700 text-center line-clamp-1 px-1">
-          {alt || catInfo.label}
-        </span>
-        <span className={`mt-1 text-[9px] font-bold px-2 py-0.5 rounded-full ${catInfo.badge}`}>
-          {catInfo.label}
-        </span>
+      <div className="w-full h-full flex flex-col items-center justify-center p-4 bg-slate-100/60 border border-slate-200/50 select-none text-slate-400 text-center">
+        <ImageIcon size={iconSize || 28} className="opacity-40 mb-1.5" />
+        <span className="text-xs font-semibold text-slate-500">Tidak Ada Foto</span>
       </div>
     );
   }
