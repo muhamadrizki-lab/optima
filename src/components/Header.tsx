@@ -9,11 +9,33 @@ interface HeaderProps {
   onLoginClick?: () => void;
   onLogout: () => void;
   onChangeRole?: (role: 'INTERNAL' | 'EXTERNAL') => void;
+  lang?: 'ID' | 'EN';
+  onLanguageChange?: (lang: 'ID' | 'EN') => void;
 }
 
-export default function Header({ user, onLoginClick, onLogout, onChangeRole }: HeaderProps) {
+export default function Header({ user, onLoginClick, onLogout, onChangeRole, lang, onLanguageChange }: HeaderProps) {
   const isInternal = user?.role === 'INTERNAL';
   const [showCompanyModal, setShowCompanyModal] = useState(false);
+  const [currentLang, setCurrentLang] = useState<'ID' | 'EN'>(() => {
+    if (lang) return lang;
+    try {
+      return (localStorage.getItem('optima_lang') as 'ID' | 'EN') || 'ID';
+    } catch {
+      return 'ID';
+    }
+  });
+
+  const handleSelectLang = (newLang: 'ID' | 'EN') => {
+    setCurrentLang(newLang);
+    try {
+      localStorage.setItem('optima_lang', newLang);
+    } catch (e) {
+      console.error(e);
+    }
+    if (onLanguageChange) {
+      onLanguageChange(newLang);
+    }
+  };
 
   return (
     <>
@@ -57,9 +79,31 @@ export default function Header({ user, onLoginClick, onLogout, onChangeRole }: H
             </div>
           )}
 
-          <div className="flex items-center bg-slate-100 p-1 rounded-lg border border-slate-200/60">
-            <button className="px-3 py-1 text-xs font-bold rounded-md bg-blue-600 text-white shadow-sm transition-all">ID</button>
-            <button className="px-3 py-1 text-xs font-bold rounded-md text-slate-500 hover:text-slate-800 transition-all">EN</button>
+          <div className="flex items-center bg-slate-100 p-1 rounded-lg border border-slate-200/60 shadow-inner">
+            <button 
+              type="button"
+              onClick={() => handleSelectLang('ID')}
+              title="Bahasa Indonesia"
+              className={`px-3 py-1 text-xs font-bold rounded-md transition-all duration-200 cursor-pointer ${
+                currentLang === 'ID' 
+                  ? 'bg-blue-600 text-white shadow-xs scale-105' 
+                  : 'text-slate-500 hover:text-slate-800 hover:bg-slate-200/60'
+              }`}
+            >
+              ID
+            </button>
+            <button 
+              type="button"
+              onClick={() => handleSelectLang('EN')}
+              title="English"
+              className={`px-3 py-1 text-xs font-bold rounded-md transition-all duration-200 cursor-pointer ${
+                currentLang === 'EN' 
+                  ? 'bg-blue-600 text-white shadow-xs scale-105' 
+                  : 'text-slate-500 hover:text-slate-800 hover:bg-slate-200/60'
+              }`}
+            >
+              EN
+            </button>
           </div>
 
           <button className="relative text-amber-500 hover:text-amber-600 transition-colors mx-1">

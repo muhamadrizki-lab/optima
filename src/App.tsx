@@ -57,6 +57,13 @@ export default function App() {
 
   const [showLoginModal, setShowLoginModal] = useState<boolean>(false);
   const [pendingAction, setPendingAction] = useState<string | null>(null);
+  const [lang, setLang] = useState<'ID' | 'EN'>(() => {
+    try {
+      return (localStorage.getItem('optima_lang') as 'ID' | 'EN') || 'ID';
+    } catch {
+      return 'ID';
+    }
+  });
 
   // Vendor Catalog State (persisted in localStorage)
   const [vendorCatalogItems, setVendorCatalogItems] = useState<VendorCatalogItem[]>(() => {
@@ -230,6 +237,8 @@ export default function App() {
         onLoginClick={() => setShowLoginModal(true)} 
         onLogout={handleLogout} 
         onChangeRole={handleChangeRole} 
+        lang={lang}
+        onLanguageChange={(newLang) => setLang(newLang)}
       />
       <div className="flex flex-1 overflow-hidden">
         {user && (

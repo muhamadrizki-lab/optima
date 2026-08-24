@@ -219,7 +219,7 @@ export default function InternalDashboard({
 
   const stats = [
     { 
-      name: 'Total Kebutuhan', 
+      name: 'Total Pengadaan', 
       value: totalKebutuhan.toString(), 
       detail: 'Pengadaan aktif internal',
       icon: Package, 
@@ -505,7 +505,7 @@ export default function InternalDashboard({
                 onClick={() => onNavigate('catalog')}
                 className="text-xs font-bold text-blue-600 hover:underline flex items-center gap-1"
               >
-                <span>Lihat Semua Katalog Kebutuhan</span>
+                <span>Lihat Semua Katalog Pengadaan</span>
                 <ArrowRight className="w-3.5 h-3.5" />
               </button>
             )}
@@ -514,7 +514,7 @@ export default function InternalDashboard({
           {wonItems.length === 0 ? (
             <div className="p-8 text-center bg-slate-50 rounded-xl border border-dashed border-slate-200">
               <p className="text-xs font-semibold text-slate-500">Belum ada tender yang dimenangkan / disetujui PO.</p>
-              <p className="text-[11px] text-slate-400 mt-1">Pilih pemenang tender di halaman Catalog Kebutuhan untuk mengkalkulasi pengeluaran otomatis.</p>
+              <p className="text-[11px] text-slate-400 mt-1">Pilih pemenang tender di halaman Katalog Pengadaan untuk mengkalkulasi pengeluaran otomatis.</p>
             </div>
           ) : (
             <div className="overflow-x-auto rounded-xl border border-slate-200/80">
@@ -779,7 +779,7 @@ export default function InternalDashboard({
                     </div>
                   )}
 
-                  {selectedStat.name === 'Total Kebutuhan' && (
+                  {selectedStat.name === 'Total Pengadaan' && (
                     <>
                       {kebutuhanList.map((item, idx) => (
                         <div key={idx} className="p-3.5 bg-slate-50 rounded-xl border border-slate-200/60 flex items-center justify-between">
@@ -915,9 +915,6 @@ export default function InternalDashboard({
               <div>
                 <div className="flex items-center gap-2">
                   <h2 className="text-lg font-bold text-slate-900">Ragam Jenis Barang External di Katalog</h2>
-                  <span className="px-2 py-0.5 text-[11px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-100 rounded-md">
-                    Non-Qty (SKU Count)
-                  </span>
                 </div>
                 <p className="text-xs text-slate-500 mt-0.5">
                   Jumlah variasi jenis produk/jasa yang terdaftar di katalog external rekanan Pancaran Group.
