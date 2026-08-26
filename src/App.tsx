@@ -254,17 +254,17 @@ export default function App() {
           />
         )}
         <main className="flex-1 overflow-y-auto relative">
-          <div className="w-full bg-slate-900 relative h-[255px] shrink-0 overflow-hidden border-b border-slate-200">
+          <div className="w-full bg-slate-900 relative h-[340px] shrink-0 overflow-hidden border-b border-slate-200">
              <video 
                src="https://res.cloudinary.com/x6bejifd/video/upload/v1786613786/vidssave.com_Pancaran_Group_720P_uosct4.mp4" 
-               className="w-full h-full object-cover object-[center_65%] opacity-90 scale-105"
+               className="w-full h-full object-cover object-[center_50%] opacity-90 scale-105"
                autoPlay 
                loop 
                muted 
                playsInline
              />
              {/* Gradient overlay: clear video on top, subtle dark backdrop for text readability, and smooth white gradient at the bottom edge */}
-             <div className="absolute inset-0 bg-gradient-to-t from-white via-slate-900/40 to-transparent flex flex-col justify-end p-8 sm:px-12">
+             <div className="absolute inset-0 bg-gradient-to-t from-white via-slate-900/40 to-transparent flex flex-col justify-end p-10 sm:px-14 sm:pb-10">
                 <h1 className="text-white text-3xl sm:text-4xl font-black tracking-tight mb-2 drop-shadow-[0_2px_8px_rgba(0,0,0,0.85)]">OPTIMA Pancaran Group</h1>
                 <p className="text-slate-100 text-sm sm:text-base max-w-2xl font-semibold drop-shadow-[0_2px_6px_rgba(0,0,0,0.85)]">Oriented Procurement, Targeted Integrated Management for Aligned Tender.</p>
              </div>
