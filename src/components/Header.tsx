@@ -122,7 +122,7 @@ export default function Header({ user, onLoginClick, onLogout, onChangeRole, lan
                     <span className="text-sm font-bold text-slate-800 hidden sm:inline group-hover:text-blue-600 transition-colors">{user.name}</span>
                   </div>
                   <span className="text-[11px] font-medium text-slate-500 hidden sm:inline group-hover:text-blue-600 transition-colors underline decoration-dotted">
-                    {user.companyName ? `${user.companyName} • ` : ''}{user.email}
+                    {user.email}
                   </span>
                 </div>
               </div>
