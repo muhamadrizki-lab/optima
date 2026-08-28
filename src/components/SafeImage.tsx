@@ -108,7 +108,6 @@ export default function SafeImage({
         alt={alt}
         className={`${className} transition-opacity duration-300 ${isLoaded ? 'opacity-100' : 'opacity-0'}`}
         referrerPolicy="no-referrer"
-        crossOrigin={src.startsWith('http') ? 'anonymous' : undefined}
         loading="lazy"
         onLoad={() => setIsLoaded(true)}
         onError={() => setHasError(true)}
