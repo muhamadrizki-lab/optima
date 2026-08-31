@@ -76,6 +76,8 @@ export default function MyVendorCatalog({
     location: string;
     imageUrl: string;
     status: 'AVAILABLE' | 'OUT_OF_STOCK' | 'PRE_ORDER';
+    availabilityType: 'READY' | 'PREORDER' | 'INDENT';
+    indentDuration: string;
   }>({
     title: '',
     category: 'BAN',
@@ -93,7 +95,9 @@ export default function MyVendorCatalog({
     deliveryInfo: 'Siap kirim 1-2 hari kerja',
     location: 'Jakarta',
     imageUrl: 'https://images.unsplash.com/photo-1578844251758-2f71da64c96f?auto=format&fit=crop&w=800&q=80',
-    status: 'AVAILABLE'
+    status: 'AVAILABLE',
+    availabilityType: 'READY',
+    indentDuration: ''
   });
 
   const formatIDR = (val: number) => {
@@ -122,7 +126,9 @@ export default function MyVendorCatalog({
       deliveryInfo: 'Siap kirim dari Depo / Gudang',
       location: 'Jabodetabek',
       imageUrl: 'https://images.unsplash.com/photo-1578844251758-2f71da64c96f?auto=format&fit=crop&w=800&q=80',
-      status: 'AVAILABLE'
+      status: 'AVAILABLE',
+      availabilityType: 'READY',
+      indentDuration: ''
     });
     setIsModalOpen(true);
   };
@@ -141,7 +147,7 @@ export default function MyVendorCatalog({
       price: item.price,
       unit: item.unit,
       stock: item.stock,
-      minOrder: item.minOrder,
+      minOrder: item.minOrder || 1,
       condition: item.condition,
       description: item.description,
       specifications: item.specifications.join('\n'),
@@ -150,7 +156,9 @@ export default function MyVendorCatalog({
       deliveryInfo: item.deliveryInfo || '',
       location: item.location || '',
       imageUrl: item.imageUrl,
-      status: item.status
+      status: item.status,
+      availabilityType: item.availabilityType || (item.status === 'PRE_ORDER' ? 'INDENT' : 'READY'),
+      indentDuration: item.indentDuration || ''
     });
     setIsModalOpen(true);
   };
@@ -180,6 +188,11 @@ export default function MyVendorCatalog({
       }
     };
 
+    const finalStatus = formData.stock === 0 
+      ? 'OUT_OF_STOCK' 
+      : (formData.availabilityType === 'READY' ? 'AVAILABLE' : 'PRE_ORDER');
+    const finalIndentDuration = formData.availabilityType === 'READY' ? '' : formData.indentDuration;
+
     if (editingItem) {
       onUpdateItem({
         ...editingItem,
@@ -190,9 +203,10 @@ export default function MyVendorCatalog({
         price: Number(formData.price),
         unit: formData.unit,
         stock: Number(formData.stock),
-        minOrder: 1,
+        minOrder: formData.minOrder,
         condition: formData.condition,
         availabilityType: formData.availabilityType,
+        indentDuration: finalIndentDuration,
         top: formData.top,
         description: formData.description,
         specifications: specsArray,
@@ -201,7 +215,7 @@ export default function MyVendorCatalog({
         deliveryInfo: formData.deliveryInfo,
         location: formData.location,
         imageUrl: formData.imageUrl,
-        status: formData.status,
+        status: finalStatus,
         lastUpdated: new Date().toISOString().split('T')[0]
       });
     } else {
@@ -220,9 +234,10 @@ export default function MyVendorCatalog({
         price: Number(formData.price),
         unit: formData.unit,
         stock: Number(formData.stock),
-        minOrder: 1,
+        minOrder: formData.minOrder,
         condition: formData.condition,
         availabilityType: formData.availabilityType,
+        indentDuration: finalIndentDuration,
         top: formData.top,
         description: formData.description,
         specifications: specsArray,
@@ -231,7 +246,7 @@ export default function MyVendorCatalog({
         deliveryInfo: formData.deliveryInfo,
         location: formData.location,
         imageUrl: formData.imageUrl,
-        status: formData.status,
+        status: finalStatus,
         lastUpdated: new Date().toISOString().split('T')[0]
       };
       onAddItem(newItem);
@@ -498,13 +513,24 @@ export default function MyVendorCatalog({
 
                       {/* Status */}
                       <td className="px-4 py-4 whitespace-nowrap text-center">
-                        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                          item.stock > 0
-                            ? 'bg-emerald-100 text-emerald-800'
-                            : 'bg-red-100 text-red-800'
-                        }`}>
-                          {item.stock > 0 ? 'Tersedia' : 'Habis'}
-                        </span>
+                        <div className="flex flex-col items-center gap-1">
+                          {item.stock === 0 ? (
+                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-red-100 text-red-800">
+                              Habis
+                            </span>
+                          ) : item.availabilityType === 'READY' || !item.availabilityType ? (
+                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
+                              Ready Stock
+                            </span>
+                          ) : (
+                            <span className="inline-flex flex-col items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-900 border border-amber-200">
+                              <span>{item.availabilityType === 'INDENT' ? '⏳ Indent' : '📦 Pre-Order'}</span>
+                              {item.indentDuration && (
+                                <span className="text-[9px] font-medium text-amber-700">({item.indentDuration})</span>
+                              )}
+                            </span>
+                          )}
+                        </div>
                       </td>
 
                       {/* Action */}
@@ -645,6 +671,71 @@ export default function MyVendorCatalog({
                     onChange={(e) => setFormData({ ...formData, minOrder: Number(e.target.value) })}
                     className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs"
                   />
+                </div>
+              </div>
+
+              {/* Status Ketersediaan / Tipe Ready vs Indent */}
+              <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200/60 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="font-bold text-slate-800 block mb-1.5">Status Ketersediaan Barang *</label>
+                  <div className="grid grid-cols-3 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setFormData({ ...formData, availabilityType: 'READY' })}
+                      className={`py-2 px-1 rounded-xl border text-center font-bold text-[11px] transition-all cursor-pointer ${
+                        formData.availabilityType === 'READY'
+                          ? 'bg-emerald-600 text-white border-emerald-600 shadow-3xs'
+                          : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
+                      }`}
+                    >
+                      🟢 Ready Stock
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setFormData({ ...formData, availabilityType: 'INDENT' })}
+                      className={`py-2 px-1 rounded-xl border text-center font-bold text-[11px] transition-all cursor-pointer ${
+                        formData.availabilityType === 'INDENT'
+                          ? 'bg-amber-500 text-white border-amber-500 shadow-3xs'
+                          : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
+                      }`}
+                    >
+                      ⏳ Indent (PO)
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setFormData({ ...formData, availabilityType: 'PREORDER' })}
+                      className={`py-2 px-1 rounded-xl border text-center font-bold text-[11px] transition-all cursor-pointer ${
+                        formData.availabilityType === 'PREORDER'
+                          ? 'bg-blue-600 text-white border-blue-600 shadow-3xs'
+                          : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
+                      }`}
+                    >
+                      📦 Pre-Order
+                    </button>
+                  </div>
+                </div>
+
+                <div>
+                  {formData.availabilityType !== 'READY' ? (
+                    <div className="animate-fadeIn">
+                      <label className="font-bold text-slate-800 block mb-1">Estimasi Lama Indent / Proses *</label>
+                      <input
+                        type="text"
+                        required
+                        placeholder="Contoh: 14 Hari Kerja, 3 Minggu, 1-2 Bulan"
+                        value={formData.indentDuration}
+                        onChange={(e) => setFormData({ ...formData, indentDuration: e.target.value })}
+                        className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs bg-white focus:ring-2 focus:ring-amber-500 font-semibold"
+                      />
+                      <span className="text-[10px] text-slate-400 mt-1 block font-medium">Sebutkan durasi pengerjaan / pengiriman barang pesanan.</span>
+                    </div>
+                  ) : (
+                    <div className="flex flex-col justify-center h-full pt-1">
+                      <span className="text-[11px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-3 py-2 rounded-xl block leading-snug">
+                        ✔️ <b>Ready Stock</b>
+                      </span>
+                    </div>
+                  )}
                 </div>
               </div>
 

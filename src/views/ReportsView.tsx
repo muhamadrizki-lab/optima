@@ -21,7 +21,8 @@ import {
   SlidersHorizontal,
   X,
   ChevronDown,
-  Percent
+  Percent,
+  Calendar
 } from 'lucide-react';
 import { VendorCatalogItem, CatalogItem, Bid } from '../types';
 import { INITIAL_VENDOR_CATALOG } from '../data/vendorCatalogData';
@@ -41,6 +42,8 @@ export default function ReportsView({ vendorCatalogItems = INITIAL_VENDOR_CATALO
   const [filterVendor, setFilterVendor] = useState('ALL');
   const [filterStatus, setFilterStatus] = useState('ALL');
   const [filterArea, setFilterArea] = useState('ALL');
+  const [filterDate, setFilterDate] = useState('');
+  const [filterMonthYear, setFilterMonthYear] = useState('');
   const [selectedCompanyModal, setSelectedCompanyModal] = useState<string | null>(null);
 
   // Real data state
@@ -258,6 +261,8 @@ export default function ReportsView({ vendorCatalogItems = INITIAL_VENDOR_CATALO
     setFilterVendor('ALL');
     setFilterStatus('ALL');
     setFilterArea('ALL');
+    setFilterDate('');
+    setFilterMonthYear('');
   };
 
   // -------------------------------------------------------------
@@ -386,9 +391,19 @@ export default function ReportsView({ vendorCatalogItems = INITIAL_VENDOR_CATALO
         }
       }
 
-      return matchSearch && matchCategory && matchVendor && matchStatus && matchArea;
+      // Date & Month-Year filter
+      let matchDate = true;
+      if (filterDate) {
+        matchDate = item.lastUpdated === filterDate;
+      }
+      let matchMonthYear = true;
+      if (filterMonthYear) {
+        matchMonthYear = !!(item.lastUpdated && item.lastUpdated.startsWith(filterMonthYear));
+      }
+
+      return matchSearch && matchCategory && matchVendor && matchStatus && matchArea && matchDate && matchMonthYear;
     });
-  }, [vendorCatalog, searchQuery, filterCategory, filterVendor, filterStatus, filterArea]);
+  }, [vendorCatalog, searchQuery, filterCategory, filterVendor, filterStatus, filterArea, filterDate, filterMonthYear]);
 
   // Filtered Procurement Report Data
   const filteredProcurementData = useMemo(() => {
@@ -403,9 +418,19 @@ export default function ReportsView({ vendorCatalogItems = INITIAL_VENDOR_CATALO
       const matchStatus = filterStatus === 'ALL' || item.status === filterStatus;
       const matchVendor = filterVendor === 'ALL' || item.winnerVendorName === filterVendor;
 
-      return matchSearch && matchCategory && matchStatus && matchVendor;
+      // Date & Month-Year filter
+      let matchDate = true;
+      if (filterDate) {
+        matchDate = item.datePosted === filterDate;
+      }
+      let matchMonthYear = true;
+      if (filterMonthYear) {
+        matchMonthYear = !!(item.datePosted && item.datePosted.startsWith(filterMonthYear));
+      }
+
+      return matchSearch && matchCategory && matchStatus && matchVendor && matchDate && matchMonthYear;
     });
-  }, [catalogItems, searchQuery, filterCategory, filterStatus, filterVendor]);
+  }, [catalogItems, searchQuery, filterCategory, filterStatus, filterVendor, filterDate, filterMonthYear]);
 
   // Filtered Bids Report Data
   const filteredBidsData = useMemo(() => {
@@ -421,9 +446,19 @@ export default function ReportsView({ vendorCatalogItems = INITIAL_VENDOR_CATALO
       const matchStatus = filterStatus === 'ALL' || bid.status === filterStatus;
       const matchVendor = filterVendor === 'ALL' || bid.vendorName === filterVendor;
 
-      return matchSearch && matchCategory && matchStatus && matchVendor;
+      // Date & Month-Year filter
+      let matchDate = true;
+      if (filterDate) {
+        matchDate = bid.dateSubmitted === filterDate;
+      }
+      let matchMonthYear = true;
+      if (filterMonthYear) {
+        matchMonthYear = !!(bid.dateSubmitted && bid.dateSubmitted.startsWith(filterMonthYear));
+      }
+
+      return matchSearch && matchCategory && matchStatus && matchVendor && matchDate && matchMonthYear;
     });
-  }, [bidsHistory, searchQuery, filterCategory, filterStatus, filterVendor]);
+  }, [bidsHistory, searchQuery, filterCategory, filterStatus, filterVendor, filterDate, filterMonthYear]);
 
   // -------------------------------------------------------------
   // EXPORT TO EXCEL LOGIC (HTML EXCEL COMPLIANT FORMATTER)
@@ -896,11 +931,45 @@ export default function ReportsView({ vendorCatalogItems = INITIAL_VENDOR_CATALO
               </select>
             )}
 
+            {/* Filter Tanggal */}
+            <div className="flex items-center gap-1 text-slate-700 bg-slate-50 border border-slate-200 rounded-xl px-2.5 py-1.5 focus-within:ring-2 focus-within:ring-blue-600 focus-within:bg-white transition-all">
+              <Calendar className="w-3.5 h-3.5 text-slate-400" />
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider shrink-0 ml-0.5">Tgl:</span>
+              <input
+                type="date"
+                value={filterDate}
+                onChange={(e) => setFilterDate(e.target.value)}
+                className="bg-transparent border-none text-xs font-semibold text-slate-700 focus:outline-none p-0 cursor-pointer w-[110px]"
+              />
+              {filterDate && (
+                <button onClick={() => setFilterDate('')} className="p-0.5 hover:bg-slate-200 rounded text-slate-400">
+                  <X className="w-3 h-3" />
+                </button>
+              )}
+            </div>
+
+            {/* Filter Bulan & Tahun */}
+            <div className="flex items-center gap-1 text-slate-700 bg-slate-50 border border-slate-200 rounded-xl px-2.5 py-1.5 focus-within:ring-2 focus-within:ring-blue-600 focus-within:bg-white transition-all">
+              <Calendar className="w-3.5 h-3.5 text-slate-400" />
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider shrink-0 ml-0.5">Bln:</span>
+              <input
+                type="month"
+                value={filterMonthYear}
+                onChange={(e) => setFilterMonthYear(e.target.value)}
+                className="bg-transparent border-none text-xs font-semibold text-slate-700 focus:outline-none p-0 cursor-pointer w-[100px]"
+              />
+              {filterMonthYear && (
+                <button onClick={() => setFilterMonthYear('')} className="p-0.5 hover:bg-slate-200 rounded text-slate-400">
+                  <X className="w-3 h-3" />
+                </button>
+              )}
+            </div>
+
             {/* Clear Filters Button */}
-            {(searchQuery || filterCategory !== 'ALL' || filterVendor !== 'ALL' || filterStatus !== 'ALL' || filterArea !== 'ALL') && (
+            {(searchQuery || filterCategory !== 'ALL' || filterVendor !== 'ALL' || filterStatus !== 'ALL' || filterArea !== 'ALL' || filterDate || filterMonthYear) && (
               <button
                 onClick={resetFilters}
-                className="text-rose-600 hover:text-rose-700 font-bold text-xs hover:underline flex items-center gap-1"
+                className="text-rose-600 hover:text-rose-700 font-bold text-xs hover:underline flex items-center gap-1 shrink-0"
               >
                 Reset Filter
               </button>
@@ -1221,7 +1290,7 @@ export default function ReportsView({ vendorCatalogItems = INITIAL_VENDOR_CATALO
                               {item.winnerVendorName}
                             </span>
                           ) : (
-                            <span className="text-slate-400 font-normal italic">Belum Diputus</span>
+                            <span className="text-slate-400 font-bold">-</span>
                           )}
                         </td>
                         <td className="py-3 px-3 text-right font-black text-emerald-700 font-mono bg-emerald-50/20">
