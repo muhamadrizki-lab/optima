@@ -47,80 +47,8 @@ interface AvailableTender {
   specSummary: string;
 }
 
-const AVAILABLE_TENDERS: AvailableTender[] = [
-  {
-    id: 'REQ-001',
-    title: 'Pembaruan Perangkat IT 2024 (50 Unit Laptop)',
-    category: 'LAINNYA',
-    categoryLabel: 'IT & Fasilitas Kantor',
-    oe: 750000000,
-    quantity: 50,
-    unit: 'Unit Laptop',
-    deadline: '2026-08-31',
-    location: 'Head Office Pancaran Jakarta',
-    specSummary: 'Core i7/Ryzen 7, 16GB RAM, 512GB SSD NVMe, Garansi Resmi 3 Tahun.'
-  },
-  {
-    id: 'REQ-002',
-    title: 'Pemeliharaan AC Tahunan (Service AC & Maintenance)',
-    category: 'JASA',
-    categoryLabel: 'Jasa & HVAC',
-    oe: 120000000,
-    quantity: 45,
-    unit: 'Unit AC',
-    deadline: '2026-08-27',
-    location: 'Head Office Jakarta',
-    specSummary: 'Cuci AC rutin per 3 bulan, pengecekan freon dan kompresor 45 unit AC.'
-  },
-  {
-    id: 'REQ-003',
-    title: 'Pengadaan Ban Radial Truk Tronton 11R22.5 (200 Unit)',
-    category: 'BAN',
-    categoryLabel: 'Ban & Velg',
-    oe: 850000000,
-    quantity: 200,
-    unit: 'Pcs',
-    deadline: '2026-08-30',
-    location: 'Depo Cakung & Cikarang',
-    specSummary: 'Ban radial 11R22.5 16PR/18PR tubeless untuk armada trailer logistik rute Jawa-Sumatera.'
-  },
-  {
-    id: 'REQ-004',
-    title: 'Pengadaan Aki Truk Heavy Duty 12V 100Ah N100 (150 Unit)',
-    category: 'AKI',
-    categoryLabel: 'Aki & Elektrikal',
-    oe: 275000000,
-    quantity: 150,
-    unit: 'Pcs',
-    deadline: '2026-08-25',
-    location: 'Pool Cakung & Marunda',
-    specSummary: 'Aki basah/kering daya cranking tinggi standard N100 / 95E41R armada angkutan logistik.'
-  },
-  {
-    id: 'REQ-005',
-    title: 'Pengadaan Suku Cadang Kampas Rem & Filter Armada Hino/Isuzu',
-    category: 'SPARE_PART',
-    categoryLabel: 'Spare Part & Komponen',
-    oe: 160000000,
-    quantity: 100,
-    unit: 'Set Paket',
-    deadline: '2026-08-28',
-    location: 'Workshop Utama Cakung',
-    specSummary: 'Brake shoe Hino 500 FL/FM non-asbestos & filter oli/solar Fleetguard.'
-  },
-  {
-    id: 'REQ-006',
-    title: 'Jasa Overhaul & Kalibrasi Mesin Diesel & Pompa Injeksi Common Rail (10 Unit)',
-    category: 'JASA',
-    categoryLabel: 'Jasa & Perawatan Armada',
-    oe: 80000000,
-    quantity: 10,
-    unit: 'Unit Truk',
-    deadline: '2026-08-22',
-    location: 'Workshop Vendor & Pool Armada',
-    specSummary: 'Overhaul fuel injection pump, nozzle injector Bosch digital test bench.'
-  }
-];
+const AVAILABLE_TENDERS: AvailableTender[] = [];
+
 
 export default function Bidding({ user, onBack, initialReqId, vendorCatalogItems, onOpenChat }: BiddingProps) {
   // Dynamic list of tenders merging localStorage catalog items
@@ -137,11 +65,11 @@ export default function Bidding({ user, onBack, initialReqId, vendorCatalogItems
               title: item.title,
               category: existing ? existing.category : 'SPARE_PART',
               categoryLabel: existing ? existing.categoryLabel : 'Kebutuhan Logistik',
-              oe: item.ownerEstimate || (existing ? existing.oe : 100000000),
-              quantity: existing ? existing.quantity : 1,
-              unit: existing ? existing.unit : 'Paket',
-              deadline: item.datePosted || '2026-08-31',
-              location: item.delivery || (existing ? existing.location : 'Jakarta'),
+              oe: item.ownerEstimate || item.oe || (existing ? existing.oe : 100000000),
+              quantity: item.quantity || (existing ? existing.quantity : 1),
+              unit: item.unit || (existing ? existing.unit : 'Paket'),
+              deadline: item.deadline || item.datePosted || '2026-08-31',
+              location: item.delivery || item.locationDelivery || (existing ? existing.location : 'Jakarta'),
               specSummary: item.description || (item.specifications ? item.specifications.join(', ') : '')
             };
           });
@@ -187,11 +115,11 @@ export default function Bidding({ user, onBack, initialReqId, vendorCatalogItems
                   title: item.title,
                   category: existing ? existing.category : 'SPARE_PART',
                   categoryLabel: existing ? existing.categoryLabel : 'Kebutuhan Logistik',
-                  oe: item.ownerEstimate || (existing ? existing.oe : 100000000),
-                  quantity: existing ? existing.quantity : 1,
-                  unit: existing ? existing.unit : 'Paket',
-                  deadline: item.datePosted || '2026-08-31',
-                  location: item.delivery || (existing ? existing.location : 'Jakarta'),
+                  oe: item.ownerEstimate || item.oe || (existing ? existing.oe : 100000000),
+                  quantity: item.quantity || (existing ? existing.quantity : 1),
+                  unit: item.unit || (existing ? existing.unit : 'Paket'),
+                  deadline: item.deadline || item.datePosted || '2026-08-31',
+                  location: item.delivery || item.locationDelivery || (existing ? existing.location : 'Jakarta'),
                   specSummary: item.description || (item.specifications ? item.specifications.join(', ') : '')
                 };
               });
@@ -833,9 +761,9 @@ export default function Bidding({ user, onBack, initialReqId, vendorCatalogItems
                   </td>
                 </tr>
               ) : (
-                filteredBids.map((bid) => {
+                filteredBids.map((bid, idx) => {
                   return (
-                    <tr key={bid.id} className="hover:bg-slate-50/80 transition-colors">
+                    <tr key={`${bid.id}-${idx}`} className="hover:bg-slate-50/80 transition-colors">
                       {/* No. Bid & Date */}
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="font-mono font-bold text-blue-600 text-xs">{bid.id}</div>
@@ -936,8 +864,8 @@ export default function Bidding({ user, onBack, initialReqId, vendorCatalogItems
                   className="w-full px-3.5 py-2.5 border border-slate-300 rounded-xl text-xs font-semibold bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-slate-800"
                   required
                 >
-                  {tenderList.map((tender) => (
-                    <option key={tender.id} value={tender.id}>
+                  {tenderList.map((tender, idx) => (
+                    <option key={`${tender.id}-${idx}`} value={tender.id}>
                       [{tender.id}] {tender.title} — Pagu OE: {formatRp(tender.oe)} ({tender.quantity} {tender.unit})
                     </option>
                   ))}
@@ -983,8 +911,8 @@ export default function Bidding({ user, onBack, initialReqId, vendorCatalogItems
                       className="w-full px-3 py-2 border border-slate-300 rounded-xl text-xs bg-white font-medium text-slate-800 focus:ring-2 focus:ring-blue-500"
                     >
                       <option value="CUSTOM">➕ Masukkan Produk Kustom (Isi Manual)</option>
-                      {myCatalogItems.map((item: any) => (
-                        <option key={item.id} value={item.id}>
+                      {myCatalogItems.map((item: any, idx: number) => (
+                        <option key={`${item.id}-${idx}`} value={item.id}>
                           [{item.category}] {item.title} — {formatRp(item.price)}
                         </option>
                       ))}
@@ -1440,9 +1368,9 @@ export default function Bidding({ user, onBack, initialReqId, vendorCatalogItems
               {/* Modal Body: List of Bids */}
               <div className="p-6 overflow-y-auto space-y-4 flex-1">
                 {filteredBids.length > 0 ? (
-                  filteredBids.map((bid) => (
+                  filteredBids.map((bid, idx) => (
                     <div 
-                      key={bid.id}
+                      key={`${bid.id}-${idx}`}
                       className="bg-white border border-slate-200 hover:border-blue-300 rounded-2xl p-5 transition-all shadow-xs hover:shadow-md space-y-3"
                     >
                       {/* Top row: ID, Title, Status */}

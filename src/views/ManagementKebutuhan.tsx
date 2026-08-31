@@ -230,8 +230,8 @@ export default function ManagementKebutuhan() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {filteredList.map((item) => (
-                <tr key={item.id} className="hover:bg-slate-50/80 transition-colors">
+              {filteredList.map((item, idx) => (
+                <tr key={`${item.id}-${idx}`} className="hover:bg-slate-50/80 transition-colors">
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="font-bold text-slate-900 flex items-center gap-2">
                       {item.name}

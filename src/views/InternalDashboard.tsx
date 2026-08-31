@@ -58,7 +58,7 @@ export default function InternalDashboard({
   const [selectedCompanyModal, setSelectedCompanyModal] = useState<string | null>(null);
   const [lightboxPhoto, setLightboxPhoto] = useState<{ url: string; title: string; subtitle?: string } | null>(null);
   
-  const [totalKebutuhan, setTotalKebutuhan] = useState(5);
+  const [totalKebutuhan, setTotalKebutuhan] = useState(0);
   const [kebutuhanList, setKebutuhanList] = useState<any[]>([]);
   const [totalBids, setTotalBids] = useState(INITIAL_BIDS_DATA.length);
   const [bidsList, setBidsList] = useState<any[]>(INITIAL_BIDS_DATA);
@@ -80,33 +80,16 @@ export default function InternalDashboard({
       const savedCatalog = localStorage.getItem('optima_catalog_kebutuhan');
       if (savedCatalog) {
         const parsed = JSON.parse(savedCatalog);
-        if (Array.isArray(parsed) && parsed.length > 0) {
+        if (Array.isArray(parsed)) {
           setTotalKebutuhan(parsed.length);
           setKebutuhanList(parsed);
         }
       } else {
-        // Fallback default list with 1 won tender (REQ-003) for initial display
-        const defaultList = [
-          { id: 'REQ-001', title: 'Pembaruan Perangkat IT 2024', description: 'Pengadaan 50 Laptop & Aksesoris', status: 'OPEN', ownerEstimate: 750000000 },
-          { id: 'REQ-002', title: 'Pemeliharaan AC Tahunan (Service AC)', description: 'Kontrak tahunan service AC', status: 'OPEN', ownerEstimate: 120000000 },
-          { 
-            id: 'REQ-003', 
-            title: 'Pengadaan Ban Radial Truk Tronton 11R22.5 (200 Unit)', 
-            description: 'Pengadaan paket ban radial heavy duty tubeless', 
-            status: 'CLOSED', 
-            winnerVendorName: 'PT Mandiri Ban Pratama', 
-            winnerAmount: 790000000, 
-            winnerDate: '2026-08-16',
-            ownerEstimate: 850000000,
-            winnerNotes: 'Penawaran terbaik dengan rekam jejak terpercaya. PO terbit.'
-          },
-          { id: 'REQ-004', title: 'Pengadaan Aki Truk Heavy Duty 12V 100Ah N100', description: 'Penyediaan baterai aki basah & kering', status: 'OPEN', ownerEstimate: 267000000 },
-          { id: 'REQ-005', title: 'Pengadaan Suku Cadang Kampas Rem & Filter Armada', description: 'Paket suku cadang fast-moving', status: 'OPEN', ownerEstimate: 420000000 }
-        ];
-        setTotalKebutuhan(defaultList.length);
-        setKebutuhanList(defaultList);
+        setTotalKebutuhan(0);
+        setKebutuhanList([]);
       }
     } catch (e) {}
+
 
     // Load Bids
     try {
@@ -137,18 +120,12 @@ export default function InternalDashboard({
           setTotalVendorJasa(externals.filter((u: any) => u.vendorType === 'VENDOR_JASA').length);
         }
       } else {
-        // Initial defaults based on ManagementAkses state
-        const initialInternals = [
-          { id: '1', name: 'Muhamad Rizki Alfian', email: 'muhamad.rizki@pancaran-logistic.id', role: 'INTERNAL', vendorType: 'ADMIN', status: 'ACTIVE' },
-          { id: '2', name: 'Budi Santoso', email: 'budi.s@pancaran-logistic.id', role: 'INTERNAL', vendorType: 'PROCUREMENT', status: 'ACTIVE' },
-        ];
-        setInternalUsersList(initialInternals);
-        
-        const initialExternals = [
-          { id: '3', name: 'PT Surya Gemilang', email: 'vendor@suryagemilang.com', role: 'EXTERNAL', vendorType: 'SUPPLIER', status: 'ACTIVE' },
-          { id: '4', name: 'CV Makmur Jaya', email: 'info@makmurjaya.co.id', role: 'EXTERNAL', vendorType: 'VENDOR_JASA', status: 'PENDING' },
-        ];
-        setExternalUsersList(initialExternals);
+        setTotalInternalUsers(0);
+        setInternalUsersList([]);
+        setTotalExternalUsers(0);
+        setExternalUsersList([]);
+        setTotalSuppliers(0);
+        setTotalVendorJasa(0);
       }
     } catch (e) {}
 

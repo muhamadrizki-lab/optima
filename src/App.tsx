@@ -20,6 +20,7 @@ import MyVendorCatalog from './views/MyVendorCatalog';
 import ReportsView from './views/ReportsView';
 import VendorChatModal from './components/VendorChatModal';
 import { startFirebaseSync } from './firebase';
+import { resetAllDatabaseData } from './utils/dataReset';
 
 export default function App() {
   // Chat Modal State
@@ -155,7 +156,16 @@ export default function App() {
   };
 
   const handleDeleteVendorItem = (id: string) => {
-    setVendorCatalogItems(prev => prev.filter(i => i.id !== id));
+    setVendorCatalogItems(prev => {
+      const updated = prev.filter(i => i.id !== id);
+      try {
+        localStorage.setItem('optima_vendor_catalog', JSON.stringify(updated));
+        window.dispatchEvent(new CustomEvent('optima-db-updated', { detail: { key: 'optima_vendor_catalog' } }));
+      } catch (e) {
+        console.error('Error deleting vendor item:', e);
+      }
+      return updated;
+    });
   };
 
   const handleLogin = (loggedInUser: User) => {

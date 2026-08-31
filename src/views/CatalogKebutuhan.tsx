@@ -67,156 +67,163 @@ interface BidderItem {
   indentDuration?: string;
 }
 
-const DEFAULT_CATALOG_ITEMS: CatalogItem[] = [
-  { 
-    id: 'REQ-001', 
-    title: 'Pembaruan Perangkat IT 2024', 
-    description: 'Pengadaan 50 laptop baru dan aksesoris untuk tim engineering & operasional logistik.', 
-    datePosted: '2026-08-15', 
-    deadline: '2026-08-31T17:00:00',
+export const DEFAULT_CATALOG_ITEMS: CatalogItem[] = [
+  {
+    id: 'REQ-001',
+    title: 'Pengadaan Ban Truk Heavy Duty 11R22.5 Radial Tubeless',
+    category: 'Pengadaan Ban & Velg Truk',
+    quantity: 50,
+    unit: 'Pcs',
+    oe: 192500000,
+    ownerEstimate: 192500000,
+    description: 'Pengadaan 50 unit Ban Radial Tubeless ukuran 11R22.5 16PR untuk armada truk trailer Hino & Scania rute distribusi Jawa-Bali PT Pancaran Logistics.',
     status: 'OPEN',
-    imageUrl: 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?auto=format&fit=crop&w=800&q=80',
-    warranty: 'Garansi Resmi 3 Tahun Lenovo Indonesia (Onsite & Premier Support)',
-    specifications: ['Intel Core i7 Gen 13', '16GB RAM DDR5', '512GB NVMe SSD', '14-inch IPS Display', 'Garansi Resmi 3 Tahun'],
-    specTable: [
-      { no: 1, nama: 'Laptop Workstation Engineering', brand: 'Lenovo ThinkPad P14s Gen 4 (i7-13700H, 16GB, 512GB SSD)', qty: 35, uom: 'unit', ket: 'Garansi resmi 3 tahun, include OS Win 11 Pro' },
-      { no: 2, nama: 'Laptop Operasional Logistik', brand: 'Lenovo ThinkBook 14 Gen 6 (i5-1335U, 16GB, 512GB SSD)', qty: 15, uom: 'unit', ket: 'Garansi resmi 3 tahun, tas backpack' },
-      { no: 3, nama: 'Docking Station USB-C', brand: 'ThinkPad Universal USB-C Dock', qty: 50, uom: 'pcs', ket: 'Dual 4K Display Support' },
-      { no: 4, nama: 'Wireless Mouse & Keyboard', brand: 'Logitech MK270 Combo', qty: 50, uom: 'set', ket: 'Baterai termasuk, garansi 1 tahun' },
-      { no: 5, nama: 'Monitor 24 inci IPS', brand: 'LG 24MP400-B 75Hz Full HD', qty: 20, uom: 'unit', ket: 'Garansi 3 tahun resmi LG Indonesia' }
+    deadline: '2026-09-10T17:00:00',
+    datePosted: '2026-08-20',
+    warranty: 'Garansi Resmi Pabrikan 12 Bulan / 50.000 KM',
+    specifications: [
+      '40 Pcs Ban Radial 11R22.5 16PR (Bridgestone R156 / Gajah Tunggal GT Radial)',
+      '50 Pcs Pentil Ban Tubeless Heavy Duty High Pressure Metal Core',
+      '10 Paket Jasa Pasang, Spooring & Balancing Roda Truk Trailer'
     ],
-    tnc: 'Barang harus original dan bergaransi resmi dari distributor Indonesia.',
-    top: 'Net 30 Hari setelah barang diterima dan invoice lengkap.',
-    delivery: 'Gratis Pengiriman ke Head Office Jakarta',
-    tax: 'Termasuk PPH',
-    ownerEstimate: 750000000,
-    bidsCount: 12,
-    lowestBid: 680000000,
-    highestBid: 785000000
+    specTable: [
+      { no: 1, nama: 'Ban Radial 11R22.5 16PR (Bridgestone/GT Radial)', brand: 'Bridgestone / GT Radial', qty: 40, uom: 'Pcs', ket: 'Kondisi 100% Baru Tahun 2026' },
+      { no: 2, nama: 'Pentil Ban Tubeless Heavy Duty High Pressure', brand: 'Standard OEM', qty: 50, uom: 'Pcs', ket: 'Bahan Kuningan Lapis Krom' },
+      { no: 3, nama: 'Jasa Pasang & Balancing Roda Truk Trailer', brand: 'Jasa Workshop', qty: 10, uom: 'Paket', ket: 'Area Cakung & Marunda' }
+    ],
+    termsAndConditions: 'Pengiriman bertahap 2 gelombang. Sertakan Certificate of Origin (COO) dan Certificate of Analysis (COA) asli distributor.',
+    tnc: 'Pengiriman bertahap 2 gelombang. Sertakan Certificate of Origin (COO) dan Certificate of Analysis (COA) asli distributor.',
+    topPayment: 'TOP 30 Hari setelah BAST & Invoice diterima lengkap',
+    top: 'TOP 30 Hari setelah BAST & Invoice diterima lengkap',
+    locationDelivery: 'Depo Pancaran Cakung, Jl. Raya Bekasi KM 24, Jakarta Timur',
+    delivery: 'Depo Pancaran Cakung, Jl. Raya Bekasi KM 24, Jakarta Timur',
+    taxTerm: 'Include PPH',
+    tax: 'Include PPH'
   },
-  { 
-    id: 'REQ-002', 
-    title: 'Pemeliharaan AC Tahunan (Service AC)', 
-    description: 'Kontrak tahunan untuk pemeliharaan rutin dan perbaikan AC di seluruh area kantor pusat.', 
-    datePosted: '2026-08-18', 
-    deadline: '2026-08-28T23:59:59',
+  {
+    id: 'REQ-002',
+    title: 'Pengadaan Aki Heavy Duty GS Astra N100 (100 Ah 12V)',
+    category: 'Aki & Elektrikal Armada',
+    quantity: 30,
+    unit: 'Pcs',
+    oe: 58500000,
+    ownerEstimate: 58500000,
+    description: 'Pengadaan Aki Basah Heavy Duty GS Astra N100 / 95E41R untuk peremajaan sistem starter armada truk wingbox & prime mover.',
     status: 'OPEN',
-    imageUrl: 'https://images.unsplash.com/photo-1621905252507-b35492cc74b4?auto=format&fit=crop&w=800&q=80',
-    warranty: 'Garansi Pekerjaan Service Minimal 14 Hari & Teknisi Bersertifikat K3',
-    specifications: ['Cuci AC rutin per 3 bulan', 'Pengecekan freon dan kompresor', 'Respon perbaikan darurat 1x24 jam', 'Termasuk perbaikan minor', 'Total 45 unit AC Split & Cassette'],
-    specTable: [
-      { no: 1, nama: 'Cuci & Maintenance AC Split 1-2 PK', brand: 'Daikin / Panasonic / Sharp', qty: 35, uom: 'pcs', ket: 'Cuci rutin per 3 bulan (4x kunjungan setahun)' },
-      { no: 2, nama: 'Cuci & Maintenance AC Cassette 3-5 PK', brand: 'Daikin Inverter Heavy Duty', qty: 10, uom: 'pcs', ket: 'Pembersihan filter, kompresor & evaporator' },
-      { no: 3, nama: 'Pengecekan Freon R32/R410A & Oli Kompresor', brand: 'Standard Pressure Gauge Test', qty: 45, uom: 'pcs', ket: 'Termasuk penambahan freon minor & kelistrikan' },
-      { no: 4, nama: 'Perbaikan Minor & Response Emergency', brand: 'On-Call Service 1x24 Jam', qty: 1, uom: 'pcs', ket: 'Garansi pengerjaan minimal 14 hari' }
+    deadline: '2026-09-05T17:00:00',
+    datePosted: '2026-08-22',
+    warranty: 'Garansi Resmi Distributor 12 Bulan (One to One Replacement)',
+    specifications: [
+      '30 Pcs Aki GS Astra Hybrid N100 (100 Ah 12V Heavy Duty)',
+      '30 Set Kabel Skun Aki & Terminal Tembaga M10 Heavy Duty'
     ],
-    tnc: 'Teknisi wajib memiliki sertifikasi K3. Garansi pekerjaan service minimal 14 hari.',
-    top: 'Tagihan bulanan, Net 14 Hari setelah BAST.',
-    delivery: 'Service langsung di lokasi Head Office',
-    tax: 'Termasuk PPN & PPH',
-    ownerEstimate: 120000000,
-    bidsCount: 4,
-    lowestBid: 105000000,
-    highestBid: 130000000
+    specTable: [
+      { no: 1, nama: 'Aki GS Astra Hybrid N100 (100 Ah 12V)', brand: 'GS Astra Genuine', qty: 30, uom: 'Pcs', ket: 'Siap Pakai Lengkap Air Zuur' },
+      { no: 2, nama: 'Kabel Skun Aki & Terminal Tembaga M10', brand: 'Heavy Duty OEM', qty: 30, uom: 'Set', ket: 'Bahan Tembaga Lapis Timah' }
+    ],
+    termsAndConditions: 'Barang 100% baru buatan tahun berjalan. Klaim garansi ganti baru langsung dalam kurun waktu 12 bulan.',
+    tnc: 'Barang 100% baru buatan tahun berjalan. Klaim garansi ganti baru langsung dalam kurun waktu 12 bulan.',
+    topPayment: 'TOP 14 Hari setelah Invoice Diterima',
+    top: 'TOP 14 Hari setelah Invoice Diterima',
+    locationDelivery: 'Depo Pancaran Marunda, Kawasan Industri Marunda Center, Jakarta Utara',
+    delivery: 'Depo Pancaran Marunda, Kawasan Industri Marunda Center, Jakarta Utara',
+    taxTerm: 'Include PPH',
+    tax: 'Include PPH'
   },
   {
     id: 'REQ-003',
-    title: 'Pengadaan Ban Radial Truk Tronton 11R22.5 (200 Unit)',
-    description: 'Pengadaan paket ban radial heavy duty tubeless untuk peremajaan roda 40 unit armada trailer logistik rute Jawa-Sumatera.',
-    datePosted: '2026-08-10',
-    deadline: '2026-08-16T17:00:00',
-    status: 'CLOSED',
-    winnerVendorName: 'PT Mandiri Ban Pratama',
-    winnerVendorId: 'VEND-01',
-    winnerAmount: 790000000,
-    winnerDate: '2026-08-16',
-    winnerNotes: 'Penawaran terbaik dengan harga kompetitif dan rekam jejak distribusi terpercaya. BAST & PO telah diterbitkan.',
-    winnerPaymentMethod: 'Net 45 Days • Garansi 12 Bulan / 60.000 KM',
-    winnerRank: 1,
-    imageUrl: 'https://images.unsplash.com/photo-1578844251758-2f71da64c96f?auto=format&fit=crop&w=800&q=80',
-    warranty: 'Garansi Aus Pabrik 12 Bulan / 60.000 KM Resmi Bridgestone',
+    title: 'Pengadaan Suku Cadang Sistem Pengereman & Kopling Hino 500',
+    category: 'Pengadaan Suku Cadang Truck',
+    quantity: 20,
+    unit: 'Set',
+    oe: 84000000,
+    ownerEstimate: 84000000,
+    description: 'Paket pengadaan suku cadang pengereman (Brake Shoe lining) dan Disc Clutch Assy Genuine/OEM Hino FM260TI.',
+    status: 'OPEN',
+    deadline: '2026-09-15T17:00:00',
+    datePosted: '2026-08-24',
+    warranty: 'Garansi Orisinalitas OEM Hino 6 Bulan',
     specifications: [
-      'Ukuran: 11R22.5 16PR / 18PR Tubeless',
-      'Merk yang direkomendasikan: Bridgestone / Michelin / Gajah Tunggal',
-      'Tahun produksi minimal minggu ke-20 tahun 2026',
-      'Garansi aus pabrik minimal 50.000 KM',
-      'Total pengadaan: 200 Pcs'
+      '20 Set Kampas Rem / Brake Lining Set Hino 500 FM260TI OEM',
+      '10 Pcs Plat Kopling / Clutch Disc Assy OEM Hino',
+      '20 Pcs Filter Oli Fleetguard LF16015 Heavy Duty'
     ],
     specTable: [
-      { no: 1, nama: 'Ban Radial Tubeless Heavy Duty (Drive Axle)', brand: 'Bridgestone R156 / GT Radial GTR926', qty: 120, uom: 'pcs', ket: 'Ukuran 11R22.5 16PR, Tahun Produksi 2026' },
-      { no: 2, nama: 'Ban Radial Tubeless Steering Axle', brand: 'Michelin X Multi Z2 / Bridgestone', qty: 80, uom: 'pcs', ket: 'Ukuran 11R22.5 18PR, Garansi 50.000 KM' },
-      { no: 3, nama: 'Pentil Ban Tubeless Heavy Duty Brass', brand: 'Alligator Germany Brass Valve', qty: 200, uom: 'pcs', ket: 'Material Kuningan Anti Leak & High Pressure' }
+      { no: 1, nama: 'Kampas Rem / Brake Lining Set Hino 500 FM260TI', brand: 'Hino Genuine Parts', qty: 20, uom: 'Set', ket: 'Kemasan Dus Segel Hino' },
+      { no: 2, nama: 'Plat Kopling / Clutch Disc Assy OEM Hino', brand: 'Exedy / Hino Genuine', qty: 10, uom: 'Pcs', ket: 'Diameter 430mm Heavy Duty' },
+      { no: 3, nama: 'Filter Oli Fleetguard LF16015', brand: 'Fleetguard', qty: 20, uom: 'Pcs', ket: 'Filter Oli Mesin Hino 500' }
     ],
-    tnc: 'Barang asli SNI, melampirkan sertifikat distributor resmi dan garansi pabrikan.',
-    top: 'Net 45 Hari setelah BAST dan pengujian berkala.',
-    delivery: 'Pengiriman bertahap ke Pool Cakung & Cikarang',
-    tax: 'Termasuk PPN 11% & PPh 22/23',
-    ownerEstimate: 850000000,
-    bidsCount: 6,
-    lowestBid: 790000000,
-    highestBid: 890000000
+    termsAndConditions: 'Wajib suku cadang Genuine/OEM Hino Indonesia. Fisik item akan diuji tim QC saat serah terima di gudang.',
+    tnc: 'Wajib suku cadang Genuine/OEM Hino Indonesia. Fisik item akan diuji tim QC saat serah terima di gudang.',
+    topPayment: 'TOP 30 Hari',
+    top: 'TOP 30 Hari',
+    locationDelivery: 'Gudang Utama Dadap, Pergudangan Nusa Indah, Dadap, Tangerang',
+    delivery: 'Gudang Utama Dadap, Pergudangan Nusa Indah, Dadap, Tangerang',
+    taxTerm: 'Include PPH',
+    tax: 'Include PPH'
   },
   {
     id: 'REQ-004',
-    title: 'Pengadaan Aki Truk Heavy Duty 12V 100Ah N100 (150 Unit)',
-    description: 'Kontrak penyediaan baterai aki basah & kering berdaya cranking tinggi untuk armada angkutan logistik Pancaran Group.',
-    datePosted: '2026-08-12',
-    deadline: '2026-08-30T18:00:00',
+    title: 'Pengadaan Pelumas & Oli Mesin Heavy Duty SAE 15W-40 (Drum 200L)',
+    category: 'Pengadaan Oli & Pelumas Heavy Duty',
+    quantity: 15,
+    unit: 'Drum',
+    oe: 127500000,
+    ownerEstimate: 127500000,
+    description: 'Pengadaan Oli Mesin Diesel Heavy Duty SAE 15W-40 API CK-4/CI-4 kemasan Drum 200 Liter untuk servis berkala armada truk logistik.',
     status: 'OPEN',
-    imageUrl: 'https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?auto=format&fit=crop&w=800&q=80',
-    warranty: 'Garansi Ganti Baru (1-to-1 Replacement) 6-12 Bulan Resmi GS Astra',
+    deadline: '2026-09-12T17:00:00',
+    datePosted: '2026-08-25',
+    warranty: 'Garansi Sertifikasi Keaslian Shell / Mobil Delvac / Pertamina',
     specifications: [
-      'Kapasitas: 12 Volt 100 Ah (Standard N100 / 95E41R)',
-      'Merk: GS Astra / Incoe / Yuasa',
-      'Cold Cranking Amps (CCA) minimal 650A',
-      'Sudah termasuk air zuur pabrik (khusus tipe basah) & packing safety',
-      'Jumlah: 150 Unit'
+      '15 Drum Oli Mesin Heavy Duty Diesel SAE 15W-40 (Drum 200L)',
+      '10 Pail Gemuk / Grease Heavy Duty Lithium EP2 (Pail 18Kg)'
     ],
     specTable: [
-      { no: 1, nama: 'Aki Basah Heavy Duty Truck 100Ah', brand: 'GS Astra Hybrid N100 (95E41R)', qty: 100, uom: 'pcs', ket: 'Terisi Air Zuur Pabrik, Cold Cranking Amps > 650A' },
-      { no: 2, nama: 'Aki Kering Maintenance Free (MF)', brand: 'Incoe Gold MF N100', qty: 50, uom: 'pcs', ket: 'Bebas Perawatan, Garansi ganti baru 6 bulan' },
-      { no: 3, nama: 'Terminal Kepala Aki Tembaga Heavy Duty', brand: 'Brass Clamp Bolt 12V', qty: 300, uom: 'pcs', ket: 'Material Tembaga Lapis Timah Anti Korosi' }
+      { no: 1, nama: 'Oli Mesin Diesel SAE 15W-40 API CI-4/CK-4 (Drum 200L)', brand: 'Shell Rimula R4X / Mobil Delvac', qty: 15, uom: 'Drum', ket: 'Kemasan Drum Bersegel 200 Litres' },
+      { no: 2, nama: 'Grease Heavy Duty Lithium EP2 (Pail 18Kg)', brand: 'Pertamina / Shell', qty: 10, uom: 'Pail', ket: 'Gemuk Pelumas Chasis & Bearing' }
     ],
-    tnc: 'Jaminan ganti baru (1-to-1 replacement) jika ada sel mati dalam masa garansi 6 bulan.',
-    top: 'Net 30 Hari kalender.',
-    delivery: 'Diantar langsung ke Pool Depo Logistik Sunter & Surabaya',
-    tax: 'Termasuk PPN',
-    ownerEstimate: 267000000,
-    bidsCount: 5,
-    lowestBid: 245000000,
-    highestBid: 280000000
+    termsAndConditions: 'Wajib menyertakan Certificate of Analysis (COA) per batch pengiriman. Drum harus dalam keadaan tersegel pabrikan utuh.',
+    tnc: 'Wajib menyertakan Certificate of Analysis (COA) per batch pengiriman. Drum harus dalam keadaan tersegel pabrikan utuh.',
+    topPayment: 'TOP 45 Hari',
+    top: 'TOP 45 Hari',
+    locationDelivery: 'Depo Pancaran Surabaya, Kawasan Industri Rungkut, Surabaya, Jawa Timur',
+    delivery: 'Depo Pancaran Surabaya, Kawasan Industri Rungkut, Surabaya, Jawa Timur',
+    taxTerm: 'Include PPH',
+    tax: 'Include PPH'
   },
   {
     id: 'REQ-005',
-    title: 'Pengadaan Suku Cadang Kampas Rem & Filter Armada Hino/Isuzu',
-    description: 'Paket pengadaan suku cadang fast-moving (Brake Shoe OEM, Filter Oli, Filter Solar Fleetguard) periode semester 2.',
-    datePosted: '2026-08-15',
-    deadline: '2026-09-05T17:00:00',
+    title: 'Pengadaan Perangkat Laptop Workstation IT & Scanner Barcode Gudang',
+    category: 'Perangkat IT & Peralatan Kantor',
+    quantity: 10,
+    unit: 'Unit',
+    oe: 145000000,
+    ownerEstimate: 145000000,
+    description: 'Peremajaan fasilitas perangkat IT operasional berupa 5 unit Laptop Core i7 16GB RAM & 5 unit Industrial Wireless Barcode Scanner Gudang.',
     status: 'OPEN',
-    imageUrl: 'https://images.unsplash.com/photo-1615906655593-ad0386982a0f?auto=format&fit=crop&w=800&q=80',
-    warranty: 'Garansi Resmi Distributor 6 Bulan Genuine Parts OEM Bebas Cacat Pabrik',
+    deadline: '2026-09-20T17:00:00',
+    datePosted: '2026-08-26',
+    warranty: 'Garansi Resmi Onsite Brand 24 Bulan',
     specifications: [
-      '300 Set Brake Shoe Hino Ranger 500 Lohan OEM Non-Asbestos',
-      '400 Set Filter Combo Fleetguard LF16015 / FS19732',
-      '50 Pcs Plat Kopling Clutch Disc Exedy 380mm',
-      'Keaslian genuine/OEM 100% dengan garansi distributor'
+      '5 Unit Laptop Business Workstation Intel Core i7 16GB 512GB SSD 14 inch',
+      '5 Unit Industrial Wireless Barcode Scanner 2D Heavy Duty IP65'
     ],
     specTable: [
-      { no: 1, nama: 'Kampas Rem (Brake Shoe) OEM', brand: 'Hino Genuine Parts / Ranger 500 Lohan', qty: 300, uom: 'pcs', ket: 'Non-Asbestos Heavy Duty OEM' },
-      { no: 2, nama: 'Filter Oli Combo High Efficiency', brand: 'Fleetguard LF16015', qty: 200, uom: 'pcs', ket: 'Standar ISO OEM Hino/Isuzu' },
-      { no: 3, nama: 'Filter Solar / Fuel Water Separator', brand: 'Fleetguard FS19732', qty: 200, uom: 'pcs', ket: 'Penyaringan air & kotoran solar B35/B40' },
-      { no: 4, nama: 'Plat Kopling (Clutch Disc) 380mm', brand: 'Exedy Japan Hino 500', qty: 50, uom: 'pcs', ket: 'Asli Exedy Heavy Duty Durability' }
+      { no: 1, nama: 'Laptop Business Workstation Intel Core i7 16GB RAM 512GB SSD', brand: 'Lenovo ThinkPad / HP ProBook', qty: 5, uom: 'Unit', ket: 'Garansi Onsite 2 Tahun Resmi' },
+      { no: 2, nama: 'Industrial Wireless Barcode Scanner 2D IP65 Waterproof', brand: 'Honeywell / Zebra', qty: 5, uom: 'Unit', ket: 'Lengkap Cradle Charge & USB Dongle' }
     ],
-    tnc: 'Penyedia wajib melampirkan surat keagenan / dealer resmi spare parts.',
-    top: 'Net 30 Hari.',
-    delivery: 'Free delivery ke Gudang Pusat Sparepart Pancaran',
-    tax: 'Termasuk PPN & PPH',
-    ownerEstimate: 420000000,
-    bidsCount: 8,
-    lowestBid: 385000000,
-    highestBid: 435000000
+    termsAndConditions: 'Unit garansi resmi Indonesia. Pengiriman mencakup pengujian unit dan instalasi awal tim IT Pancaran.',
+    tnc: 'Unit garansi resmi Indonesia. Pengiriman mencakup pengujian unit dan instalasi awal tim IT Pancaran.',
+    topPayment: 'TOP 30 Hari',
+    top: 'TOP 30 Hari',
+    locationDelivery: 'Head Office PT Pancaran Darma Transport, Sunter Agung, Jakarta Utara',
+    delivery: 'Head Office PT Pancaran Darma Transport, Sunter Agung, Jakarta Utara',
+    taxTerm: 'Include PPH',
+    tax: 'Include PPH'
   }
 ];
+
 
 export function getSpecTableForItem(item: CatalogItem): SpecTableItem[] {
   if (item.specTable && item.specTable.length > 0) {
@@ -461,6 +468,50 @@ export function TenderCountdownBar({
   );
 }
 
+const sanitizeAndDeduplicateItems = (rawItems: any[]): CatalogItem[] => {
+  const seenIds = new Set<string>();
+  const result: CatalogItem[] = [];
+  if (!Array.isArray(rawItems)) return [];
+  for (const item of rawItems) {
+    if (!item || !item.id) continue;
+    let uniqueId = item.id;
+    if (seenIds.has(uniqueId)) {
+      let counter = 1;
+      while (seenIds.has(`${item.id}_${counter}`)) {
+        counter++;
+      }
+      uniqueId = `${item.id}_${counter}`;
+    }
+    seenIds.add(uniqueId);
+    const match = DEFAULT_CATALOG_ITEMS.find(d => d.id === item.id);
+    const tnc = item.tnc || item.termsAndConditions || match?.tnc || match?.termsAndConditions || 'Sertakan garansi & kelengkapan resmi.';
+    const top = item.top || item.topPayment || match?.top || match?.topPayment || 'TOP 30 Hari setelah BAST & Invoice';
+    const delivery = item.delivery || item.locationDelivery || match?.delivery || match?.locationDelivery || 'Depo PT Pancaran Logistics';
+    const tax = item.tax || item.taxTerm || match?.tax || match?.taxTerm || 'Include PPH';
+    const ownerEstimate = item.ownerEstimate || item.oe || match?.ownerEstimate || match?.oe || 0;
+
+    result.push({
+      ...item,
+      id: uniqueId,
+      tnc,
+      termsAndConditions: tnc,
+      top,
+      topPayment: top,
+      delivery,
+      locationDelivery: delivery,
+      tax,
+      taxTerm: tax,
+      ownerEstimate,
+      oe: ownerEstimate,
+      specTable: (item.specTable && item.specTable.length > 0) ? item.specTable : (match?.specTable || []),
+      deadline: item.deadline || match?.deadline || '2026-08-31T17:00:00',
+      datePosted: item.datePosted || match?.datePosted || '2026-08-15',
+      warranty: item.warranty || match?.warranty || 'Garansi Resmi Distributor'
+    });
+  }
+  return result;
+};
+
 export default function CatalogKebutuhan({ user, onBiddingClick, onOpenChat }: CatalogProps) {
   const isInternal = user?.role === 'INTERNAL';
   
@@ -470,21 +521,17 @@ export default function CatalogKebutuhan({ user, onBiddingClick, onOpenChat }: C
       if (saved) {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed) && parsed.length > 0) {
-          return parsed.map((item: any) => {
-            const match = DEFAULT_CATALOG_ITEMS.find(d => d.id === item.id);
-            return {
-              ...item,
-              specTable: (item.specTable && item.specTable.length > 0) ? item.specTable : (match?.specTable || []),
-              deadline: item.deadline || match?.deadline || '2026-08-31T17:00:00',
-              datePosted: item.datePosted || match?.datePosted || '2026-08-15',
-              warranty: item.warranty || match?.warranty || 'Garansi Resmi Distributor'
-            };
-          });
+          const sanitized = sanitizeAndDeduplicateItems(parsed);
+          if (sanitized.length > 0) return sanitized;
         }
       }
     } catch (e) {
       console.error('Error loading catalog items:', e);
     }
+    // Store defaults in localStorage so Firebase syncs them
+    try {
+      localStorage.setItem('optima_catalog_kebutuhan', JSON.stringify(DEFAULT_CATALOG_ITEMS));
+    } catch {}
     return DEFAULT_CATALOG_ITEMS;
   });
 
@@ -496,16 +543,12 @@ export default function CatalogKebutuhan({ user, onBiddingClick, onOpenChat }: C
           try {
             const parsed = JSON.parse(saved);
             if (Array.isArray(parsed)) {
-              setItems(parsed.map((item: any) => {
-                const match = DEFAULT_CATALOG_ITEMS.find(d => d.id === item.id);
-                return {
-                  ...item,
-                  specTable: (item.specTable && item.specTable.length > 0) ? item.specTable : (match?.specTable || []),
-                  deadline: item.deadline || match?.deadline || '2026-08-31T17:00:00',
-                  datePosted: item.datePosted || match?.datePosted || '2026-08-15',
-                  warranty: item.warranty || match?.warranty || 'Garansi Resmi Distributor'
-                };
-              }));
+              if (parsed.length === 0) {
+                setItems(DEFAULT_CATALOG_ITEMS);
+                localStorage.setItem('optima_catalog_kebutuhan', JSON.stringify(DEFAULT_CATALOG_ITEMS));
+              } else {
+                setItems(sanitizeAndDeduplicateItems(parsed));
+              }
             }
           } catch (err) {
             console.error(err);
@@ -571,6 +614,7 @@ export default function CatalogKebutuhan({ user, onBiddingClick, onOpenChat }: C
     { no: 2, nama: '', brand: '', qty: 1, uom: 'pcs', ket: '' }
   ]);
   const [editSpecTable, setEditSpecTable] = useState<SpecTableItem[]>([]);
+  const [tenderToDelete, setTenderToDelete] = useState<CatalogItem | null>(null);
 
   // Sync with LocalStorage
   useEffect(() => {
@@ -594,7 +638,12 @@ export default function CatalogKebutuhan({ user, onBiddingClick, onOpenChat }: C
 
   const handleCreateSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const id = `REQ-00${items.length + 1}`;
+    const existingNums = items.map(i => {
+      const match = i.id.match(/\d+/);
+      return match ? parseInt(match[0], 10) : 0;
+    });
+    const maxNum = Math.max(0, ...existingNums);
+    const id = `REQ-${String(maxNum + 1).padStart(3, '0')}`;
     const datePosted = new Date().toISOString().split('T')[0];
 
     const validTable = createSpecTable.filter(r => r.nama.trim() || r.brand.trim());
@@ -788,14 +837,46 @@ export default function CatalogKebutuhan({ user, onBiddingClick, onOpenChat }: C
   };
 
   const handleDeleteTender = (tenderId: string) => {
+    const targetItem = items.find(i => i.id === tenderId);
+    if (targetItem) {
+      setTenderToDelete(targetItem);
+    } else {
+      performDeleteTender(tenderId);
+    }
+  };
+
+  const performDeleteTender = (tenderId: string) => {
     const updated = items.filter(item => item.id !== tenderId);
     setItems(updated);
     try {
       localStorage.setItem('optima_catalog_kebutuhan', JSON.stringify(updated));
+      
+      // Clean up related bids in optima_bids_history
+      const savedBids = localStorage.getItem('optima_bids_history');
+      if (savedBids) {
+        try {
+          const parsedBids = JSON.parse(savedBids);
+          if (Array.isArray(parsedBids)) {
+            const updatedBids = parsedBids.filter((bid: any) => bid.tenderId !== tenderId && bid.reqId !== tenderId);
+            localStorage.setItem('optima_bids_history', JSON.stringify(updatedBids));
+            window.dispatchEvent(new CustomEvent('optima-db-updated', { detail: { key: 'optima_bids_history' } }));
+          }
+        } catch (err) {
+          console.error('Error removing related bids:', err);
+        }
+      }
+
+      window.dispatchEvent(new CustomEvent('optima-db-updated', { detail: { key: 'optima_catalog_kebutuhan' } }));
     } catch (e) {
       console.error('Error deleting tender:', e);
     }
     showToast(`Tender ${tenderId} berhasil dihapus.`);
+  };
+
+  const handleConfirmDeleteTender = () => {
+    if (!tenderToDelete) return;
+    performDeleteTender(tenderToDelete.id);
+    setTenderToDelete(null);
   };
 
   const handleStartEdit = (item: CatalogItem) => {
@@ -1447,13 +1528,13 @@ export default function CatalogKebutuhan({ user, onBiddingClick, onOpenChat }: C
                 <p className="text-xs text-slate-500 mt-1">Coba sesuaikan kata kunci pencarian atau filter status Anda.</p>
               </div>
             ) : (
-              filteredItems.map((item) => {
+              filteredItems.map((item, idx) => {
                 const hasWinner = Boolean(item.winnerVendorName);
                 const isClosed = item.status === 'CLOSED';
 
                 return (
                   <div 
-                    key={item.id} 
+                    key={`${item.id}-${idx}`} 
                     id={`tender-${item.id}`}
                     className={`p-6 sm:p-7 bg-white rounded-3xl shadow-sm border transition-all duration-200 hover:shadow-md ${
                       isClosed || item.status === 'CLOSED'
@@ -1575,7 +1656,7 @@ export default function CatalogKebutuhan({ user, onBiddingClick, onOpenChat }: C
                               <ShieldCheck className="w-3 h-3 mr-1 text-indigo-600" />
                               Terms & Conditions
                             </span>
-                            <p className="text-[11px] font-semibold text-slate-800 leading-snug">{item.tnc}</p>
+                            <p className="text-[11px] font-semibold text-slate-800 leading-snug">{item.tnc || item.termsAndConditions || 'Barang 100% Original & Bergaransi Resmi.'}</p>
                           </div>
                           <div className="bg-purple-50/50 p-2.5 rounded-xl border border-purple-100/80">
                             <span className="text-[9px] font-black text-purple-700 uppercase tracking-wider block mb-0.5 flex items-center">
@@ -1591,21 +1672,21 @@ export default function CatalogKebutuhan({ user, onBiddingClick, onOpenChat }: C
                               <CreditCard className="w-3 h-3 mr-1 text-blue-600" />
                               TOP (Term of Payment)
                             </span>
-                            <p className="text-[11px] font-semibold text-slate-800 leading-snug">{item.top}</p>
+                            <p className="text-[11px] font-semibold text-slate-800 leading-snug">{item.top || item.topPayment || 'TOP 30 Hari'}</p>
                           </div>
                           <div className="bg-emerald-50/40 p-2.5 rounded-xl border border-emerald-100/80">
                             <span className="text-[9px] font-black text-emerald-700 uppercase tracking-wider block mb-0.5 flex items-center">
                               <Truck className="w-3 h-3 mr-1 text-emerald-600" />
                               Pengiriman / Lokasi
                             </span>
-                            <p className="text-[11px] font-semibold text-slate-800 leading-snug">{item.delivery}</p>
+                            <p className="text-[11px] font-semibold text-slate-800 leading-snug">{item.delivery || item.locationDelivery || 'Depo PT Pancaran Logistics'}</p>
                           </div>
                           <div className="bg-amber-50/40 p-2.5 rounded-xl border border-amber-100/80">
                             <span className="text-[9px] font-black text-amber-700 uppercase tracking-wider block mb-0.5 flex items-center">
                               <DollarSign className="w-3 h-3 mr-1 text-amber-600" />
                               Ketentuan Pajak
                             </span>
-                            <p className="text-[11px] font-semibold text-slate-800 leading-snug">{item.tax}</p>
+                            <p className="text-[11px] font-semibold text-slate-800 leading-snug">{item.tax || item.taxTerm || 'Include PPH'}</p>
                           </div>
                         </div>
 
@@ -1681,7 +1762,7 @@ export default function CatalogKebutuhan({ user, onBiddingClick, onOpenChat }: C
                                 Estimasi Nilai (OE)
                               </p>
                               <p className="text-lg font-black text-emerald-600">
-                                {item.ownerEstimate ? formatRp(item.ownerEstimate) : 'Tidak Ditampilkan'}
+                                {(item.ownerEstimate || item.oe) ? formatRp(item.ownerEstimate || item.oe || 0) : 'Tidak Ditampilkan'}
                               </p>
                             </div>
                             
@@ -2660,6 +2741,41 @@ export default function CatalogKebutuhan({ user, onBiddingClick, onOpenChat }: C
         isOpen={Boolean(lightboxPhoto)}
         onClose={() => setLightboxPhoto(null)}
       />
+
+      {/* Modal Konfirmasi Hapus Tender */}
+      {tenderToDelete && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-fadeIn">
+          <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-200 animate-scaleUp">
+            <div className="w-12 h-12 rounded-2xl bg-rose-100 text-rose-600 flex items-center justify-center mb-4 font-black">
+              <Trash2 className="w-6 h-6" />
+            </div>
+            <h3 className="text-lg font-black text-slate-900 mb-2">Hapus Tender Kebutuhan?</h3>
+            <p className="text-xs sm:text-sm text-slate-600 leading-relaxed mb-4">
+              Apakah Anda yakin ingin menghapus tender <strong className="text-slate-900">{tenderToDelete.title}</strong> (<span className="font-mono text-blue-700 font-bold">{tenderToDelete.id}</span>)?
+            </p>
+            <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-[11px] text-amber-800 font-medium mb-6">
+              ⚠️ Tender dan seluruh data penawaran (bidding) terkait akan dihapus secara permanen dari aplikasi dan database Firebase.
+            </div>
+            <div className="flex items-center justify-end gap-3">
+              <button
+                type="button"
+                onClick={() => setTenderToDelete(null)}
+                className="px-4 py-2.5 rounded-xl border border-slate-200 hover:bg-slate-100 text-slate-700 font-bold text-xs transition-colors cursor-pointer"
+              >
+                Batal
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmDeleteTender}
+                className="px-5 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs transition-all shadow-md shadow-rose-600/30 cursor-pointer flex items-center gap-1.5"
+              >
+                <Trash2 className="w-4 h-4" />
+                Ya, Hapus Tender
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

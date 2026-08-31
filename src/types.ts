@@ -24,6 +24,10 @@ export interface SpecTableItem {
 export interface CatalogItem {
   id: string;
   title: string;
+  category?: string;
+  quantity?: number;
+  unit?: string;
+  oe?: number;
   description: string;
   datePosted: string;
   deadline?: string;
@@ -32,6 +36,10 @@ export interface CatalogItem {
   warranty?: string;
   specifications?: string[];
   specTable?: SpecTableItem[];
+  termsAndConditions?: string;
+  topPayment?: string;
+  locationDelivery?: string;
+  taxTerm?: string;
   tnc?: string;
   top?: string;
   delivery?: string;

@@ -161,8 +161,8 @@ export default function CatalogVendor({
         const matchesTitle = item.title.toLowerCase().includes(q);
         const matchesBrand = item.brand.toLowerCase().includes(q);
         const matchesPart = (item.partNumber || '').toLowerCase().includes(q);
-        const matchesVendor = item.vendorName.toLowerCase().includes(q);
-        const matchesDesc = item.description.toLowerCase().includes(q);
+        const matchesVendor = (item.vendorName || '').toLowerCase().includes(q);
+        const matchesDesc = (item.description || '').toLowerCase().includes(q);
         return matchesTitle || matchesBrand || matchesPart || matchesVendor || matchesDesc;
       }
       return true;

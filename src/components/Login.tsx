@@ -107,29 +107,24 @@ export default function Login({ onLogin, isModal = false, onClose }: LoginProps)
       const saved = localStorage.getItem('optima_access_users');
       if (saved) {
         const parsed = JSON.parse(saved);
-        const found = parsed.find((u: any) => u.email.toLowerCase() === trimmedEmail);
+        const found = parsed.find((u: any) => u.email?.toLowerCase() === trimmedEmail);
         if (found) {
-          if (found.status === 'PENDING') {
-            setError('Akun Anda masih berstatus PENDING dan menunggu approval dari Tim Internal.');
-            return;
-          }
           if (found.status === 'INACTIVE') {
             setError('Akun Anda tidak aktif atau ditolak oleh administrator.');
             return;
           }
-          if (found.status === 'ACTIVE') {
-            onLogin({
-              id: found.id,
-              email: found.email,
-              name: found.name,
-              companyName: found.companyName,
-              phone: found.phone || '0812-0000-0000',
-              role: found.role,
-              vendorType: found.vendorType,
-              isInternalEmployee: found.role === 'INTERNAL'
-            });
-            return;
-          }
+          // Allow login for testing even if pending or active
+          onLogin({
+            id: found.id || String(Date.now()),
+            email: found.email,
+            name: found.name || 'Vendor Rekanan',
+            companyName: found.companyName || (found.role === 'INTERNAL' ? 'Pancaran Group' : 'PT ' + found.name),
+            phone: found.phone || '0812-0000-0000',
+            role: found.role || 'EXTERNAL',
+            vendorType: found.vendorType || 'SUPPLIER',
+            isInternalEmployee: found.role === 'INTERNAL'
+          });
+          return;
         }
       }
     } catch (err) {
@@ -146,10 +141,65 @@ export default function Login({ onLogin, isModal = false, onClose }: LoginProps)
         role: 'INTERNAL',
         isInternalEmployee: true
       });
-    } else if (trimmedEmail === 'vendor@gmail.com') {
+    } else if (trimmedEmail === 'info@sumberkaret.com' || trimmedEmail === 'sumberkaret@gmail.com') {
+      onLogin({
+        id: 'VEND-02',
+        email: email,
+        name: 'Bambang Hendrawan (CV Sumber Karet)',
+        companyName: 'CV Sumber Karet Nusantara',
+        phone: '0813-7721-0099',
+        role: 'EXTERNAL',
+        vendorType: 'SUPPLIER',
+        isInternalEmployee: false
+      });
+    } else if (trimmedEmail === 'sales@mandiriban.co.id' || trimmedEmail === 'mandiriban@gmail.com' || trimmedEmail === 'external@example.com' || trimmedEmail === 'external@pancaran.com') {
       onLogin({
         id: 'VEND-01',
-        email: 'vendor@gmail.com',
+        email: email,
+        name: 'Hendro Wijaya (PT Mandiri Ban)',
+        companyName: 'PT Mandiri Ban Pratama',
+        phone: '0812-8899-2231',
+        role: 'EXTERNAL',
+        vendorType: 'SUPPLIER',
+        isInternalEmployee: false
+      });
+    } else if (trimmedEmail === 'spareparts@pancaransukucadang.id' || trimmedEmail === 'pancaransukucadang@gmail.com') {
+      onLogin({
+        id: 'VEND-04',
+        email: email,
+        name: 'Dedi Pratama (PT Pancaran Suku Cadang)',
+        companyName: 'PT Pancaran Suku Cadang Utama',
+        phone: '0815-1234-7788',
+        role: 'EXTERNAL',
+        vendorType: 'SUPPLIER',
+        isInternalEmployee: false
+      });
+    } else if (trimmedEmail === 'order@suryaaccu.co.id' || trimmedEmail === 'suryaaccu@gmail.com') {
+      onLogin({
+        id: 'VEND-03',
+        email: email,
+        name: 'Agus Dinata (PT Surya Accu)',
+        companyName: 'PT Surya Accu Dinamika',
+        phone: '0811-9022-4411',
+        role: 'EXTERNAL',
+        vendorType: 'SUPPLIER',
+        isInternalEmployee: false
+      });
+    } else if (trimmedEmail === 'cs@multiservisarmada.com' || trimmedEmail === 'multiservis@gmail.com') {
+      onLogin({
+        id: 'VEND-05',
+        email: email,
+        name: 'Rian Kurniawan (CV Multi Servis)',
+        companyName: 'CV Multi Servis Armada',
+        phone: '0821-4455-6677',
+        role: 'EXTERNAL',
+        vendorType: 'VENDOR_JASA',
+        isInternalEmployee: false
+      });
+    } else if (trimmedEmail === 'vendor@gmail.com' || trimmedEmail === 'vendor@suryagemilang.com') {
+      onLogin({
+        id: 'VEND-06',
+        email: email,
         name: 'PT Surya Gemilang (Vendor)',
         companyName: 'PT Surya Gemilang',
         phone: '0812-8899-2231',
@@ -157,19 +207,44 @@ export default function Login({ onLogin, isModal = false, onClose }: LoginProps)
         vendorType: 'SUPPLIER',
         isInternalEmployee: false
       });
-    } else if (trimmedEmail === 'external@example.com') {
+    } else if (trimmedEmail === 'info@makmurjaya.co.id') {
       onLogin({
-        id: '2',
+        id: 'VEND-07',
         email: email,
-        name: 'Vendor Mitra Logistics',
-        companyName: 'PT Mandiri Ban Pratama',
-        phone: '0812-8899-2231',
+        name: 'Budi Hartono (CV Makmur Jaya)',
+        companyName: 'CV Makmur Jaya',
+        phone: '0813-7788-9900',
+        role: 'EXTERNAL',
+        vendorType: 'VENDOR_JASA',
+        isInternalEmployee: false
+      });
+    } else if (trimmedEmail === 'vendor@ptglobalgps.com' || trimmedEmail === 'ptglobalgps@gmail.com') {
+      onLogin({
+        id: 'VEND-GPS',
+        email: email,
+        name: 'PT Global GPS Telematika',
+        companyName: 'PT Global GPS Telematika',
+        phone: '0811-3344-5566',
         role: 'EXTERNAL',
         vendorType: 'SUPPLIER',
         isInternalEmployee: false
       });
-    } else if (email.trim()) {
-      setError('Akun belum terdaftar atau belum disetujui (Pending Approval) oleh Tim Internal.');
+    } else if (trimmedEmail) {
+      // Allow any external email for testing with password 12345678
+      const prefix = trimmedEmail.split('@')[0].replace(/[._-]/g, ' ');
+      const formattedName = prefix.charAt(0).toUpperCase() + prefix.slice(1);
+      const companyName = 'PT ' + formattedName.toUpperCase();
+
+      onLogin({
+        id: 'EXT-' + Date.now(),
+        email: email,
+        name: formattedName + ' (Vendor)',
+        companyName: companyName,
+        phone: '0812-' + Math.floor(1000 + Math.random() * 9000) + '-' + Math.floor(1000 + Math.random() * 9000),
+        role: 'EXTERNAL',
+        vendorType: 'SUPPLIER',
+        isInternalEmployee: false
+      });
     } else {
       setError('Masukkan email dan password yang valid');
     }
@@ -226,14 +301,9 @@ export default function Login({ onLogin, isModal = false, onClose }: LoginProps)
     }, 1500);
   };
 
-  const setDemoAccount = (type: 'INTERNAL' | 'EXTERNAL') => {
-    if (type === 'INTERNAL') {
-      setEmail('muhamad.rizki@pancaran-logistic.id');
-      setPassword('12345678');
-    } else {
-      setEmail('external@example.com');
-      setPassword('12345678');
-    }
+  const setDemoAccount = (accEmail: string) => {
+    setEmail(accEmail);
+    setPassword('12345678');
     setError('');
   };
 
@@ -587,6 +657,8 @@ export default function Login({ onLogin, isModal = false, onClose }: LoginProps)
               Sign In to Portal
             </button>
           </div>
+
+
           
 
 

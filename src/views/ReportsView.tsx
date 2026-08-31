@@ -65,108 +65,9 @@ export default function ReportsView({ vendorCatalogItems = INITIAL_VENDOR_CATALO
           setCatalogItems(parsed);
         }
       } else {
-        const defaultList: CatalogItem[] = [
-          { 
-            id: 'REQ-001', 
-            title: 'Pembaruan Perangkat IT 2024', 
-            description: 'Pengadaan 50 Laptop & Aksesoris', 
-            status: 'OPEN', 
-            ownerEstimate: 750000000,
-            datePosted: '2026-08-15',
-            deadline: '2026-08-31T17:00:00',
-            bidsCount: 12,
-            lowestBid: 680000000,
-            highestBid: 785000000,
-            imageUrl: '',
-            specifications: [],
-            specTable: [],
-            tnc: '',
-            top: '',
-            delivery: '',
-            tax: ''
-          },
-          { 
-            id: 'REQ-002', 
-            title: 'Pemeliharaan AC Tahunan (Service AC)', 
-            description: 'Kontrak service AC berkala', 
-            status: 'OPEN', 
-            ownerEstimate: 120000000,
-            datePosted: '2026-08-18',
-            deadline: '2026-08-28T23:59:59',
-            bidsCount: 4,
-            lowestBid: 105000000,
-            highestBid: 130000000,
-            imageUrl: '',
-            specifications: [],
-            specTable: [],
-            tnc: '',
-            top: '',
-            delivery: '',
-            tax: ''
-          },
-          { 
-            id: 'REQ-003', 
-            title: 'Pengadaan Ban Radial Truk Tronton 11R22.5 (200 Unit)', 
-            description: 'Ban radial heavy duty tubeless', 
-            status: 'CLOSED', 
-            winnerVendorName: 'PT Mandiri Ban Pratama', 
-            winnerAmount: 790000000, 
-            winnerDate: '2026-08-16',
-            ownerEstimate: 850000000,
-            datePosted: '2026-08-10',
-            deadline: '2026-08-16T17:00:00',
-            bidsCount: 6,
-            lowestBid: 790000000,
-            highestBid: 890000000,
-            imageUrl: '',
-            specifications: [],
-            specTable: [],
-            tnc: '',
-            top: '',
-            delivery: '',
-            tax: ''
-          },
-          { 
-            id: 'REQ-004', 
-            title: 'Pengadaan Aki Truk Heavy Duty 12V 100Ah N100 (150 Unit)', 
-            description: 'Aki GS Astra Hybrid Heavy Duty', 
-            status: 'OPEN', 
-            ownerEstimate: 267000000,
-            datePosted: '2026-08-12',
-            deadline: '2026-08-30T18:00:00',
-            bidsCount: 3,
-            lowestBid: 255000000,
-            highestBid: 270000000,
-            imageUrl: '',
-            specifications: [],
-            specTable: [],
-            tnc: '',
-            top: '',
-            delivery: '',
-            tax: ''
-          },
-          { 
-            id: 'REQ-005', 
-            title: 'Pengadaan Suku Cadang Kampas Rem & Filter Armada', 
-            description: 'Kampas rem & filter oli Hino/Isuzu', 
-            status: 'OPEN', 
-            ownerEstimate: 420000000,
-            datePosted: '2026-08-12',
-            deadline: '2026-08-25T17:00:00',
-            bidsCount: 5,
-            lowestBid: 390000000,
-            highestBid: 435000000,
-            imageUrl: '',
-            specifications: [],
-            specTable: [],
-            tnc: '',
-            top: '',
-            delivery: '',
-            tax: ''
-          }
-        ];
-        setCatalogItems(defaultList);
+        setCatalogItems([]);
       }
+
     } catch (e) {
       console.error('Error loading procurement list for reports:', e);
     }
@@ -1157,7 +1058,7 @@ export default function ReportsView({ vendorCatalogItems = INITIAL_VENDOR_CATALO
                   filteredCatalogData.map((item, index) => {
                     const sales = catalogSalesMap[item.id] || { soldQty: 0, revenue: 0 };
                     return (
-                      <tr key={item.id} className="hover:bg-slate-50/80 transition-colors">
+                      <tr key={`${item.id}-${index}`} className="hover:bg-slate-50/80 transition-colors">
                         <td className="py-3 px-4 text-center text-slate-400 font-bold font-mono">{index + 1}</td>
                         <td className="py-3 px-3 font-bold text-slate-600 font-mono text-[10px] uppercase">{item.id}</td>
                         <td className="py-3 px-3">
@@ -1257,7 +1158,7 @@ export default function ReportsView({ vendorCatalogItems = INITIAL_VENDOR_CATALO
                   filteredProcurementData.map((item, index) => {
                     const bidsCount = bidsHistory.filter(b => b.reqId === item.id).length;
                     return (
-                      <tr key={item.id} className="hover:bg-slate-50/80 transition-colors">
+                      <tr key={`${item.id}-${index}`} className="hover:bg-slate-50/80 transition-colors">
                         <td className="py-3 px-4 text-center text-slate-400 font-bold font-mono">{index + 1}</td>
                         <td className="py-3 px-3 font-bold text-slate-600 font-mono text-[10px] uppercase">{item.id}</td>
                         <td className="py-3 px-3">
@@ -1351,7 +1252,7 @@ export default function ReportsView({ vendorCatalogItems = INITIAL_VENDOR_CATALO
                 ) : (
                   filteredBidsData.map((bid, index) => {
                     return (
-                      <tr key={bid.id} className="hover:bg-slate-50/80 transition-colors">
+                      <tr key={`${bid.id}-${index}`} className="hover:bg-slate-50/80 transition-colors">
                         <td className="py-3 px-4 text-center text-slate-400 font-bold font-mono">{index + 1}</td>
                         <td className="py-3 px-3 font-bold text-slate-600 font-mono text-[10px] uppercase">{bid.id}</td>
                         <td className="py-3 px-3 font-bold text-blue-700 font-mono text-[10px] uppercase">{bid.reqId}</td>

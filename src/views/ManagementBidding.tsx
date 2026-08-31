@@ -231,8 +231,8 @@ export default function ManagementBidding() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {filteredBids.map((bid) => (
-                <tr key={bid.id} className="hover:bg-slate-50/80 transition-colors">
+              {filteredBids.map((bid, idx) => (
+                <tr key={`${bid.id}-${idx}`} className="hover:bg-slate-50/80 transition-colors">
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="font-mono font-bold text-blue-600 text-xs">{bid.id}</div>
                     <div className="text-[11px] text-slate-400 flex items-center gap-1 mt-0.5">

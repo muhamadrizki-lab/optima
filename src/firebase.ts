@@ -265,7 +265,7 @@ export function startFirebaseSync(onSyncUpdate: () => void) {
         } catch (e) {
           console.error(`[Firebase] Error preparing sync for key "${key}":`, e);
         }
-      }, 1000);
+      }, 300);
     }
   };
 }
@@ -290,10 +290,11 @@ async function pushLocalToFirestore(collectionName: string, localData: any, loca
 
       for (const [docId, docData] of Object.entries(localData)) {
         if (docId && docData) {
+          const cleanData = JSON.parse(JSON.stringify(docData));
           const existingData = serverDocsMap.get(docId);
           // Only write if newly added or data content has changed
-          if (!existingData || JSON.stringify(existingData) !== JSON.stringify(docData)) {
-            batch.set(doc(db, collectionName, docId), docData as DocumentData);
+          if (!existingData || JSON.stringify(existingData) !== JSON.stringify(cleanData)) {
+            batch.set(doc(db, collectionName, String(docId)), cleanData as DocumentData);
             operationCount++;
           }
         }
@@ -311,10 +312,11 @@ async function pushLocalToFirestore(collectionName: string, localData: any, loca
       for (const item of localData) {
         const docId = item.id || item.email;
         if (docId) {
+          const cleanItem = JSON.parse(JSON.stringify(item));
           const existingData = serverDocsMap.get(docId);
           // Only write if newly added or data content has changed
-          if (!existingData || JSON.stringify(existingData) !== JSON.stringify(item)) {
-            batch.set(doc(db, collectionName, docId), item);
+          if (!existingData || JSON.stringify(existingData) !== JSON.stringify(cleanItem)) {
+            batch.set(doc(db, collectionName, String(docId)), cleanItem);
             operationCount++;
           }
         }
@@ -330,6 +332,7 @@ async function pushLocalToFirestore(collectionName: string, localData: any, loca
 
     if (operationCount > 0) {
       await batch.commit();
+      console.log(`[Firebase] Successfully pushed ${operationCount} document changes to collection "${collectionName}"`);
     }
   } catch (err) {
     handleFirestoreError(err, OperationType.WRITE, collectionName);

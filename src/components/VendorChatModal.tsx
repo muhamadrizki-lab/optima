@@ -164,7 +164,9 @@ export default function VendorChatModal({
     if (confirm('Kembalikan seluruh daftar chat & pesan ke contoh dummy default?')) {
       setConversations(INITIAL_CHAT_CONVERSATIONS);
       setMessagesMap(INITIAL_CHAT_MESSAGES);
-      setActiveConvId(INITIAL_CHAT_CONVERSATIONS[0].id);
+      if (INITIAL_CHAT_CONVERSATIONS.length > 0) {
+        setActiveConvId(INITIAL_CHAT_CONVERSATIONS[0].id);
+      }
       try {
         localStorage.setItem('optima_chat_conversations', JSON.stringify(INITIAL_CHAT_CONVERSATIONS));
         localStorage.setItem('optima_chat_messages', JSON.stringify(INITIAL_CHAT_MESSAGES));
@@ -173,6 +175,8 @@ export default function VendorChatModal({
   };
 
   const handleSendMessage = (customMsg?: string, customRole?: 'INTERNAL' | 'EXTERNAL', customAttachment?: { url: string; name: string }) => {
+    if (!activeConversation) return;
+
     const textToSend = customMsg !== undefined ? customMsg : inputMessage;
     const roleToSend = customRole || senderRoleOverride;
     const photoUrl = customAttachment?.url || attachedImage || undefined;
@@ -187,7 +191,7 @@ export default function VendorChatModal({
 
     const senderName = roleToSend === 'INTERNAL' 
       ? (currentUser?.name || 'Muhamad Rizki (Procurement Pancaran)')
-      : `Sales Representative (${activeConversation.vendorName})`;
+      : `Sales Representative (${activeConversation.vendorName || 'Vendor'})`;
 
     const newMsg: ChatMessage = {
       id: `msg-${Date.now()}-${Math.random().toString(36).substring(2, 5)}`,
@@ -243,11 +247,11 @@ export default function VendorChatModal({
     // Log Activity
     logUserActivity({
       userName: senderName,
-      userEmail: roleToSend === 'INTERNAL' ? 'procurement@pancaran-logistic.id' : activeConversation.vendorEmail,
-      companyName: roleToSend === 'INTERNAL' ? 'PT Pancaran Darat Transport' : activeConversation.vendorName,
+      userEmail: roleToSend === 'INTERNAL' ? 'procurement@pancaran-logistic.id' : activeConversation.vendorEmail || 'vendor@pancaran.com',
+      companyName: roleToSend === 'INTERNAL' ? 'PT Pancaran Darat Transport' : activeConversation.vendorName || 'Rekanan Vendor',
       role: roleToSend,
       actionType: 'CHAT_SENT',
-      actionTitle: `Pesan Chat [${roleToSend}]: ${activeConversation.vendorName}`,
+      actionTitle: `Pesan Chat [${roleToSend}]: ${activeConversation.vendorName || 'Vendor'}`,
       actionDetail: `Terkait ${activeConversation.tenderId || 'Pengadaan'}: "${newMsg.message.slice(0, 70)}..."`,
       status: 'SUCCESS',
       targetId: activeConversation.tenderId,
@@ -257,6 +261,8 @@ export default function VendorChatModal({
 
   // Simulate instant realistic vendor reply
   const handleSimulateVendorReply = () => {
+    if (!activeConversation) return;
+
     setIsSimulatingReply(true);
 
     setTimeout(() => {
@@ -324,6 +330,7 @@ export default function VendorChatModal({
   };
 
   const handleSelectPresetProof = (proof: typeof PRESET_EVIDENCE_PROOFS[0]) => {
+    if (!proof) return;
     setAttachedImage(proof.imageUrl);
     setAttachedName(proof.title);
     setInputMessage(prev => prev ? prev : `Lampiran Bukti Resmi: ${proof.reasonNote}`);
@@ -333,7 +340,7 @@ export default function VendorChatModal({
   const filteredConversations = conversations.filter(c => {
     const q = searchQuery.toLowerCase();
     const matchSearch = 
-      c.vendorName.toLowerCase().includes(q) ||
+      (c.vendorName || '').toLowerCase().includes(q) ||
       (c.tenderId && c.tenderId.toLowerCase().includes(q)) ||
       (c.tenderTitle && c.tenderTitle.toLowerCase().includes(q)) ||
       (c.lastMessage && c.lastMessage.toLowerCase().includes(q));
@@ -513,225 +520,245 @@ export default function VendorChatModal({
           {/* RIGHT MAIN CHAT AREA */}
           <div className="flex-1 flex flex-col bg-slate-100/50">
             
-            {/* ACTIVE CHAT HEADER */}
-            <div className="p-3.5 bg-white border-b border-slate-200 flex items-center justify-between shrink-0 shadow-xs">
-              <div className="flex items-center gap-3 min-w-0">
-                <div className="w-10 h-10 rounded-2xl bg-blue-600 text-white flex items-center justify-center font-black text-sm shrink-0">
-                  {activeConversation.vendorName.charAt(0)}
+            {!activeConversation ? (
+              <div className="flex-1 flex flex-col items-center justify-center p-8 text-center">
+                <div className="w-16 h-16 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center mb-4">
+                  <MessageSquare className="w-8 h-8" />
                 </div>
-                <div className="min-w-0">
-                  <div className="flex items-center gap-2">
-                    <h3 className="font-black text-sm text-slate-900 truncate">
-                      {activeConversation.vendorName}
-                    </h3>
-                  </div>
-                  <div className="text-[11px] text-slate-500 flex items-center gap-3 mt-0.5 truncate">
-                    <span className="flex items-center gap-1">
-                      <Phone className="w-3 h-3 text-slate-400" />
-                      {activeConversation.vendorPhone || '0812-8899-2341'}
-                    </span>
-                    <span>•</span>
-                    <span className="flex items-center gap-1">
-                      <Mail className="w-3 h-3 text-slate-400" />
-                      {activeConversation.vendorEmail || 'sales@vendor.co.id'}
-                    </span>
-                    {activeConversation.tenderId && (
-                      <>
+                <h3 className="font-bold text-slate-800 text-base mb-1">Belum Ada Percakapan Dipilih</h3>
+                <p className="text-xs text-slate-500 max-w-sm">
+                  Pilih salah satu percakapan vendor di sebelah kiri atau klik &quot;Chat Vendor&quot; dari katalog/tender untuk memulai negosiasi.
+                </p>
+                <button
+                  onClick={handleResetDefaultChats}
+                  className="mt-4 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition-all shadow-xs cursor-pointer"
+                >
+                  Muat Contoh Percakapan Default
+                </button>
+              </div>
+            ) : (
+              <>
+                {/* ACTIVE CHAT HEADER */}
+                <div className="p-3.5 bg-white border-b border-slate-200 flex items-center justify-between shrink-0 shadow-xs">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="w-10 h-10 rounded-2xl bg-blue-600 text-white flex items-center justify-center font-black text-sm shrink-0">
+                      {(activeConversation.vendorName || 'V').charAt(0)}
+                    </div>
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2">
+                        <h3 className="font-black text-sm text-slate-900 truncate">
+                          {activeConversation.vendorName || 'Vendor'}
+                        </h3>
+                      </div>
+                      <div className="text-[11px] text-slate-500 flex items-center gap-3 mt-0.5 truncate">
+                        <span className="flex items-center gap-1">
+                          <Phone className="w-3 h-3 text-slate-400" />
+                          {activeConversation.vendorPhone || '0812-8899-2341'}
+                        </span>
                         <span>•</span>
-                        <span className="font-bold text-slate-700">Tender: {activeConversation.tenderId}</span>
-                      </>
-                    )}
+                        <span className="flex items-center gap-1">
+                          <Mail className="w-3 h-3 text-slate-400" />
+                          {activeConversation.vendorEmail || 'sales@vendor.co.id'}
+                        </span>
+                        {activeConversation.tenderId && (
+                          <>
+                            <span>•</span>
+                            <span className="font-bold text-slate-700">Tender: {activeConversation.tenderId}</span>
+                          </>
+                        )}
+                      </div>
+                    </div>
                   </div>
                 </div>
-              </div>
-            </div>
 
-            {/* CHAT MESSAGES SCROLL AREA */}
-            <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4">
-              {activeMessages.map((msg) => {
-                const isInternalMsg = msg.senderRole === 'INTERNAL';
-                // Decide alignment based on who is viewing
-                const isRightSide = isInternal ? isInternalMsg : !isInternalMsg;
+                {/* CHAT MESSAGES SCROLL AREA */}
+                <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4">
+                  {activeMessages.map((msg) => {
+                    const isInternalMsg = msg.senderRole === 'INTERNAL';
+                    // Decide alignment based on who is viewing
+                    const isRightSide = isInternal ? isInternalMsg : !isInternalMsg;
 
-                return (
-                  <div
-                    key={msg.id}
-                    className={`flex flex-col ${isRightSide ? 'items-end' : 'items-start'}`}
-                  >
-                    <div className="flex items-center gap-1.5 mb-1 px-1">
-                      <span className="text-[11px] font-bold text-slate-700">
-                        {msg.senderName}
-                      </span>
-                      <span className={`text-[9px] font-bold px-1.5 py-0.2 rounded-md ${
-                        msg.senderRole === 'INTERNAL' 
-                          ? 'bg-blue-100 text-blue-800' 
-                          : 'bg-emerald-100 text-emerald-800'
-                      }`}>
-                        {msg.senderRole === 'INTERNAL' ? 'Procurement Pancaran' : 'Rekanan Vendor'}
-                      </span>
-                      <span className="text-[10px] text-slate-400">
-                        {msg.timestamp}
-                      </span>
-                    </div>
-
-                    <div className={`max-w-[85%] sm:max-w-[70%] rounded-2xl p-3.5 shadow-xs ${
-                      isRightSide 
-                        ? 'bg-blue-600 text-white rounded-tr-none' 
-                        : 'bg-white text-slate-800 border border-slate-200/90 rounded-tl-none'
-                    }`}>
-                      {/* Message text */}
-                      {msg.message && (
-                        <p className="text-xs sm:text-sm leading-relaxed whitespace-pre-wrap">
-                          {msg.message}
-                        </p>
-                      )}
-
-                      {/* Attached Image / Proof */}
-                      {msg.attachmentUrl && (
-                        <div className="mt-2.5 space-y-2">
-                          <div 
-                            onClick={() => {
-                              setLightboxImage(msg.attachmentUrl || null);
-                              setLightboxTitle(msg.attachmentName || 'Bukti Lampiran Chat');
-                            }}
-                            className="relative rounded-xl overflow-hidden border border-black/10 cursor-pointer group bg-black/5"
-                          >
-                            <img 
-                              src={msg.attachmentUrl} 
-                              alt={msg.attachmentName || 'Lampiran'} 
-                              className="max-h-48 w-full object-cover rounded-xl group-hover:scale-102 transition-transform duration-300"
-                            />
-                            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white text-xs font-bold gap-1.5">
-                              <span>🔎 Klik untuk Perbesar</span>
-                            </div>
-                          </div>
-
-                          <div className={`flex items-center justify-between text-[11px] ${isRightSide ? 'text-blue-100' : 'text-slate-500'}`}>
-                            <span className="font-semibold truncate pr-2">
-                              📎 {msg.attachmentName || 'Dokumen_Lampiran.png'}
-                            </span>
-                            {onSelectProofForWinner && (
-                              <button
-                                onClick={() => onSelectProofForWinner(msg.attachmentUrl!, msg.message || 'Bukti konfirmasi chat vendor')}
-                                className="px-2.5 py-1 bg-amber-500 hover:bg-amber-600 text-white rounded-lg font-bold text-[10px] transition-colors shrink-0 shadow-xs flex items-center gap-1 cursor-pointer"
-                                title="Gunakan foto ini sebagai Berita Acara Penetapan Pemenang"
-                              >
-                                <ShieldCheck className="w-3 h-3" />
-                                <span>Gunakan sbg Bukti Pemenang</span>
-                              </button>
-                            )}
-                          </div>
+                    return (
+                      <div
+                        key={msg.id}
+                        className={`flex flex-col ${isRightSide ? 'items-end' : 'items-start'}`}
+                      >
+                        <div className="flex items-center gap-1.5 mb-1 px-1">
+                          <span className="text-[11px] font-bold text-slate-700">
+                            {msg.senderName}
+                          </span>
+                          <span className={`text-[9px] font-bold px-1.5 py-0.2 rounded-md ${
+                            msg.senderRole === 'INTERNAL' 
+                              ? 'bg-blue-100 text-blue-800' 
+                              : 'bg-emerald-100 text-emerald-800'
+                          }`}>
+                            {msg.senderRole === 'INTERNAL' ? 'Procurement Pancaran' : 'Rekanan Vendor'}
+                          </span>
+                          <span className="text-[10px] text-slate-400">
+                            {msg.timestamp}
+                          </span>
                         </div>
-                      )}
+
+                        <div className={`max-w-[85%] sm:max-w-[70%] rounded-2xl p-3.5 shadow-xs ${
+                          isRightSide 
+                            ? 'bg-blue-600 text-white rounded-tr-none' 
+                            : 'bg-white text-slate-800 border border-slate-200/90 rounded-tl-none'
+                        }`}>
+                          {/* Message text */}
+                          {msg.message && (
+                            <p className="text-xs sm:text-sm leading-relaxed whitespace-pre-wrap">
+                              {msg.message}
+                            </p>
+                          )}
+
+                          {/* Attached Image / Proof */}
+                          {msg.attachmentUrl && (
+                            <div className="mt-2.5 space-y-2">
+                              <div 
+                                onClick={() => {
+                                  setLightboxImage(msg.attachmentUrl || null);
+                                  setLightboxTitle(msg.attachmentName || 'Bukti Lampiran Chat');
+                                }}
+                                className="relative rounded-xl overflow-hidden border border-black/10 cursor-pointer group bg-black/5"
+                              >
+                                <img 
+                                  src={msg.attachmentUrl} 
+                                  alt={msg.attachmentName || 'Lampiran'} 
+                                  className="max-h-48 w-full object-cover rounded-xl group-hover:scale-102 transition-transform duration-300"
+                                />
+                                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white text-xs font-bold gap-1.5">
+                                  <span>🔎 Klik untuk Perbesar</span>
+                                </div>
+                              </div>
+
+                              <div className={`flex items-center justify-between text-[11px] ${isRightSide ? 'text-blue-100' : 'text-slate-500'}`}>
+                                <span className="font-semibold truncate pr-2">
+                                  📎 {msg.attachmentName || 'Dokumen_Lampiran.png'}
+                                </span>
+                                {onSelectProofForWinner && (
+                                  <button
+                                    onClick={() => onSelectProofForWinner(msg.attachmentUrl!, msg.message || 'Bukti konfirmasi chat vendor')}
+                                    className="px-2.5 py-1 bg-amber-500 hover:bg-amber-600 text-white rounded-lg font-bold text-[10px] transition-colors shrink-0 shadow-xs flex items-center gap-1 cursor-pointer"
+                                    title="Gunakan foto ini sebagai Berita Acara Penetapan Pemenang"
+                                  >
+                                    <ShieldCheck className="w-3 h-3" />
+                                    <span>Gunakan sbg Bukti Pemenang</span>
+                                  </button>
+                                )}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+
+                  {/* Typing indicator simulation */}
+                  {isSimulatingReply && (
+                    <div className="flex items-start gap-2 animate-fadeIn">
+                      <div className="w-8 h-8 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center text-xs font-bold">
+                        {(activeConversation.vendorName || 'V').charAt(0)}
+                      </div>
+                      <div className="p-3 bg-white border border-slate-200 rounded-2xl rounded-tl-none shadow-xs flex items-center gap-1.5">
+                        <span className="w-2 h-2 rounded-full bg-emerald-500 animate-bounce"></span>
+                        <span className="w-2 h-2 rounded-full bg-emerald-500 animate-bounce [animation-delay:0.2s]"></span>
+                        <span className="w-2 h-2 rounded-full bg-emerald-500 animate-bounce [animation-delay:0.4s]"></span>
+                        <span className="text-[11px] text-slate-500 ml-1.5">{activeConversation.vendorName || 'Vendor'} sedang mengetik balasan...</span>
+                      </div>
                     </div>
-                  </div>
-                );
-              })}
+                  )}
 
-              {/* Typing indicator simulation */}
-              {isSimulatingReply && (
-                <div className="flex items-start gap-2 animate-fadeIn">
-                  <div className="w-8 h-8 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center text-xs font-bold">
-                    {activeConversation.vendorName.charAt(0)}
-                  </div>
-                  <div className="p-3 bg-white border border-slate-200 rounded-2xl rounded-tl-none shadow-xs flex items-center gap-1.5">
-                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-bounce"></span>
-                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-bounce [animation-delay:0.2s]"></span>
-                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-bounce [animation-delay:0.4s]"></span>
-                    <span className="text-[11px] text-slate-500 ml-1.5">{activeConversation.vendorName} sedang mengetik balasan...</span>
-                  </div>
+                  <div ref={messagesEndRef} />
                 </div>
-              )}
 
-              <div ref={messagesEndRef} />
-            </div>
-
-            {/* ATTACHMENT PREVIEW BEFORE SENDING */}
-            {attachedImage && (
-              <div className="px-4 py-2 bg-amber-50 border-t border-amber-200 flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <img src={attachedImage} alt="Preview" className="w-12 h-12 object-cover rounded-xl border border-amber-300" />
-                  <div>
-                    <span className="text-xs font-bold text-amber-900 block">Lampiran Siap Dikirim:</span>
-                    <span className="text-[11px] text-amber-700 truncate max-w-xs block">{attachedName}</span>
+                {/* ATTACHMENT PREVIEW BEFORE SENDING */}
+                {attachedImage && (
+                  <div className="px-4 py-2 bg-amber-50 border-t border-amber-200 flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <img src={attachedImage} alt="Preview" className="w-12 h-12 object-cover rounded-xl border border-amber-300" />
+                      <div>
+                        <span className="text-xs font-bold text-amber-900 block">Lampiran Siap Dikirim:</span>
+                        <span className="text-[11px] text-amber-700 truncate max-w-xs block">{attachedName}</span>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => {
+                        setAttachedImage(null);
+                        setAttachedName(null);
+                      }}
+                      className="p-1.5 text-amber-700 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
                   </div>
-                </div>
-                <button
-                  onClick={() => {
-                    setAttachedImage(null);
-                    setAttachedName(null);
-                  }}
-                  className="p-1.5 text-amber-700 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
-                >
-                  <X className="w-4 h-4" />
-                </button>
-              </div>
-            )}
+                )}
 
-            {/* CHAT INPUT FORM */}
-            <div className="p-3 sm:p-4 bg-white border-t border-slate-200 shrink-0">
-              <form 
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  handleSendMessage();
-                }}
-                className="flex items-end gap-2"
-              >
-                {/* Hidden File Input */}
-                <input
-                  type="file"
-                  ref={fileInputRef}
-                  onChange={handleFileUpload}
-                  accept="image/*,.pdf,.doc,.docx"
-                  className="hidden"
-                />
-
-                {/* Upload Photo Button */}
-                <button
-                  type="button"
-                  onClick={() => fileInputRef.current?.click()}
-                  className="p-2.5 bg-slate-100 hover:bg-slate-200 text-slate-600 hover:text-slate-900 rounded-2xl transition-colors cursor-pointer shrink-0"
-                  title="Unggah Foto / Tangkapan Layar Chat dari Komputer"
-                >
-                  <ImageIcon className="w-5 h-5 text-blue-600" />
-                </button>
-
-                {/* Message Text Input */}
-                <div className="flex-1 min-w-0">
-                  <textarea
-                    rows={1}
-                    value={inputMessage}
-                    onChange={(e) => setInputMessage(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' && !e.shiftKey) {
-                        e.preventDefault();
-                        handleSendMessage();
-                      }
+                {/* CHAT INPUT FORM */}
+                <div className="p-3 sm:p-4 bg-white border-t border-slate-200 shrink-0">
+                  <form 
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      handleSendMessage();
                     }}
-                    placeholder={
-                      senderRoleOverride === 'INTERNAL'
-                        ? "Tulis pesan negosiasi internal, konfirmasi stok, atau permintaan sertifikat..."
-                        : `Tulis tanggapan atau konfirmasi penawaran sebagai ${activeConversation.vendorName}...`
-                    }
-                    className="w-full px-4 py-2.5 bg-slate-100 border border-slate-200 rounded-2xl text-xs sm:text-sm text-slate-900 placeholder-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-600 resize-none max-h-28 transition-all"
-                  />
-                </div>
+                    className="flex items-end gap-2"
+                  >
+                    {/* Hidden File Input */}
+                    <input
+                      type="file"
+                      ref={fileInputRef}
+                      onChange={handleFileUpload}
+                      accept="image/*,.pdf,.doc,.docx"
+                      className="hidden"
+                    />
 
-                {/* Send Button */}
-                <button
-                  type="submit"
-                  disabled={!inputMessage.trim() && !attachedImage}
-                  className={`p-3 text-white rounded-2xl transition-all shadow-md cursor-pointer shrink-0 disabled:opacity-40 ${
-                    senderRoleOverride === 'INTERNAL' 
-                      ? 'bg-blue-600 hover:bg-blue-700 shadow-blue-600/30' 
-                      : 'bg-emerald-600 hover:bg-emerald-700 shadow-emerald-600/30'
-                  }`}
-                  title="Kirim Pesan"
-                >
-                  <Send className="w-4 h-4" />
-                </button>
-              </form>
-            </div>
+                    {/* Upload Photo Button */}
+                    <button
+                      type="button"
+                      onClick={() => fileInputRef.current?.click()}
+                      className="p-2.5 bg-slate-100 hover:bg-slate-200 text-slate-600 hover:text-slate-900 rounded-2xl transition-colors cursor-pointer shrink-0"
+                      title="Unggah Foto / Tangkapan Layar Chat dari Komputer"
+                    >
+                      <ImageIcon className="w-5 h-5 text-blue-600" />
+                    </button>
+
+                    {/* Message Text Input */}
+                    <div className="flex-1 min-w-0">
+                      <textarea
+                        rows={1}
+                        value={inputMessage}
+                        onChange={(e) => setInputMessage(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' && !e.shiftKey) {
+                            e.preventDefault();
+                            handleSendMessage();
+                          }
+                        }}
+                        placeholder={
+                          senderRoleOverride === 'INTERNAL'
+                            ? "Tulis pesan negosiasi internal, konfirmasi stok, atau permintaan sertifikat..."
+                            : `Tulis tanggapan atau konfirmasi penawaran sebagai ${activeConversation.vendorName || 'Vendor'}...`
+                        }
+                        className="w-full px-4 py-2.5 bg-slate-100 border border-slate-200 rounded-2xl text-xs sm:text-sm text-slate-900 placeholder-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-600 resize-none max-h-28 transition-all"
+                      />
+                    </div>
+
+                    {/* Send Button */}
+                    <button
+                      type="submit"
+                      disabled={!inputMessage.trim() && !attachedImage}
+                      className={`p-3 text-white rounded-2xl transition-all shadow-md cursor-pointer shrink-0 disabled:opacity-40 ${
+                        senderRoleOverride === 'INTERNAL' 
+                          ? 'bg-blue-600 hover:bg-blue-700 shadow-blue-600/30' 
+                          : 'bg-emerald-600 hover:bg-emerald-700 shadow-emerald-600/30'
+                      }`}
+                      title="Kirim Pesan"
+                    >
+                      <Send className="w-4 h-4" />
+                    </button>
+                  </form>
+                </div>
+              </>
+            )}
 
           </div>
         </div>
