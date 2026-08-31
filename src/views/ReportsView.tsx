@@ -307,22 +307,28 @@ export default function ReportsView({ vendorCatalogItems = INITIAL_VENDOR_CATALO
   const summaryStats = useMemo(() => {
     // 1. Procurement Tenders
     const totalTenders = catalogItems.length;
-    const closedTenders = catalogItems.filter(i => i.status === 'CLOSED').length;
-    const openTenders = catalogItems.filter(i => i.status === 'OPEN').length;
+    const closedTenders = catalogItems.filter(i => i.status === 'CLOSED' || (i.winnerAmount && Number(i.winnerAmount) > 0)).length;
+    const openTenders = catalogItems.filter(i => i.status === 'OPEN' && (!i.winnerAmount || Number(i.winnerAmount) === 0)).length;
 
     let totalBudgetHps = 0;
+    let totalHpsCompleted = 0;
     let totalPoRealisasi = 0;
     
     catalogItems.forEach(item => {
-      totalBudgetHps += item.ownerEstimate || 0;
+      const oe = Number(item.ownerEstimate) || 0;
+      totalBudgetHps += oe;
       if (item.winnerAmount && Number(item.winnerAmount) > 0) {
-        totalPoRealisasi += Number(item.winnerAmount);
+        const po = Number(item.winnerAmount);
+        totalPoRealisasi += po;
+        totalHpsCompleted += oe > 0 ? oe : po;
       }
     });
 
+    // Real procurement savings based on closed / awarded tenders vs their OE HPS
+    const savings = Math.max(0, totalHpsCompleted - totalPoRealisasi);
+    const savingsPercentage = totalHpsCompleted > 0 ? (savings / totalHpsCompleted) * 100 : 0;
+    const remainingOpenBudget = Math.max(0, totalBudgetHps - totalHpsCompleted);
     const successRatio = totalTenders > 0 ? (closedTenders / totalTenders) * 100 : 0;
-    const savings = totalBudgetHps - totalPoRealisasi;
-    const savingsPercentage = totalBudgetHps > 0 ? (savings / totalBudgetHps) * 100 : 0;
 
     // 2. Catalog Sales & Revenues
     let totalCatalogProducts = vendorCatalog.length;
@@ -345,7 +351,9 @@ export default function ReportsView({ vendorCatalogItems = INITIAL_VENDOR_CATALO
       closedTenders,
       openTenders,
       totalBudgetHps,
+      totalHpsCompleted,
       totalPoRealisasi,
+      remainingOpenBudget,
       successRatio,
       savings,
       savingsPercentage,
@@ -1007,8 +1015,8 @@ export default function ReportsView({ vendorCatalogItems = INITIAL_VENDOR_CATALO
                 <div className="space-y-3.5 pt-2">
                   <div>
                     <div className="flex justify-between text-xs font-semibold mb-1">
-                      <span className="text-slate-500">Anggaran yang Dianggarkan (HPS)</span>
-                      <span className="text-slate-800 font-mono">Rp {summaryStats.totalBudgetHps.toLocaleString('id-ID')}</span>
+                      <span className="text-slate-500">Pagu HPS Tender Selesai (1 Paket Won)</span>
+                      <span className="text-slate-800 font-mono font-bold">Rp {summaryStats.totalHpsCompleted.toLocaleString('id-ID')}</span>
                     </div>
                     <div className="w-full bg-slate-200 rounded-full h-3">
                       <div className="bg-slate-700 h-3 rounded-full" style={{ width: '100%' }}></div>
@@ -1017,27 +1025,32 @@ export default function ReportsView({ vendorCatalogItems = INITIAL_VENDOR_CATALO
 
                   <div>
                     <div className="flex justify-between text-xs font-semibold mb-1">
-                      <span className="text-slate-500">Realisasi Pengeluaran Kontrak PO</span>
-                      <span className="text-slate-800 font-mono">Rp {summaryStats.totalPoRealisasi.toLocaleString('id-ID')}</span>
+                      <span className="text-slate-500">Realisasi Kontrak PO Diterbitkan</span>
+                      <span className="text-emerald-700 font-mono font-bold">Rp {summaryStats.totalPoRealisasi.toLocaleString('id-ID')}</span>
                     </div>
                     <div className="w-full bg-slate-200 rounded-full h-3">
-                      <div className="bg-emerald-500 h-3 rounded-full" style={{ width: `${(summaryStats.totalPoRealisasi / (summaryStats.totalBudgetHps || 1)) * 100}%` }}></div>
+                      <div className="bg-emerald-500 h-3 rounded-full" style={{ width: `${(summaryStats.totalPoRealisasi / (summaryStats.totalHpsCompleted || 1)) * 100}%` }}></div>
                     </div>
                   </div>
 
                   <div>
                     <div className="flex justify-between text-xs font-semibold mb-1">
-                      <span className="text-emerald-600 font-bold">Total Efisiensi Finansial (Sisa Anggaran)</span>
-                      <span className="text-emerald-700 font-bold font-mono">Rp {summaryStats.savings.toLocaleString('id-ID')} ({summaryStats.savingsPercentage.toFixed(1)}%)</span>
+                      <span className="text-blue-700 font-bold">Total Efisiensi Finansial (Penghematan)</span>
+                      <span className="text-blue-700 font-bold font-mono">Rp {summaryStats.savings.toLocaleString('id-ID')} ({summaryStats.savingsPercentage.toFixed(1)}%)</span>
                     </div>
                     <div className="w-full bg-slate-200 rounded-full h-3">
-                      <div className="bg-blue-600 h-3 rounded-full" style={{ width: `${(summaryStats.savings / (summaryStats.totalBudgetHps || 1)) * 100}%` }}></div>
+                      <div className="bg-blue-600 h-3 rounded-full" style={{ width: `${(summaryStats.savings / (summaryStats.totalHpsCompleted || 1)) * 100}%` }}></div>
                     </div>
+                  </div>
+
+                  <div className="pt-1 flex justify-between items-center text-[11px] text-slate-500 border-t border-slate-200/80">
+                    <span>Total Pagu Semua Paket ({summaryStats.totalTenders} Tender):</span>
+                    <span className="font-bold text-slate-700 font-mono">Rp {summaryStats.totalBudgetHps.toLocaleString('id-ID')}</span>
                   </div>
                 </div>
 
                 <div className="text-xs bg-emerald-50 border border-emerald-150 rounded-xl p-3 text-emerald-800 font-medium">
-                  💡 <b>Rekomendasi Audit:</b> Tim Procurement Pancaran Group berhasil melakukan negosiasi harga rata-rata sehingga menghemat sebesar <b>{summaryStats.savingsPercentage.toFixed(1)}%</b> anggaran. Disarankan untuk memprioritaskan vendor dengan jaminan garansi lead time yang ketat.
+                  💡 <b>Rekomendasi Audit:</b> Tim Procurement Pancaran Group berhasil melakukan negosiasi harga efektif sehingga menghemat sebesar <b>{summaryStats.savingsPercentage.toFixed(1)}% (Rp {summaryStats.savings.toLocaleString('id-ID')})</b> dari pagu HPS tender yang telah diselesaikan. Sisa anggaran berjalan sebesar <b>Rp {summaryStats.remainingOpenBudget.toLocaleString('id-ID')}</b> tetap terkontrol.
                 </div>
               </div>
 
