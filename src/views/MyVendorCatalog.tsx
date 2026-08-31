@@ -32,6 +32,7 @@ interface MyVendorCatalogProps {
   onUpdateItem: (item: VendorCatalogItem) => void;
   onDeleteItem: (id: string) => void;
   onBrowseAllCatalog: () => void;
+  onOpenChat?: (vendorName?: string, tenderId?: string) => void;
 }
 
 export default function MyVendorCatalog({
@@ -40,7 +41,8 @@ export default function MyVendorCatalog({
   onAddItem,
   onUpdateItem,
   onDeleteItem,
-  onBrowseAllCatalog
+  onBrowseAllCatalog,
+  onOpenChat
 }: MyVendorCatalogProps) {
   // Filter only items belonging to this vendor or user (or show all if user is INTERNAL)
   const myItems = user?.role === 'INTERNAL'

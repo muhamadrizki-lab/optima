@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { User } from '../types';
 import PancaranLogo from './PancaranLogo';
 import CompanyDetailModal from './CompanyDetailModal';
-import { BellRing, Globe, Shield, LogOut, LogIn } from 'lucide-react';
+import { BellRing, Globe, Shield, LogOut, LogIn, MessageSquare } from 'lucide-react';
 
 interface HeaderProps {
   user?: User | null;
@@ -11,9 +11,10 @@ interface HeaderProps {
   onChangeRole?: (role: 'INTERNAL' | 'EXTERNAL') => void;
   lang?: 'ID' | 'EN';
   onLanguageChange?: (lang: 'ID' | 'EN') => void;
+  onOpenChat?: () => void;
 }
 
-export default function Header({ user, onLoginClick, onLogout, onChangeRole, lang, onLanguageChange }: HeaderProps) {
+export default function Header({ user, onLoginClick, onLogout, onChangeRole, lang, onLanguageChange, onOpenChat }: HeaderProps) {
   const isInternal = user?.role === 'INTERNAL';
   const [showCompanyModal, setShowCompanyModal] = useState(false);
   const [currentLang, setCurrentLang] = useState<'ID' | 'EN'>(() => {
@@ -105,6 +106,19 @@ export default function Header({ user, onLoginClick, onLogout, onChangeRole, lan
               EN
             </button>
           </div>
+
+          {/* Chat Vendor Trigger Button */}
+          <button 
+            onClick={onOpenChat}
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200/80 rounded-xl text-xs font-bold transition-all shadow-xs cursor-pointer group"
+            title="Buka Chat Vendor & Komunikasi Rekanan"
+          >
+            <div className="relative">
+              <MessageSquare className="w-4 h-4 text-blue-600 group-hover:scale-110 transition-transform" />
+              <span className="absolute -top-1 -right-1 w-2 h-2 bg-emerald-500 rounded-full ring-2 ring-white animate-pulse"></span>
+            </div>
+            <span className="hidden sm:inline">Chat Vendor</span>
+          </button>
 
           <button className="relative text-amber-500 hover:text-amber-600 transition-colors mx-1">
             <BellRing className="w-[24px] h-[24px] fill-amber-500/20 stroke-2" />

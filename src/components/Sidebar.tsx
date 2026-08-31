@@ -11,16 +11,18 @@ import {
     ShoppingBag,
     CheckCircle2,
     Shield,
-    FileSpreadsheet
+    FileSpreadsheet,
+    MessageSquare
 } from 'lucide-react';
 
 interface SidebarProps {
   user: User;
   currentView: string;
   onChangeView: (view: string) => void;
+  onOpenChat?: () => void;
 }
 
-export default function Sidebar({ user, currentView, onChangeView }: SidebarProps) {
+export default function Sidebar({ user, currentView, onChangeView, onOpenChat }: SidebarProps) {
   const internalNav = [
     { name: 'Dashboard', id: 'dashboard', icon: LayoutDashboard, badge: 'Overview' },
     { name: 'Management Pengadaan', id: 'catalog', icon: BookOpen },
@@ -72,6 +74,23 @@ export default function Sidebar({ user, currentView, onChangeView }: SidebarProp
             </button>
           );
         })}
+
+        {/* Direct Chat Action Button in Sidebar */}
+        <div className="pt-3">
+          <button
+            onClick={onOpenChat}
+            className="w-full flex items-center justify-between px-3.5 py-3 text-sm font-bold rounded-xl bg-gradient-to-r from-blue-600/30 to-indigo-600/30 hover:from-blue-600/50 hover:to-indigo-600/50 text-blue-200 hover:text-white border border-blue-500/30 transition-all cursor-pointer group shadow-xs"
+          >
+            <div className="flex items-center min-w-0 pr-2">
+              <MessageSquare className="mr-3 h-5 w-5 text-blue-400 group-hover:scale-110 transition-transform shrink-0" />
+              <span className="text-left leading-tight">Chat Vendor Rekanan</span>
+            </div>
+            <span className="flex h-2 w-2 relative">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+            </span>
+          </button>
+        </div>
       </div>
 
       {/* Footer Info */}

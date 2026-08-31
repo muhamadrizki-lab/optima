@@ -20,24 +20,43 @@ import {
   TrendingUp,
   CreditCard,
   DollarSign,
-  CheckCircle
+  CheckCircle,
+  Activity,
+  History,
+  MessageSquare,
+  Trophy,
+  ShieldAlert,
+  Search,
+  Calendar,
+  Camera,
+  Laptop,
+  Smartphone,
+  Eye,
+  Clock,
+  Filter
 } from 'lucide-react';
 import { VendorCatalogItem } from '../types';
 import CompanyDetailModal from '../components/CompanyDetailModal';
+import ImageLightboxModal from '../components/ImageLightboxModal';
 import { INITIAL_VENDOR_CATALOG } from '../data/vendorCatalogData';
 import { INITIAL_BIDS_DATA } from '../data/biddingData';
+import { getStoredActivityLogs } from '../data/activityLogData';
+import { UserActivityLog } from '../types';
 
 interface InternalDashboardProps {
   vendorCatalogItems?: VendorCatalogItem[];
   onNavigate?: (view: string) => void;
+  onOpenChat?: (vendorName?: string, tenderId?: string) => void;
 }
 
 export default function InternalDashboard({ 
   vendorCatalogItems = INITIAL_VENDOR_CATALOG,
-  onNavigate 
+  onNavigate,
+  onOpenChat
 }: InternalDashboardProps) {
   const [selectedStat, setSelectedStat] = useState<any>(null);
   const [selectedCompanyModal, setSelectedCompanyModal] = useState<string | null>(null);
+  const [lightboxPhoto, setLightboxPhoto] = useState<{ url: string; title: string; subtitle?: string } | null>(null);
   
   const [totalKebutuhan, setTotalKebutuhan] = useState(5);
   const [kebutuhanList, setKebutuhanList] = useState<any[]>([]);
@@ -49,6 +68,11 @@ export default function InternalDashboard({
   const [totalSuppliers, setTotalSuppliers] = useState(1);
   const [totalVendorJasa, setTotalVendorJasa] = useState(1);
   const [externalUsersList, setExternalUsersList] = useState<any[]>([]);
+
+  // Daily Activity Log State
+  const [activityLogs, setActivityLogs] = useState<UserActivityLog[]>([]);
+  const [activityFilterTab, setActivityFilterTab] = useState<'ALL' | 'INTERNAL' | 'EXTERNAL' | 'WINNER' | 'CHAT'>('ALL');
+  const [activitySearchQuery, setActivitySearchQuery] = useState('');
 
   const loadDashboardData = () => {
     // Load Kebutuhan
@@ -127,6 +151,12 @@ export default function InternalDashboard({
         setExternalUsersList(initialExternals);
       }
     } catch (e) {}
+
+    // Load Activity Logs
+    try {
+      const logs = getStoredActivityLogs();
+      setActivityLogs(logs);
+    } catch (e) {}
   };
 
   useEffect(() => {
@@ -138,6 +168,31 @@ export default function InternalDashboard({
     window.addEventListener('optima-db-updated', handleSync);
     return () => window.removeEventListener('optima-db-updated', handleSync);
   }, []);
+
+  // Filtered Activity Logs
+  const filteredActivityLogs = useMemo(() => {
+    return activityLogs.filter(log => {
+      // Tab filter
+      if (activityFilterTab === 'INTERNAL' && log.role !== 'INTERNAL') return false;
+      if (activityFilterTab === 'EXTERNAL' && log.role !== 'EXTERNAL') return false;
+      if (activityFilterTab === 'WINNER' && log.actionType !== 'WINNER_ASSIGNED') return false;
+      if (activityFilterTab === 'CHAT' && log.actionType !== 'CHAT_SENT') return false;
+
+      // Search filter
+      if (activitySearchQuery.trim()) {
+        const q = activitySearchQuery.toLowerCase();
+        const match = 
+          log.userName.toLowerCase().includes(q) ||
+          log.companyName.toLowerCase().includes(q) ||
+          log.actionTitle.toLowerCase().includes(q) ||
+          log.actionDetail.toLowerCase().includes(q) ||
+          log.userEmail.toLowerCase().includes(q) ||
+          (log.targetId && log.targetId.toLowerCase().includes(q));
+        if (!match) return false;
+      }
+      return true;
+    });
+  }, [activityLogs, activityFilterTab, activitySearchQuery]);
 
   // Compute won internal procurements (pengeluaran belanja aktif)
   const wonItems = useMemo(() => {
@@ -963,7 +1018,6 @@ export default function InternalDashboard({
             </div>
           </div>
         </div>
-
       </div>
 
       {/* Pop Up Detail Company Modal */}

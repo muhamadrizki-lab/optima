@@ -41,6 +41,7 @@ interface CatalogVendorProps {
   onUpdateItem?: (item: VendorCatalogItem) => void;
   onDeleteItem?: (id: string) => void;
   onNavigateToMyCatalog?: () => void;
+  onOpenChat?: (vendorName?: string, tenderId?: string) => void;
 }
 
 export default function CatalogVendor({
@@ -49,7 +50,8 @@ export default function CatalogVendor({
   onAddItem,
   onUpdateItem,
   onDeleteItem,
-  onNavigateToMyCatalog
+  onNavigateToMyCatalog,
+  onOpenChat
 }: CatalogVendorProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedType, setSelectedType] = useState<string>('ALL'); // ALL, SUPPLIER, VENDOR_JASA

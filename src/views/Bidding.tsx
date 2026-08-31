@@ -31,6 +31,7 @@ interface BiddingProps {
   onBack?: () => void;
   initialReqId?: string | null;
   vendorCatalogItems?: VendorCatalogItem[];
+  onOpenChat?: (vendorName?: string, tenderId?: string) => void;
 }
 
 interface AvailableTender {
@@ -121,7 +122,7 @@ const AVAILABLE_TENDERS: AvailableTender[] = [
   }
 ];
 
-export default function Bidding({ user, onBack, initialReqId, vendorCatalogItems }: BiddingProps) {
+export default function Bidding({ user, onBack, initialReqId, vendorCatalogItems, onOpenChat }: BiddingProps) {
   // Dynamic list of tenders merging localStorage catalog items
   const [tenderList, setTenderList] = useState<AvailableTender[]>(() => {
     try {

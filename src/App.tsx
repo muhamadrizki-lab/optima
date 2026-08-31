@@ -18,9 +18,21 @@ import Bidding from './views/Bidding';
 import CatalogVendor from './views/CatalogVendor';
 import MyVendorCatalog from './views/MyVendorCatalog';
 import ReportsView from './views/ReportsView';
+import VendorChatModal from './components/VendorChatModal';
 import { startFirebaseSync } from './firebase';
 
 export default function App() {
+  // Chat Modal State
+  const [showChatModal, setShowChatModal] = useState(false);
+  const [chatTargetVendor, setChatTargetVendor] = useState<string | null>(null);
+  const [chatTargetTenderId, setChatTargetTenderId] = useState<string | null>(null);
+
+  const handleOpenChat = (vendorName?: string, tenderId?: string) => {
+    setChatTargetVendor(vendorName || null);
+    setChatTargetTenderId(tenderId || null);
+    setShowChatModal(true);
+  };
+
   // Sync state trigger to propagate real-time changes
   const [syncTrigger, setSyncTrigger] = useState(0);
 
@@ -199,27 +211,29 @@ export default function App() {
         return isInternal ? (
           <InternalDashboard 
             vendorCatalogItems={vendorCatalogItems} 
-            onNavigate={(v) => setCurrentView(v)} 
+            onNavigate={(v) => setCurrentView(v)}
+            onOpenChat={handleOpenChat}
           />
         ) : (
-          <CatalogKebutuhan user={user} onBiddingClick={handleBiddingClick} />
+          <CatalogKebutuhan user={user} onBiddingClick={handleBiddingClick} onOpenChat={handleOpenChat} />
         );
       case 'catalog':
       case 'catalog-ext':
-        return <CatalogKebutuhan user={user} onBiddingClick={handleBiddingClick} />;
+        return <CatalogKebutuhan user={user} onBiddingClick={handleBiddingClick} onOpenChat={handleOpenChat} />;
       case 'access':
-        return isInternal ? <ManagementAkses /> : <CatalogKebutuhan user={user} onBiddingClick={handleBiddingClick} />;
+        return isInternal ? <ManagementAkses /> : <CatalogKebutuhan user={user} onBiddingClick={handleBiddingClick} onOpenChat={handleOpenChat} />;
       case 'requirement':
-        return isInternal ? <ManagementKebutuhan /> : <CatalogKebutuhan user={user} onBiddingClick={handleBiddingClick} />;
+        return isInternal ? <ManagementKebutuhan /> : <CatalogKebutuhan user={user} onBiddingClick={handleBiddingClick} onOpenChat={handleOpenChat} />;
       case 'management-bidding':
-        return isInternal ? <ManagementBidding /> : <CatalogKebutuhan user={user} onBiddingClick={handleBiddingClick} />;
+        return isInternal ? <ManagementBidding /> : <CatalogKebutuhan user={user} onBiddingClick={handleBiddingClick} onOpenChat={handleOpenChat} />;
       case 'bidding':
         return (
           <Bidding 
             user={user}
             initialReqId={selectedBiddingReqId}
             vendorCatalogItems={vendorCatalogItems}
-            onBack={() => setCurrentView(user?.role === 'INTERNAL' ? 'catalog' : 'catalog-ext')} 
+            onBack={() => setCurrentView(user?.role === 'INTERNAL' ? 'catalog' : 'catalog-ext')}
+            onOpenChat={handleOpenChat}
           />
         );
       case 'catalog-vendor':
@@ -231,15 +245,16 @@ export default function App() {
             onUpdateItem={handleUpdateVendorItem}
             onDeleteItem={handleDeleteVendorItem}
             onNavigateToMyCatalog={() => setCurrentView('my-vendor-catalog')}
+            onOpenChat={handleOpenChat}
           />
         ) : (
-          <CatalogKebutuhan user={user} onBiddingClick={handleBiddingClick} />
+          <CatalogKebutuhan user={user} onBiddingClick={handleBiddingClick} onOpenChat={handleOpenChat} />
         );
       case 'reports':
         return isInternal ? (
           <ReportsView vendorCatalogItems={vendorCatalogItems} />
         ) : (
-          <CatalogKebutuhan user={user} onBiddingClick={handleBiddingClick} />
+          <CatalogKebutuhan user={user} onBiddingClick={handleBiddingClick} onOpenChat={handleOpenChat} />
         );
       case 'my-vendor-catalog':
         return user ? (
@@ -250,6 +265,7 @@ export default function App() {
             onUpdateItem={handleUpdateVendorItem}
             onDeleteItem={handleDeleteVendorItem}
             onBrowseAllCatalog={() => setCurrentView('catalog-vendor')}
+            onOpenChat={handleOpenChat}
           />
         ) : (
           <CatalogVendor
@@ -258,10 +274,11 @@ export default function App() {
             onAddItem={handleAddVendorItem}
             onUpdateItem={handleUpdateVendorItem}
             onDeleteItem={handleDeleteVendorItem}
+            onOpenChat={handleOpenChat}
           />
         );
       default:
-        return <CatalogKebutuhan user={user} onBiddingClick={handleBiddingClick} />;
+        return <CatalogKebutuhan user={user} onBiddingClick={handleBiddingClick} onOpenChat={handleOpenChat} />;
     }
   };
 
@@ -274,6 +291,7 @@ export default function App() {
         onChangeRole={handleChangeRole} 
         lang={lang}
         onLanguageChange={(newLang) => setLang(newLang)}
+        onOpenChat={() => handleOpenChat()}
       />
       <div className="flex flex-1 overflow-hidden">
         {user && (
@@ -286,6 +304,7 @@ export default function App() {
               }
               setCurrentView(v);
             }} 
+            onOpenChat={() => handleOpenChat()}
           />
         )}
         <main className="flex-1 overflow-y-auto relative">
@@ -318,6 +337,15 @@ export default function App() {
           }} 
         />
       )}
+
+      {/* Global Vendor Chat Modal */}
+      <VendorChatModal
+        isOpen={showChatModal}
+        onClose={() => setShowChatModal(false)}
+        currentUser={user}
+        targetVendorName={chatTargetVendor}
+        targetTenderId={chatTargetTenderId}
+      />
     </div>
   );
 }

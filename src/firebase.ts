@@ -9,9 +9,17 @@ import {
   DocumentData,
   writeBatch,
   disableNetwork,
+  setLogLevel,
   Unsubscribe
 } from 'firebase/firestore';
 import firebaseConfig from '../firebase-applet-config.json';
+
+// Silence verbose internal backoff logging from Firestore SDK
+try {
+  setLogLevel('silent');
+} catch {
+  // Ignore if not supported in environment
+}
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
@@ -25,13 +33,13 @@ let isSyncingFromServer = false;
 let isQuotaExhausted = false;
 let activeUnsubscribes: Unsubscribe[] = [];
 
-// Check persisted quota status (cooldown: 30 minutes)
+// Check persisted quota status (cooldown: 2 hours)
 const QUOTA_KEY = 'optima_firestore_quota_exhausted_time';
 try {
   const lastExhausted = localStorage.getItem(QUOTA_KEY);
   if (lastExhausted) {
-    const elapsedMinutes = (Date.now() - parseInt(lastExhausted, 10)) / (1000 * 60);
-    if (elapsedMinutes < 30) {
+    const elapsedHours = (Date.now() - parseInt(lastExhausted, 10)) / (1000 * 60 * 60);
+    if (elapsedHours < 2) {
       isQuotaExhausted = true;
       disableNetwork(db).catch(() => {});
     } else {
@@ -111,7 +119,7 @@ function handleFirestoreError(error: unknown, operationType: OperationType, path
       stopAllFirebaseListeners();
       disableNetwork(db).catch(() => {});
       console.warn(
-        `[Firebase] Firestore Free Tier daily quota limit exceeded. Disabled background network retry streams and switched smoothly to local persistence.`
+        `[Firebase] Firestore Free Tier daily quota limit exceeded. Network streaming disabled, seamless local storage active.`
       );
     }
     return;

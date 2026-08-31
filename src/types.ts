@@ -29,6 +29,7 @@ export interface CatalogItem {
   deadline?: string;
   status: 'OPEN' | 'CLOSED';
   imageUrl?: string;
+  warranty?: string;
   specifications?: string[];
   specTable?: SpecTableItem[];
   tnc?: string;
@@ -45,6 +46,62 @@ export interface CatalogItem {
   winnerDate?: string;
   winnerNotes?: string;
   winnerPaymentMethod?: string;
+  winnerRank?: number;
+  winnerOriginalRank1VendorName?: string;
+  winnerOriginalRank1Amount?: number;
+  winnerReasonCategory?: 'STOCK_KOSONG' | 'LEAD_TIME' | 'SPESIFIKASI_TIDAK_LOLOS' | 'TOP_TIDAK_SESUAI' | 'LAINNYA';
+  winnerEvidencePhoto?: string;
+  winnerEvidenceDescription?: string;
+}
+
+export interface ChatMessage {
+  id: string;
+  conversationId: string;
+  senderId: string;
+  senderName: string;
+  senderRole: 'INTERNAL' | 'EXTERNAL';
+  senderAvatar?: string;
+  message: string;
+  attachmentUrl?: string;
+  attachmentType?: 'IMAGE' | 'DOCUMENT';
+  attachmentName?: string;
+  timestamp: string;
+  isRead?: boolean;
+}
+
+export interface ChatConversation {
+  id: string;
+  vendorId?: string;
+  vendorName: string;
+  vendorCompany?: string;
+  vendorEmail?: string;
+  vendorPhone?: string;
+  tenderId?: string;
+  tenderTitle?: string;
+  lastMessage?: string;
+  lastTimestamp?: string;
+  unreadCount?: number;
+  isOnline?: boolean;
+}
+
+export interface UserActivityLog {
+  id: string;
+  userId?: string;
+  userName: string;
+  userEmail: string;
+  companyName?: string;
+  role: Role;
+  vendorType?: string;
+  actionType: 'LOGIN' | 'BID_SUBMIT' | 'WINNER_ASSIGNED' | 'CHAT_SENT' | 'CATALOG_UPDATE' | 'PO_GENERATED' | 'DOWNLOAD_REPORT';
+  actionTitle: string;
+  actionDetail: string;
+  timestamp: string;
+  date: string;
+  ipAddress?: string;
+  deviceInfo?: string;
+  status: 'SUCCESS' | 'WARNING' | 'INFO';
+  evidencePhoto?: string;
+  targetId?: string;
 }
 
 export interface Bid {

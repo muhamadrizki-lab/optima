@@ -26,17 +26,29 @@ import {
   ChevronRight,
   Clock,
   Trash2,
-  ArrowUpDown
+  ArrowUpDown,
+  MessageSquare,
+  Image as ImageIcon,
+  Eye,
+  ShieldAlert,
+  FileSpreadsheet,
+  HelpCircle,
+  AlertTriangle,
+  Camera
 } from 'lucide-react';
 import SafeImage from '../components/SafeImage';
 import PancaranLogo from '../components/PancaranLogo';
 import CompanyDetailModal from '../components/CompanyDetailModal';
+import ImageLightboxModal from '../components/ImageLightboxModal';
 import SpecTableEditor, { createDefaultSpecTableRows } from '../components/SpecTableEditor';
 import { INITIAL_BIDS_DATA } from '../data/biddingData';
+import { PRESET_EVIDENCE_PROOFS } from '../data/chatData';
+import { logUserActivity } from '../data/activityLogData';
 
 interface CatalogProps {
   user?: User | null;
   onBiddingClick?: (reqId?: string) => void;
+  onOpenChat?: (vendorName?: string, tenderId?: string) => void;
 }
 
 interface BidderItem {
@@ -64,6 +76,7 @@ const DEFAULT_CATALOG_ITEMS: CatalogItem[] = [
     deadline: '2026-08-31T17:00:00',
     status: 'OPEN',
     imageUrl: 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?auto=format&fit=crop&w=800&q=80',
+    warranty: 'Garansi Resmi 3 Tahun Lenovo Indonesia (Onsite & Premier Support)',
     specifications: ['Intel Core i7 Gen 13', '16GB RAM DDR5', '512GB NVMe SSD', '14-inch IPS Display', 'Garansi Resmi 3 Tahun'],
     specTable: [
       { no: 1, nama: 'Laptop Workstation Engineering', brand: 'Lenovo ThinkPad P14s Gen 4 (i7-13700H, 16GB, 512GB SSD)', qty: 35, uom: 'unit', ket: 'Garansi resmi 3 tahun, include OS Win 11 Pro' },
@@ -89,6 +102,7 @@ const DEFAULT_CATALOG_ITEMS: CatalogItem[] = [
     deadline: '2026-08-28T23:59:59',
     status: 'OPEN',
     imageUrl: 'https://images.unsplash.com/photo-1621905252507-b35492cc74b4?auto=format&fit=crop&w=800&q=80',
+    warranty: 'Garansi Pekerjaan Service Minimal 14 Hari & Teknisi Bersertifikat K3',
     specifications: ['Cuci AC rutin per 3 bulan', 'Pengecekan freon dan kompresor', 'Respon perbaikan darurat 1x24 jam', 'Termasuk perbaikan minor', 'Total 45 unit AC Split & Cassette'],
     specTable: [
       { no: 1, nama: 'Cuci & Maintenance AC Split 1-2 PK', brand: 'Daikin / Panasonic / Sharp', qty: 35, uom: 'pcs', ket: 'Cuci rutin per 3 bulan (4x kunjungan setahun)' },
@@ -118,7 +132,9 @@ const DEFAULT_CATALOG_ITEMS: CatalogItem[] = [
     winnerDate: '2026-08-16',
     winnerNotes: 'Penawaran terbaik dengan harga kompetitif dan rekam jejak distribusi terpercaya. BAST & PO telah diterbitkan.',
     winnerPaymentMethod: 'Net 45 Days • Garansi 12 Bulan / 60.000 KM',
+    winnerRank: 1,
     imageUrl: 'https://images.unsplash.com/photo-1578844251758-2f71da64c96f?auto=format&fit=crop&w=800&q=80',
+    warranty: 'Garansi Aus Pabrik 12 Bulan / 60.000 KM Resmi Bridgestone',
     specifications: [
       'Ukuran: 11R22.5 16PR / 18PR Tubeless',
       'Merk yang direkomendasikan: Bridgestone / Michelin / Gajah Tunggal',
@@ -148,6 +164,7 @@ const DEFAULT_CATALOG_ITEMS: CatalogItem[] = [
     deadline: '2026-08-30T18:00:00',
     status: 'OPEN',
     imageUrl: 'https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?auto=format&fit=crop&w=800&q=80',
+    warranty: 'Garansi Ganti Baru (1-to-1 Replacement) 6-12 Bulan Resmi GS Astra',
     specifications: [
       'Kapasitas: 12 Volt 100 Ah (Standard N100 / 95E41R)',
       'Merk: GS Astra / Incoe / Yuasa',
@@ -177,6 +194,7 @@ const DEFAULT_CATALOG_ITEMS: CatalogItem[] = [
     deadline: '2026-09-05T17:00:00',
     status: 'OPEN',
     imageUrl: 'https://images.unsplash.com/photo-1615906655593-ad0386982a0f?auto=format&fit=crop&w=800&q=80',
+    warranty: 'Garansi Resmi Distributor 6 Bulan Genuine Parts OEM Bebas Cacat Pabrik',
     specifications: [
       '300 Set Brake Shoe Hino Ranger 500 Lohan OEM Non-Asbestos',
       '400 Set Filter Combo Fleetguard LF16015 / FS19732',
@@ -443,7 +461,7 @@ export function TenderCountdownBar({
   );
 }
 
-export default function CatalogKebutuhan({ user, onBiddingClick }: CatalogProps) {
+export default function CatalogKebutuhan({ user, onBiddingClick, onOpenChat }: CatalogProps) {
   const isInternal = user?.role === 'INTERNAL';
   
   const [items, setItems] = useState<CatalogItem[]>(() => {
@@ -458,7 +476,8 @@ export default function CatalogKebutuhan({ user, onBiddingClick }: CatalogProps)
               ...item,
               specTable: (item.specTable && item.specTable.length > 0) ? item.specTable : (match?.specTable || []),
               deadline: item.deadline || match?.deadline || '2026-08-31T17:00:00',
-              datePosted: item.datePosted || match?.datePosted || '2026-08-15'
+              datePosted: item.datePosted || match?.datePosted || '2026-08-15',
+              warranty: item.warranty || match?.warranty || 'Garansi Resmi Distributor'
             };
           });
         }
@@ -483,7 +502,8 @@ export default function CatalogKebutuhan({ user, onBiddingClick }: CatalogProps)
                   ...item,
                   specTable: (item.specTable && item.specTable.length > 0) ? item.specTable : (match?.specTable || []),
                   deadline: item.deadline || match?.deadline || '2026-08-31T17:00:00',
-                  datePosted: item.datePosted || match?.datePosted || '2026-08-15'
+                  datePosted: item.datePosted || match?.datePosted || '2026-08-15',
+                  warranty: item.warranty || match?.warranty || 'Garansi Resmi Distributor'
                 };
               }));
             }
@@ -508,6 +528,18 @@ export default function CatalogKebutuhan({ user, onBiddingClick }: CatalogProps)
   const [selectedTenderForBids, setSelectedTenderForBids] = useState<CatalogItem | null>(null);
   const [settingWinnerTender, setSettingWinnerTender] = useState<CatalogItem | null>(null);
   const [companyModalName, setCompanyModalName] = useState<string | null>(null);
+  const [lightboxPhoto, setLightboxPhoto] = useState<{ url: string; title?: string; subtitle?: string } | null>(null);
+
+  // Justification / Override Modal State (for Juara 2 / non-Juara 1 winner selection)
+  const [justificationModalData, setJustificationModalData] = useState<{
+    tender: CatalogItem;
+    selectedBidder: BidderItem;
+    rank: number;
+    rank1Bidder: BidderItem;
+  } | null>(null);
+  const [winnerReasonCategory, setWinnerReasonCategory] = useState<'STOCK_KOSONG' | 'LEAD_TIME' | 'SPESIFIKASI_TIDAK_LOLOS' | 'TOP_TIDAK_SESUAI' | 'LAINNYA'>('STOCK_KOSONG');
+  const [winnerReasonNotes, setWinnerReasonNotes] = useState('');
+  const [winnerEvidencePhoto, setWinnerEvidencePhoto] = useState<string | null>(null);
 
   // Winner Form State
   const [winnerFormTab, setWinnerFormTab] = useState<'LIST' | 'MANUAL'>('LIST');
@@ -515,6 +547,8 @@ export default function CatalogKebutuhan({ user, onBiddingClick }: CatalogProps)
   const [manualWinnerAmount, setManualWinnerAmount] = useState<number>(0);
   const [manualWinnerTOP, setManualWinnerTOP] = useState('Net 30 Hari');
   const [manualWinnerNotes, setManualWinnerNotes] = useState('');
+  const [manualReasonCategory, setManualReasonCategory] = useState<'STOCK_KOSONG' | 'LEAD_TIME' | 'SPESIFIKASI_TIDAK_LOLOS' | 'TOP_TIDAK_SESUAI' | 'LAINNYA'>('STOCK_KOSONG');
+  const [manualEvidencePhoto, setManualEvidencePhoto] = useState<string | null>(null);
   const [targetTenderStatus, setTargetTenderStatus] = useState<'OPEN' | 'CLOSED'>('CLOSED');
 
   // New Post Form
@@ -523,6 +557,7 @@ export default function CatalogKebutuhan({ user, onBiddingClick }: CatalogProps)
     title: '',
     description: '',
     imageUrl: '',
+    warranty: 'Garansi Resmi Distributor 12-36 Bulan',
     tnc: '',
     top: '',
     delivery: '',
@@ -572,6 +607,7 @@ export default function CatalogKebutuhan({ user, onBiddingClick }: CatalogProps)
       id,
       datePosted,
       deadline: newPost.deadline || '2026-08-31T17:00:00',
+      warranty: newPost.warranty || 'Garansi Resmi Distributor & Garansi Purna Jual',
       specifications: generatedSpecs.length > 0 ? generatedSpecs : specList.filter(s => s.trim() !== ''),
       specTable: finalTable,
       ownerEstimate: Number(newPost.ownerEstimate) || 0,
@@ -582,7 +618,7 @@ export default function CatalogKebutuhan({ user, onBiddingClick }: CatalogProps)
     
     setItems([item, ...items]);
     setIsCreating(false);
-    setNewPost({ status: 'OPEN', title: '', description: '', imageUrl: '', tnc: '', top: '', delivery: '', tax: 'Include PPH', ownerEstimate: 0, deadline: '2026-08-31T17:00' });
+    setNewPost({ status: 'OPEN', title: '', description: '', imageUrl: '', warranty: 'Garansi Resmi Distributor 12-36 Bulan', tnc: '', top: '', delivery: '', tax: 'Include PPH', ownerEstimate: 0, deadline: '2026-08-31T17:00' });
     setSpecList(['', '', '']);
     setCreateSpecTable([
       { no: 1, nama: '', brand: '', qty: 1, uom: 'pcs', ket: '' },
@@ -610,17 +646,27 @@ export default function CatalogKebutuhan({ user, onBiddingClick }: CatalogProps)
     setManualWinnerAmount(item.winnerAmount || item.lowestBid || item.ownerEstimate || 0);
     setManualWinnerTOP(item.winnerPaymentMethod || item.top || 'Net 30 Hari');
     setManualWinnerNotes(item.winnerNotes || 'Disetujui sebagai pemenang tender berdasarkan komparasi harga & evaluasi teknis tim procurement.');
+    setManualReasonCategory(item.winnerReasonCategory || 'STOCK_KOSONG');
+    setManualEvidencePhoto(item.winnerEvidencePhoto || null);
     setTargetTenderStatus(item.status);
   };
 
-  // Set Winner function
+  // Set Winner function with extra override details and user activity logging
   const handleAssignWinner = (
     tenderId: string, 
     vendorName: string, 
     amount: number, 
     topInfo: string, 
     notes: string,
-    vendorId?: string
+    vendorId?: string,
+    extra?: {
+      rank?: number;
+      reasonCategory?: 'STOCK_KOSONG' | 'LEAD_TIME' | 'SPESIFIKASI_TIDAK_LOLOS' | 'TOP_TIDAK_SESUAI' | 'LAINNYA';
+      evidencePhoto?: string;
+      evidenceDescription?: string;
+      originalRank1VendorName?: string;
+      originalRank1Amount?: number;
+    }
   ) => {
     const today = new Date().toISOString().split('T')[0];
     
@@ -634,13 +680,44 @@ export default function CatalogKebutuhan({ user, onBiddingClick }: CatalogProps)
           winnerAmount: amount,
           winnerDate: today,
           winnerPaymentMethod: topInfo,
-          winnerNotes: notes
+          winnerNotes: notes,
+          winnerRank: extra?.rank || 1,
+          winnerReasonCategory: extra?.reasonCategory,
+          winnerEvidencePhoto: extra?.evidencePhoto,
+          winnerEvidenceDescription: extra?.evidenceDescription,
+          winnerOriginalRank1VendorName: extra?.originalRank1VendorName,
+          winnerOriginalRank1Amount: extra?.originalRank1Amount
         };
       }
       return item;
     });
 
     setItems(updated);
+    try {
+      localStorage.setItem('optima_catalog_kebutuhan', JSON.stringify(updated));
+    } catch (e) {
+      console.error('Error saving catalog:', e);
+    }
+
+    // Log Activity in Audit Trail
+    try {
+      logUserActivity({
+        userId: user?.id || 'USR-INT',
+        userName: user?.name || 'Tim Internal Procurement',
+        userEmail: user?.email || 'muhamad.rizki@pancaran-logistic.id',
+        companyName: 'PT Pancaran Darat Transport (Internal)',
+        role: 'INTERNAL',
+        vendorType: 'PROCUREMENT',
+        actionType: 'WINNER_ASSIGNED',
+        actionTitle: `Penetapan Pemenang Tender ${tenderId}`,
+        actionDetail: `${vendorName} resmi ditetapkan sebagai Pemenang Tender ${tenderId} dengan nilai penawaran Rp ${amount.toLocaleString('id-ID')}${extra?.rank && extra.rank > 1 ? ` (Juara ${extra.rank} - Berita Acara Alasan: ${extra.reasonCategory || 'Stok Juara 1 Kosong'})` : ''}.`,
+        status: 'SUCCESS',
+        evidencePhoto: extra?.evidencePhoto,
+        targetId: tenderId
+      });
+    } catch (e) {
+      console.error('Error logging user activity:', e);
+    }
 
     // Also update optima_bids_history if matching bid exists
     try {
@@ -661,6 +738,7 @@ export default function CatalogKebutuhan({ user, onBiddingClick }: CatalogProps)
       console.error('Error updating bids status:', e);
     }
 
+    setJustificationModalData(null);
     setSettingWinnerTender(null);
     setSelectedTenderForBids(null);
     showToast(`Selamat! ${vendorName} berhasil ditetapkan sebagai Pemenang Tender ${tenderId}.`);
@@ -678,7 +756,12 @@ export default function CatalogKebutuhan({ user, onBiddingClick }: CatalogProps)
           winnerAmount: undefined,
           winnerDate: undefined,
           winnerNotes: undefined,
-          winnerPaymentMethod: undefined
+          winnerPaymentMethod: undefined,
+          winnerRank: undefined,
+          winnerReasonCategory: undefined,
+          winnerEvidencePhoto: undefined,
+          winnerOriginalRank1VendorName: undefined,
+          winnerOriginalRank1Amount: undefined
         };
       }
       return item;
@@ -844,6 +927,9 @@ export default function CatalogKebutuhan({ user, onBiddingClick }: CatalogProps)
         notes: v.notes
       });
     }
+
+    // Sort all bidders ascending by price (Juara 1 is always the lowest bidder)
+    result.sort((a, b) => a.amount - b.amount);
 
     // Ensure winner matches status ACCEPTED if set
     if (tender.winnerVendorName) {
@@ -1482,14 +1568,23 @@ export default function CatalogKebutuhan({ user, onBiddingClick }: CatalogProps)
                           </div>
                         </div>
 
-                        {/* Terms & Conditions Bar */}
-                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+                        {/* Terms & Conditions Bar (Including Warranty Display) */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 mb-4">
                           <div className="bg-indigo-50/40 p-2.5 rounded-xl border border-indigo-100/80">
                             <span className="text-[9px] font-black text-indigo-700 uppercase tracking-wider block mb-0.5 flex items-center">
                               <ShieldCheck className="w-3 h-3 mr-1 text-indigo-600" />
                               Terms & Conditions
                             </span>
                             <p className="text-[11px] font-semibold text-slate-800 leading-snug">{item.tnc}</p>
+                          </div>
+                          <div className="bg-purple-50/50 p-2.5 rounded-xl border border-purple-100/80">
+                            <span className="text-[9px] font-black text-purple-700 uppercase tracking-wider block mb-0.5 flex items-center">
+                              <Award className="w-3 h-3 mr-1 text-purple-600" />
+                              Ketentuan Garansi
+                            </span>
+                            <p className="text-[11px] font-bold text-purple-950 leading-snug">
+                              🛡️ {item.warranty || 'Garansi Resmi Distributor'}
+                            </p>
                           </div>
                           <div className="bg-blue-50/40 p-2.5 rounded-xl border border-blue-100/80">
                             <span className="text-[9px] font-black text-blue-700 uppercase tracking-wider block mb-0.5 flex items-center">
@@ -1513,6 +1608,69 @@ export default function CatalogKebutuhan({ user, onBiddingClick }: CatalogProps)
                             <p className="text-[11px] font-semibold text-slate-800 leading-snug">{item.tax}</p>
                           </div>
                         </div>
+
+                        {/* WINNER OFFICIAL BANNER (IF ASSIGNED) */}
+                        {item.winnerVendorName && (
+                          <div className="mb-4 bg-gradient-to-r from-emerald-900 via-slate-900 to-emerald-950 text-white p-4 rounded-2xl border border-emerald-500/40 shadow-md">
+                            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                              <div className="flex items-start gap-3">
+                                <div className="p-2.5 bg-amber-400 text-slate-950 rounded-xl font-black text-lg shrink-0 shadow-xs">
+                                  {item.winnerRank && item.winnerRank > 1 ? `🥈 #2` : `🥇 #1`}
+                                </div>
+                                <div>
+                                  <div className="flex flex-wrap items-center gap-2">
+                                    <span className="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-md bg-amber-400/20 text-amber-300 border border-amber-400/30">
+                                      Pemenang Resmi {item.winnerRank && item.winnerRank > 1 ? `Juara ${item.winnerRank}` : `Juara 1`}
+                                    </span>
+                                    {item.winnerRank && item.winnerRank > 1 && (
+                                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-rose-500/20 text-rose-300 border border-rose-500/30">
+                                        ⚠️ Pengalihan: {item.winnerReasonCategory === 'STOCK_KOSONG' ? 'Stok Juara 1 Kosong' : item.winnerReasonCategory || 'Stok Kosong'}
+                                      </span>
+                                    )}
+                                  </div>
+                                  <h4 
+                                    onClick={() => setCompanyModalName(item.winnerVendorName!)}
+                                    className="text-base font-black text-white mt-1 hover:text-amber-300 hover:underline cursor-pointer flex items-center gap-1.5"
+                                  >
+                                    {item.winnerVendorName}
+                                    <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                                  </h4>
+                                  <p className="text-xs text-slate-300 mt-0.5">
+                                    Nilai Kesepakatan: <strong className="text-amber-300 font-mono">{formatRp(item.winnerAmount || 0)}</strong> • {item.winnerPaymentMethod}
+                                  </p>
+                                  {item.winnerNotes && (
+                                    <p className="text-[11px] text-slate-400 mt-1 italic line-clamp-1">
+                                      "{item.winnerNotes}"
+                                    </p>
+                                  )}
+                                </div>
+                              </div>
+
+                              <div className="flex flex-wrap items-center gap-2 mt-2 sm:mt-0 shrink-0">
+                                {item.winnerEvidencePhoto && (
+                                  <button
+                                    onClick={() => setLightboxPhoto({
+                                      url: item.winnerEvidencePhoto!,
+                                      title: `Bukti Lampiran Chat / Dokumen Penetapan Juara ${item.winnerRank || 2}`,
+                                      subtitle: `${item.title} • Alasan: ${item.winnerReasonCategory || 'Stok Kosong'}`
+                                    })}
+                                    className="px-3 py-1.5 bg-white/10 hover:bg-white/20 text-white rounded-xl text-xs font-bold transition-all border border-white/20 flex items-center gap-1.5 cursor-pointer"
+                                  >
+                                    <ImageIcon className="w-3.5 h-3.5 text-amber-300" />
+                                    Lihat Bukti Foto Chat
+                                  </button>
+                                )}
+                                <button
+                                  onClick={() => onOpenChat?.(item.winnerVendorName!, item.id)}
+                                  className="px-3.5 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-xs"
+                                >
+                                  <MessageSquare className="w-3.5 h-3.5 text-white" />
+                                  Chat Vendor
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        )}
 
                         {/* Footer Actions & OE Stats */}
                         <div className="mt-auto pt-4 border-t border-slate-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -1571,7 +1729,7 @@ export default function CatalogKebutuhan({ user, onBiddingClick }: CatalogProps)
                                   className="w-full sm:w-auto px-4 py-2.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold transition-all shadow-sm flex items-center justify-center gap-2 cursor-pointer"
                                 >
                                   <Settings className="w-4 h-4 text-slate-300" />
-                                  {hasWinner ? 'Kelola Tender' : 'Pilih Pemenang'}
+                                  {hasWinner ? 'Kelola Pemenang' : 'Pilih Pemenang'}
                                 </button>
                               </>
                             )}
@@ -1748,14 +1906,20 @@ export default function CatalogKebutuhan({ user, onBiddingClick }: CatalogProps)
                 {/* TAB 1: LIST BIDDERS COMPARISON */}
                 {winnerFormTab === 'LIST' && (
                   <div className="space-y-3">
-                    <p className="text-xs text-slate-500">
-                      Pilih vendor penawar di bawah ini untuk langsung menetapkannya sebagai pemenang tender resmi.
-                    </p>
+                    <div className="flex items-center justify-between">
+                      <p className="text-xs text-slate-500">
+                        Pilih vendor penawar di bawah ini untuk menetapkannya sebagai pemenang resmi.
+                      </p>
+                      <span className="text-[11px] text-amber-700 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-lg font-bold">
+                        ⚠️ Memilih Juara 2 ke atas wajib melampirkan Alasan & Bukti Foto Chat
+                      </span>
+                    </div>
 
                     <div className="border border-slate-200 rounded-2xl overflow-hidden bg-white">
                       <table className="w-full text-left text-xs text-slate-600 border-collapse">
                         <thead className="bg-slate-100/80 text-slate-700 font-extrabold uppercase text-[11px] border-b border-slate-200">
                           <tr>
+                            <th className="px-4 py-3 text-center w-16">Peringkat</th>
                             <th className="px-4 py-3">Nama Vendor Rekanan</th>
                             <th className="px-4 py-3 text-right">Nilai Penawaran</th>
                             <th className="px-4 py-3">Term of Payment (TOP) & Garansi</th>
@@ -1764,84 +1928,131 @@ export default function CatalogKebutuhan({ user, onBiddingClick }: CatalogProps)
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100 font-medium">
-                          {getBiddersForTender(settingWinnerTender).map((bidder, idx) => {
-                            const isCurrentWinner = settingWinnerTender.winnerVendorName === bidder.vendorName;
-                            const oe = settingWinnerTender.ownerEstimate || bidder.amount;
-                            const diffPercent = Math.round(((oe - bidder.amount) / oe) * 100);
+                          {(() => {
+                            const sortedBidders = getBiddersForTender(settingWinnerTender);
+                            const rank1Bidder = sortedBidders[0];
 
-                            return (
-                              <tr key={idx} className={`hover:bg-slate-50 transition-colors ${isCurrentWinner ? 'bg-emerald-50/50' : ''}`}>
-                                <td className="px-4 py-3.5">
-                                  <div 
-                                    onClick={() => setCompanyModalName(bidder.vendorName)}
-                                    className="font-bold text-slate-900 text-sm flex items-center gap-1.5 cursor-pointer hover:text-blue-600 hover:underline"
-                                    title="Klik untuk melihat Detail Pop-Up Data Perusahaan / PT"
-                                  >
-                                    {bidder.vendorName}
-                                    {isCurrentWinner && <Award className="w-4 h-4 text-emerald-600" />}
-                                  </div>
-                                  <div className="text-[11px] text-slate-400 mt-0.5">{bidder.vendorEmail} • {bidder.vendorPhone}</div>
-                                  {bidder.availabilityType === 'INDENT' && (
-                                    <div className="mt-1">
-                                      <span className="inline-flex items-center text-[9px] font-bold text-amber-800 bg-amber-50 border border-amber-200/60 px-1.5 py-0.5 rounded-md gap-0.5">
-                                        ⏳ Inden: {bidder.indentDuration || 'Kontak Vendor'}
-                                      </span>
-                                    </div>
-                                  )}
-                                </td>
+                            return sortedBidders.map((bidder, idx) => {
+                              const rank = idx + 1;
+                              const isCurrentWinner = settingWinnerTender.winnerVendorName === bidder.vendorName;
+                              const oe = settingWinnerTender.ownerEstimate || bidder.amount;
+                              const diffPercent = Math.round(((oe - bidder.amount) / oe) * 100);
 
-                                <td className="px-4 py-3.5 text-right whitespace-nowrap font-mono">
-                                  <div className="font-black text-slate-900 text-sm">{formatRp(bidder.amount)}</div>
-                                  {diffPercent > 0 && (
-                                    <div className="text-[10px] text-emerald-600 font-bold">Hemat {diffPercent}% vs OE</div>
-                                  )}
-                                  {diffPercent < 0 && (
-                                    <div className="text-[10px] text-rose-600 font-bold">+{Math.abs(diffPercent)}% di atas OE</div>
-                                  )}
-                                </td>
-
-                                <td className="px-4 py-3.5">
-                                  <div className="font-bold text-slate-800">{bidder.top}</div>
-                                  <div className="text-[11px] text-slate-500 mt-0.5">{bidder.warranty}</div>
-                                </td>
-
-                                <td className="px-4 py-3.5 text-center whitespace-nowrap">
-                                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
-                                    isCurrentWinner 
-                                      ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' 
-                                      : bidder.status === 'REVIEWED'
-                                        ? 'bg-blue-100 text-blue-800'
-                                        : 'bg-amber-100 text-amber-800'
-                                  }`}>
-                                    {isCurrentWinner ? '🏆 PEMENANG' : bidder.status}
-                                  </span>
-                                </td>
-
-                                <td className="px-4 py-3.5 text-center whitespace-nowrap">
-                                  {isCurrentWinner ? (
-                                    <span className="text-xs font-bold text-emerald-700 flex items-center justify-center gap-1">
-                                      <CheckCircle2 className="w-4 h-4" /> Terpilih
+                              return (
+                                <tr key={idx} className={`hover:bg-slate-50 transition-colors ${isCurrentWinner ? 'bg-emerald-50/50' : rank === 1 ? 'bg-amber-50/20' : ''}`}>
+                                  <td className="px-4 py-3.5 text-center">
+                                    <span className={`inline-flex items-center justify-center w-7 h-7 rounded-xl font-black text-xs shadow-2xs ${
+                                      rank === 1 
+                                        ? 'bg-amber-400 text-slate-900 border border-amber-500/40' 
+                                        : rank === 2 
+                                          ? 'bg-slate-300 text-slate-900 border border-slate-400' 
+                                          : 'bg-slate-100 text-slate-600'
+                                    }`}>
+                                      #{rank}
                                     </span>
-                                  ) : (
-                                    <button
-                                      onClick={() => handleAssignWinner(
-                                        settingWinnerTender.id,
-                                        bidder.vendorName,
-                                        bidder.amount,
-                                        `${bidder.top} • ${bidder.warranty}`,
-                                        bidder.notes || 'Penetapan pemenang berdasarkan komparasi penawaran terbaik.',
-                                        bidder.vendorId
-                                      )}
-                                      className="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs transition-all shadow-xs flex items-center gap-1.5 mx-auto cursor-pointer"
-                                    >
-                                      <Trophy className="w-3.5 h-3.5" />
-                                      Pilih Menang
-                                    </button>
-                                  )}
-                                </td>
-                              </tr>
-                            );
-                          })}
+                                  </td>
+
+                                  <td className="px-4 py-3.5">
+                                    <div className="flex items-center gap-2">
+                                      <div 
+                                        onClick={() => setCompanyModalName(bidder.vendorName)}
+                                        className="font-bold text-slate-900 text-sm flex items-center gap-1.5 cursor-pointer hover:text-blue-600 hover:underline"
+                                        title="Klik untuk melihat Detail Pop-Up Data Perusahaan / PT"
+                                      >
+                                        {bidder.vendorName}
+                                        {isCurrentWinner && <Award className="w-4 h-4 text-emerald-600" />}
+                                      </div>
+                                      <button
+                                        onClick={() => onOpenChat?.(bidder.vendorName, settingWinnerTender.id)}
+                                        className="p-1 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors cursor-pointer"
+                                        title="Chat Vendor Ini"
+                                      >
+                                        <MessageSquare className="w-3.5 h-3.5" />
+                                      </button>
+                                    </div>
+                                    <div className="text-[11px] text-slate-400 mt-0.5">{bidder.vendorEmail} • {bidder.vendorPhone}</div>
+                                    {bidder.availabilityType === 'INDENT' && (
+                                      <div className="mt-1">
+                                        <span className="inline-flex items-center text-[9px] font-bold text-amber-800 bg-amber-50 border border-amber-200/60 px-1.5 py-0.5 rounded-md gap-0.5">
+                                          ⏳ Inden: {bidder.indentDuration || 'Kontak Vendor'}
+                                        </span>
+                                      </div>
+                                    )}
+                                  </td>
+
+                                  <td className="px-4 py-3.5 text-right whitespace-nowrap font-mono">
+                                    <div className="font-black text-slate-900 text-sm">{formatRp(bidder.amount)}</div>
+                                    {diffPercent > 0 && (
+                                      <div className="text-[10px] text-emerald-600 font-bold">Hemat {diffPercent}% vs OE</div>
+                                    )}
+                                    {diffPercent < 0 && (
+                                      <div className="text-[10px] text-rose-600 font-bold">+{Math.abs(diffPercent)}% di atas OE</div>
+                                    )}
+                                  </td>
+
+                                  <td className="px-4 py-3.5">
+                                    <div className="font-bold text-slate-800">{bidder.top}</div>
+                                    <div className="text-[11px] text-purple-700 font-semibold mt-0.5">🛡️ {bidder.warranty}</div>
+                                  </td>
+
+                                  <td className="px-4 py-3.5 text-center whitespace-nowrap">
+                                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
+                                      isCurrentWinner 
+                                        ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' 
+                                        : bidder.status === 'REVIEWED'
+                                          ? 'bg-blue-100 text-blue-800'
+                                          : 'bg-amber-100 text-amber-800'
+                                    }`}>
+                                      {isCurrentWinner ? '🏆 PEMENANG' : bidder.status}
+                                    </span>
+                                  </td>
+
+                                  <td className="px-4 py-3.5 text-center whitespace-nowrap">
+                                    {isCurrentWinner ? (
+                                      <span className="text-xs font-bold text-emerald-700 flex items-center justify-center gap-1">
+                                        <CheckCircle2 className="w-4 h-4" /> Terpilih
+                                      </span>
+                                    ) : rank === 1 ? (
+                                      <button
+                                        onClick={() => handleAssignWinner(
+                                          settingWinnerTender.id,
+                                          bidder.vendorName,
+                                          bidder.amount,
+                                          `${bidder.top} • ${bidder.warranty}`,
+                                          bidder.notes || 'Penetapan pemenang otomatis berdasarkan harga penawaran terendah Juara 1.',
+                                          bidder.vendorId,
+                                          { rank: 1 }
+                                        )}
+                                        className="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs transition-all shadow-xs flex items-center gap-1.5 mx-auto cursor-pointer"
+                                      >
+                                        <Trophy className="w-3.5 h-3.5 text-amber-300" />
+                                        Pilih Juara 1
+                                      </button>
+                                    ) : (
+                                      <button
+                                        onClick={() => {
+                                          setJustificationModalData({
+                                            tender: settingWinnerTender,
+                                            selectedBidder: bidder,
+                                            rank: rank,
+                                            rank1Bidder: rank1Bidder
+                                          });
+                                          setWinnerReasonCategory('STOCK_KOSONG');
+                                          setWinnerReasonNotes(`Berdasarkan konfirmasi tertulis & chat resmi dari vendor Juara 1 (${rank1Bidder.vendorName}), stok barang saat ini kosong/habis. Maka sesuai hasil evaluasi pengadaan, pemenang dialihkan ke Juara ${rank} (${bidder.vendorName}) yang memiliki stok ready dan siap kirim.`);
+                                          setWinnerEvidencePhoto(PRESET_EVIDENCE_PROOFS[0].imageUrl);
+                                        }}
+                                        className="px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold rounded-xl text-xs transition-all shadow-xs flex items-center gap-1.5 mx-auto cursor-pointer"
+                                        title={`Tetapkan Juara ${rank} (Wajib Berita Acara & Bukti Foto Chat)`}
+                                      >
+                                        <AlertTriangle className="w-3.5 h-3.5 text-slate-950" />
+                                        Pilih Juara {rank}
+                                      </button>
+                                    )}
+                                  </td>
+                                </tr>
+                              );
+                            });
+                          })()}
                         </tbody>
                       </table>
                     </div>
@@ -1858,7 +2069,14 @@ export default function CatalogKebutuhan({ user, onBiddingClick }: CatalogProps)
                         manualWinnerName,
                         manualWinnerAmount,
                         manualWinnerTOP,
-                        manualWinnerNotes
+                        manualWinnerNotes,
+                        undefined,
+                        {
+                          rank: 2,
+                          reasonCategory: manualReasonCategory,
+                          evidencePhoto: manualEvidencePhoto || undefined,
+                          evidenceDescription: manualWinnerNotes
+                        }
                       );
                     }}
                     className="space-y-4 bg-slate-50/70 p-5 rounded-2xl border border-slate-200"
@@ -1901,8 +2119,44 @@ export default function CatalogKebutuhan({ user, onBiddingClick }: CatalogProps)
                       />
                     </div>
 
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Kategori Alasan Penetapan</label>
+                        <select
+                          value={manualReasonCategory}
+                          onChange={e => setManualReasonCategory(e.target.value as any)}
+                          className="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 bg-white"
+                        >
+                          <option value="STOCK_KOSONG">Stok Juara 1 Kosong / Habis (Ready di Vendor Ini)</option>
+                          <option value="LEAD_TIME">Lead Time Pengiriman Lebih Cepat</option>
+                          <option value="SPESIFIKASI_TIDAK_LOLOS">Spesifikasi & Garansi Lebih Terjamin</option>
+                          <option value="TOP_TIDAK_SESUAI">Term of Payment Lebih Sesuai Kebijakan</option>
+                          <option value="LAINNYA">Alasan Teknis Khusus / Evaluasi Internal</option>
+                        </select>
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Lampiran Bukti Foto Chat / Dokumen</label>
+                        <div className="flex items-center gap-2">
+                          <button
+                            type="button"
+                            onClick={() => setManualEvidencePhoto(PRESET_EVIDENCE_PROOFS[0].imageUrl)}
+                            className="px-3 py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 rounded-xl text-xs font-bold transition-all flex items-center gap-1 cursor-pointer"
+                          >
+                            <Camera className="w-3.5 h-3.5" />
+                            Gunakan Bukti Chat Preset
+                          </button>
+                          {manualEvidencePhoto && (
+                            <span className="text-xs text-emerald-600 font-bold flex items-center gap-1">
+                              <CheckCircle2 className="w-3.5 h-3.5" /> Terlampir
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
                     <div>
-                      <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Catatan Berita Acara / Alasan Penetapan Pemenang</label>
+                      <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Catatan Berita Acara / Alasan Penetapan Pemenang (Wajib)</label>
                       <textarea
                         rows={3}
                         required
@@ -1937,6 +2191,267 @@ export default function CatalogKebutuhan({ user, onBiddingClick }: CatalogProps)
                 className="px-5 py-2.5 bg-slate-800 hover:bg-slate-900 text-white font-bold rounded-xl text-xs transition-colors cursor-pointer"
               >
                 Tutup
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* ⚠️ MODAL: JUSTIFIKASI & BERITA ACARA PEMENANG JUARA 2 / OVERRIDE JUARA 1  */}
+      {/* ========================================================================= */}
+      {justificationModalData && (
+        <div className="fixed inset-0 z-60 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-xs animate-in fade-in duration-200 overflow-y-auto">
+          <div className="bg-white rounded-3xl shadow-2xl max-w-2xl w-full max-h-[92vh] flex flex-col overflow-hidden border border-amber-200 my-4 animate-in zoom-in-95 duration-200" onClick={e => e.stopPropagation()}>
+            
+            {/* Modal Header */}
+            <div className="px-6 py-5 bg-gradient-to-r from-amber-600 via-amber-600 to-orange-700 text-white flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-white/20 rounded-xl">
+                  <AlertTriangle className="w-6 h-6 text-white" />
+                </div>
+                <div>
+                  <div className="text-xs font-mono font-bold text-amber-100 uppercase">BERITA ACARA PENGALIHAN PEMENANG</div>
+                  <h3 className="text-lg font-black text-white">
+                    Form Penetapan Juara {justificationModalData.rank} Sebagai Pemenang
+                  </h3>
+                </div>
+              </div>
+              <button
+                onClick={() => setJustificationModalData(null)}
+                className="p-2 text-white/80 hover:text-white hover:bg-white/10 rounded-full transition-colors cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-6 overflow-y-auto space-y-5">
+              {/* Comparison Notice */}
+              <div className="bg-amber-50/80 border border-amber-200/90 rounded-2xl p-4 space-y-3">
+                <div className="text-xs font-bold text-amber-900 flex items-center gap-1.5">
+                  <ShieldAlert className="w-4 h-4 text-amber-700" />
+                  Anda sedang menetapkan Vendor dengan penawaran bukan Juara 1 (Terendah):
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="bg-white p-3 rounded-xl border border-slate-200/80">
+                    <div className="text-[10px] font-bold text-slate-400 uppercase">❌ Juara 1 (Terendah - Dibatalkan)</div>
+                    <div className="font-bold text-slate-800 text-sm mt-0.5">{justificationModalData.rank1Bidder.vendorName}</div>
+                    <div className="font-mono font-bold text-slate-600 text-xs">{formatRp(justificationModalData.rank1Bidder.amount)}</div>
+                  </div>
+
+                  <div className="bg-emerald-50 p-3 rounded-xl border border-emerald-300">
+                    <div className="text-[10px] font-bold text-emerald-700 uppercase">🎯 Pilihan Pemenang (Juara {justificationModalData.rank})</div>
+                    <div className="font-bold text-emerald-950 text-sm mt-0.5">{justificationModalData.selectedBidder.vendorName}</div>
+                    <div className="font-mono font-bold text-emerald-700 text-xs">{formatRp(justificationModalData.selectedBidder.amount)}</div>
+                  </div>
+                </div>
+
+                <p className="text-[11px] text-amber-800 font-medium leading-relaxed">
+                  Sesuai SOP Procurement Pancaran, pengalihan pemenang ke Juara {justificationModalData.rank} wajib mencantumkan <strong>Kategori Alasan</strong>, <strong>Catatan Berita Acara</strong>, dan <strong>Bukti Foto Chat/Dokumen Resmi</strong> (misalnya karena stok kosong/lead time).
+                </p>
+              </div>
+
+              {/* 1. Kategori Alasan (Wajib) */}
+              <div>
+                <label className="block text-xs font-bold text-slate-800 uppercase mb-1.5">
+                  1. Kategori Alasan Pengalihan Pemenang <span className="text-rose-600">*</span>
+                </label>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {[
+                    { id: 'STOCK_KOSONG', label: '📦 Stok Juara 1 Kosong / Habis di Pabrik', desc: 'Vendor Juara 1 mengonfirmasi stok habis/kosong.' },
+                    { id: 'LEAD_TIME', label: '⏳ Lead Time Juara 1 Terlalu Lama', desc: 'Waktu inden tidak memenuhi target operasional.' },
+                    { id: 'SPESIFIKASI_TIDAK_LOLOS', label: '🛡️ Spesifikasi / Garansi Tidak Memenuhi TOR', desc: 'Uji teknis atau masa garansi tidak sesuai standar.' },
+                    { id: 'TOP_TIDAK_SESUAI', label: '💳 Term of Payment Tidak Sesuai', desc: 'Ketentuan termin pembayaran Juara 1 tidak disetujui.' },
+                    { id: 'LAINNYA', label: '📝 Alasan Khusus Lainnya', desc: 'Evaluasi khusus tim manajemen procurement.' }
+                  ].map((cat) => (
+                    <label 
+                      key={cat.id} 
+                      className={`p-3 rounded-xl border cursor-pointer transition-all flex items-start gap-2.5 ${
+                        winnerReasonCategory === cat.id 
+                          ? 'border-blue-600 bg-blue-50/70 text-blue-900 ring-2 ring-blue-500/20' 
+                          : 'border-slate-200 bg-slate-50/50 hover:bg-slate-100 text-slate-700'
+                      }`}
+                    >
+                      <input
+                        type="radio"
+                        name="reasonCategory"
+                        value={cat.id}
+                        checked={winnerReasonCategory === cat.id}
+                        onChange={() => setWinnerReasonCategory(cat.id as any)}
+                        className="mt-0.5 text-blue-600 focus:ring-blue-500"
+                      />
+                      <div>
+                        <div className="text-xs font-bold leading-tight">{cat.label}</div>
+                        <div className="text-[10px] text-slate-500 mt-0.5">{cat.desc}</div>
+                      </div>
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              {/* 2. Catatan Noted Berita Acara (Wajib) */}
+              <div>
+                <label className="block text-xs font-bold text-slate-800 uppercase mb-1">
+                  2. Catatan / Noted Detail Berita Acara <span className="text-rose-600">* (Wajib)</span>
+                </label>
+                <textarea
+                  rows={3}
+                  required
+                  value={winnerReasonNotes}
+                  onChange={e => setWinnerReasonNotes(e.target.value)}
+                  placeholder="Jelaskan alasan pengalihan, hasil koordinasi chat dengan vendor Juara 1, dan persetujuan manager..."
+                  className="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-blue-500 bg-white"
+                />
+              </div>
+
+              {/* 3. Bukti Foto Chat / Dokumen (Wajib) */}
+              <div>
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="block text-xs font-bold text-slate-800 uppercase">
+                    3. Lampiran Bukti Foto Chat / Screenshot Konfirmasi <span className="text-rose-600">* (Wajib)</span>
+                  </label>
+                  <span className="text-[10px] text-slate-400">Format: JPG, PNG, WebP</span>
+                </div>
+
+                {/* Preset Quick Buttons */}
+                <div className="mb-3 space-y-1.5">
+                  <div className="text-[11px] font-bold text-slate-600">Pilih Cepat Template Screenshot Bukti Chat Resmi:</div>
+                  <div className="flex flex-wrap gap-2">
+                    {PRESET_EVIDENCE_PROOFS.map((proof, idx) => (
+                      <button
+                        key={idx}
+                        type="button"
+                        onClick={() => {
+                          setWinnerEvidencePhoto(proof.imageUrl);
+                          setWinnerReasonNotes(proof.description);
+                        }}
+                        className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition-all flex items-center gap-1.5 cursor-pointer ${
+                          winnerEvidencePhoto === proof.imageUrl 
+                            ? 'bg-blue-600 text-white border-blue-600 shadow-xs' 
+                            : 'bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-200'
+                        }`}
+                      >
+                        <Camera className="w-3.5 h-3.5" />
+                        {proof.title}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Evidence Photo Preview or Upload Box */}
+                {winnerEvidencePhoto ? (
+                  <div className="relative border-2 border-emerald-400 rounded-2xl p-3 bg-emerald-50/40 flex items-center justify-between gap-4">
+                    <div className="flex items-center gap-3">
+                      <img 
+                        src={winnerEvidencePhoto} 
+                        alt="Bukti Foto Chat" 
+                        className="w-20 h-16 object-cover rounded-xl border border-slate-300 shadow-xs cursor-pointer"
+                        onClick={() => setLightboxPhoto({
+                          url: winnerEvidencePhoto,
+                          title: 'Bukti Foto Chat / Konfirmasi Vendor',
+                          subtitle: winnerReasonNotes
+                        })}
+                      />
+                      <div>
+                        <div className="text-xs font-bold text-emerald-900 flex items-center gap-1">
+                          <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                          Bukti Foto Berhasil Dilampirkan
+                        </div>
+                        <div className="text-[11px] text-slate-500 mt-0.5">
+                          Klik gambar untuk memperbesar (Lightbox Zoom)
+                        </div>
+                      </div>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => setWinnerEvidencePhoto(null)}
+                      className="p-2 text-rose-600 hover:bg-rose-100 rounded-xl transition-colors cursor-pointer"
+                      title="Hapus Bukti Foto"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                ) : (
+                  <div className="border-2 border-dashed border-slate-300 hover:border-blue-400 rounded-2xl p-4 text-center bg-slate-50/60 transition-colors">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      id="evidence-upload"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          const reader = new FileReader();
+                          reader.onloadend = () => {
+                            setWinnerEvidencePhoto(reader.result as string);
+                          };
+                          reader.readAsDataURL(file);
+                        }
+                      }}
+                      className="hidden"
+                    />
+                    <label htmlFor="evidence-upload" className="cursor-pointer block">
+                      <Upload className="w-6 h-6 text-slate-400 mx-auto mb-1" />
+                      <span className="text-xs font-bold text-blue-600 hover:underline block">
+                        Upload Bukti Foto Chat / Screenshot Notulen
+                      </span>
+                      <span className="text-[10px] text-slate-400 block mt-0.5">
+                        Tarik & lepaskan file di sini atau klik salah satu template di atas
+                      </span>
+                    </label>
+                  </div>
+                )}
+
+                {!winnerEvidencePhoto && (
+                  <p className="text-[11px] text-rose-600 font-bold mt-1.5 flex items-center gap-1">
+                    <AlertCircle className="w-3.5 h-3.5" />
+                    Wajib melampirkan bukti foto chat konfirmasi sebelum menyimpan keputusan.
+                  </p>
+                )}
+              </div>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="px-6 py-4 border-t border-slate-200 bg-slate-50 flex items-center justify-between gap-3">
+              <button
+                type="button"
+                onClick={() => setJustificationModalData(null)}
+                className="px-4 py-2.5 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold rounded-xl text-xs transition-colors cursor-pointer"
+              >
+                Batal
+              </button>
+
+              <button
+                type="button"
+                disabled={!winnerEvidencePhoto || winnerReasonNotes.trim().length < 5}
+                onClick={() => {
+                  handleAssignWinner(
+                    justificationModalData.tender.id,
+                    justificationModalData.selectedBidder.vendorName,
+                    justificationModalData.selectedBidder.amount,
+                    `${justificationModalData.selectedBidder.top} • ${justificationModalData.selectedBidder.warranty}`,
+                    winnerReasonNotes,
+                    justificationModalData.selectedBidder.vendorId,
+                    {
+                      rank: justificationModalData.rank,
+                      reasonCategory: winnerReasonCategory,
+                      evidencePhoto: winnerEvidencePhoto!,
+                      evidenceDescription: winnerReasonNotes,
+                      originalRank1VendorName: justificationModalData.rank1Bidder.vendorName,
+                      originalRank1Amount: justificationModalData.rank1Bidder.amount
+                    }
+                  );
+                }}
+                className={`px-6 py-2.5 font-bold rounded-xl text-xs transition-all shadow-md flex items-center gap-2 cursor-pointer ${
+                  !winnerEvidencePhoto || winnerReasonNotes.trim().length < 5
+                    ? 'bg-slate-300 text-slate-500 cursor-not-allowed shadow-none'
+                    : 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-600/20'
+                }`}
+              >
+                <CheckCircle2 className="w-4 h-4 text-emerald-200" />
+                Sahkan & Tetapkan Juara {justificationModalData.rank} Sebagai Pemenang
               </button>
             </div>
           </div>
@@ -1987,7 +2502,7 @@ export default function CatalogKebutuhan({ user, onBiddingClick }: CatalogProps)
                 <table className="w-full text-left text-xs text-slate-600">
                   <thead className="bg-slate-100/70 text-slate-700 font-bold text-xs uppercase border-b border-slate-200">
                     <tr>
-                      <th className="px-4 py-3">No</th>
+                      <th className="px-4 py-3 text-center w-14">Rank</th>
                       <th className="px-4 py-3">Nama Vendor</th>
                       <th className="px-4 py-3 text-right">Nilai Penawaran</th>
                       <th className="px-4 py-3 text-center">Tanggal Submit</th>
@@ -1996,68 +2511,110 @@ export default function CatalogKebutuhan({ user, onBiddingClick }: CatalogProps)
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100 bg-white font-medium">
-                    {getBiddersForTender(selectedTenderForBids).map((bidder, idx) => {
-                      const isWinner = selectedTenderForBids.winnerVendorName === bidder.vendorName;
+                    {(() => {
+                      const sortedBidders = getBiddersForTender(selectedTenderForBids);
+                      const rank1Bidder = sortedBidders[0];
 
-                      return (
-                        <tr key={idx} className={`hover:bg-slate-50 transition-colors ${isWinner ? 'bg-emerald-50/60' : ''}`}>
-                          <td className="px-4 py-3 text-slate-500">{idx + 1}</td>
-                          <td className="px-4 py-3 font-bold text-slate-900">
-                            <div 
-                              onClick={() => setCompanyModalName(bidder.vendorName)}
-                              className="flex items-center gap-1.5 cursor-pointer hover:text-blue-600 hover:underline"
-                              title="Klik untuk melihat Detail Pop-Up Data Perusahaan / PT"
-                            >
-                              {bidder.vendorName}
-                              {isWinner && <Award className="w-4 h-4 text-emerald-600" />}
-                            </div>
-                            <div className="text-[10px] text-slate-400 font-normal">{bidder.vendorEmail}</div>
-                            {bidder.availabilityType === 'INDENT' && (
-                              <div className="mt-1">
-                                <span className="inline-flex items-center text-[9px] font-bold text-amber-800 bg-amber-50 border border-amber-200/60 px-1.5 py-0.5 rounded-md gap-0.5">
-                                  ⏳ Inden: {bidder.indentDuration || 'Kontak Vendor'}
-                                </span>
-                              </div>
-                            )}
-                          </td>
-                          <td className="px-4 py-3 text-right font-mono font-bold text-blue-600">{formatRp(bidder.amount)}</td>
-                          <td className="px-4 py-3 text-center text-slate-500 text-xs">{bidder.dateSubmitted}</td>
-                          <td className="px-4 py-3 text-center">
-                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
-                              isWinner 
-                                ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' 
-                                : bidder.status === 'REVIEWED'
-                                  ? 'bg-blue-100 text-blue-800'
-                                  : 'bg-amber-100 text-amber-800'
-                            }`}>
-                              {isWinner ? '🏆 PEMENANG' : bidder.status}
-                            </span>
-                          </td>
-                          {isInternal && (
+                      return sortedBidders.map((bidder, idx) => {
+                        const rank = idx + 1;
+                        const isWinner = selectedTenderForBids.winnerVendorName === bidder.vendorName;
+
+                        return (
+                          <tr key={idx} className={`hover:bg-slate-50 transition-colors ${isWinner ? 'bg-emerald-50/60' : ''}`}>
                             <td className="px-4 py-3 text-center">
-                              {isWinner ? (
-                                <span className="text-xs font-bold text-emerald-700">Pemenang</span>
-                              ) : (
-                                <button
-                                  onClick={() => handleAssignWinner(
-                                    selectedTenderForBids.id,
-                                    bidder.vendorName,
-                                    bidder.amount,
-                                    `${bidder.top} • ${bidder.warranty}`,
-                                    bidder.notes || 'Penetapan pemenang berdasarkan hasil evaluasi tender.',
-                                    bidder.vendorId
-                                  )}
-                                  className="px-3 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-[11px] font-bold transition-all shadow-xs inline-flex items-center gap-1 cursor-pointer"
+                              <span className={`inline-flex items-center justify-center w-6 h-6 rounded-lg font-bold text-[11px] ${
+                                rank === 1 ? 'bg-amber-400 text-slate-900' : 'bg-slate-100 text-slate-600'
+                              }`}>
+                                #{rank}
+                              </span>
+                            </td>
+                            <td className="px-4 py-3 font-bold text-slate-900">
+                              <div className="flex items-center gap-2">
+                                <div 
+                                  onClick={() => setCompanyModalName(bidder.vendorName)}
+                                  className="flex items-center gap-1.5 cursor-pointer hover:text-blue-600 hover:underline"
+                                  title="Klik untuk melihat Detail Pop-Up Data Perusahaan / PT"
                                 >
-                                  <Trophy className="w-3 h-3 text-amber-300" />
-                                  Pilih Menang
+                                  {bidder.vendorName}
+                                  {isWinner && <Award className="w-4 h-4 text-emerald-600" />}
+                                </div>
+                                <button
+                                  onClick={() => onOpenChat?.(bidder.vendorName, selectedTenderForBids.id)}
+                                  className="p-1 text-slate-400 hover:text-blue-600 rounded-md transition-colors cursor-pointer"
+                                  title="Chat Vendor"
+                                >
+                                  <MessageSquare className="w-3.5 h-3.5" />
                                 </button>
+                              </div>
+                              <div className="text-[10px] text-slate-400 font-normal">{bidder.vendorEmail}</div>
+                              {bidder.availabilityType === 'INDENT' && (
+                                <div className="mt-1">
+                                  <span className="inline-flex items-center text-[9px] font-bold text-amber-800 bg-amber-50 border border-amber-200/60 px-1.5 py-0.5 rounded-md gap-0.5">
+                                    ⏳ Inden: {bidder.indentDuration || 'Kontak Vendor'}
+                                  </span>
+                                </div>
                               )}
                             </td>
-                          )}
-                        </tr>
-                      );
-                    })}
+                            <td className="px-4 py-3 text-right font-mono font-bold text-blue-600">{formatRp(bidder.amount)}</td>
+                            <td className="px-4 py-3 text-center text-slate-500 text-xs">{bidder.dateSubmitted}</td>
+                            <td className="px-4 py-3 text-center">
+                              <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
+                                isWinner 
+                                  ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' 
+                                  : bidder.status === 'REVIEWED'
+                                    ? 'bg-blue-100 text-blue-800'
+                                    : 'bg-amber-100 text-amber-800'
+                              }`}>
+                                {isWinner ? '🏆 PEMENANG' : bidder.status}
+                              </span>
+                            </td>
+                            {isInternal && (
+                              <td className="px-4 py-3 text-center">
+                                {isWinner ? (
+                                  <span className="text-xs font-bold text-emerald-700">Pemenang</span>
+                                ) : rank === 1 ? (
+                                  <button
+                                    onClick={() => handleAssignWinner(
+                                      selectedTenderForBids.id,
+                                      bidder.vendorName,
+                                      bidder.amount,
+                                      `${bidder.top} • ${bidder.warranty}`,
+                                      bidder.notes || 'Penetapan pemenang berdasarkan hasil evaluasi tender.',
+                                      bidder.vendorId,
+                                      { rank: 1 }
+                                    )}
+                                    className="px-3 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-[11px] font-bold transition-all shadow-xs inline-flex items-center gap-1 cursor-pointer"
+                                  >
+                                    <Trophy className="w-3 h-3 text-amber-300" />
+                                    Pilih Menang
+                                  </button>
+                                ) : (
+                                  <button
+                                    onClick={() => {
+                                      const currentTender = selectedTenderForBids;
+                                      setSelectedTenderForBids(null);
+                                      setJustificationModalData({
+                                        tender: currentTender,
+                                        selectedBidder: bidder,
+                                        rank: rank,
+                                        rank1Bidder: rank1Bidder
+                                      });
+                                      setWinnerReasonCategory('STOCK_KOSONG');
+                                      setWinnerReasonNotes(`Berdasarkan konfirmasi tertulis & chat resmi dari vendor Juara 1 (${rank1Bidder.vendorName}), stok barang saat ini kosong/habis. Maka sesuai hasil evaluasi pengadaan, pemenang dialihkan ke Juara ${rank} (${bidder.vendorName}) yang memiliki stok ready.`);
+                                      setWinnerEvidencePhoto(PRESET_EVIDENCE_PROOFS[0].imageUrl);
+                                    }}
+                                    className="px-2.5 py-1 bg-amber-500 hover:bg-amber-600 text-slate-950 rounded-lg text-[11px] font-bold transition-all shadow-xs inline-flex items-center gap-1 cursor-pointer"
+                                  >
+                                    <AlertTriangle className="w-3 h-3 text-slate-950" />
+                                    Pilih Juara {rank}
+                                  </button>
+                                )}
+                              </td>
+                            )}
+                          </tr>
+                        );
+                      });
+                    })()}
                   </tbody>
                 </table>
               </div>
@@ -2093,6 +2650,15 @@ export default function CatalogKebutuhan({ user, onBiddingClick }: CatalogProps)
         companyName={companyModalName}
         isOpen={Boolean(companyModalName)}
         onClose={() => setCompanyModalName(null)}
+      />
+
+      {/* Image Lightbox Modal for Photo Evidence */}
+      <ImageLightboxModal
+        imageUrl={lightboxPhoto?.url || null}
+        title={lightboxPhoto?.title}
+        subtitle={lightboxPhoto?.subtitle}
+        isOpen={Boolean(lightboxPhoto)}
+        onClose={() => setLightboxPhoto(null)}
       />
     </div>
   );
