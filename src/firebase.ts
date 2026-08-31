@@ -7,8 +7,8 @@ import {
   deleteDoc, 
   onSnapshot, 
   getDocs,
-  getDoc,
-  DocumentData
+  DocumentData,
+  writeBatch
 } from 'firebase/firestore';
 import firebaseConfig from '../firebase-applet-config.json';
 
@@ -20,6 +20,12 @@ export const db = initializeFirestore(app, {
 
 // Flag to prevent infinite loop of syncing
 let isSyncingFromServer = false;
+// Circuit breaker flag when Firestore quota is exhausted
+let isQuotaExhausted = false;
+
+export function getIsFirebaseQuotaExhausted() {
+  return isQuotaExhausted;
+}
 
 // Mapping of LocalStorage keys to Firestore collection names
 const KEY_TO_COLLECTION: { [key: string]: string } = {
@@ -31,149 +37,234 @@ const KEY_TO_COLLECTION: { [key: string]: string } = {
   'optima_user_passwords': 'passwords'
 };
 
+// Cache last known values to avoid redundant writes
+const lastSyncedValues: { [key: string]: string } = {};
+// Debounce timers for write operations
+const debounceTimers: { [key: string]: any } = {};
+
+enum OperationType {
+  CREATE = 'create',
+  UPDATE = 'update',
+  DELETE = 'delete',
+  LIST = 'list',
+  GET = 'get',
+  WRITE = 'write',
+}
+
+interface FirestoreErrorInfo {
+  error: string;
+  operationType: OperationType;
+  path: string | null;
+  authInfo: {
+    userId?: string | null;
+    email?: string | null;
+  };
+}
+
+function handleFirestoreError(error: unknown, operationType: OperationType, path: string | null) {
+  const errStr = error instanceof Error ? error.message : String(error);
+  
+  if (errStr.includes('resource-exhausted') || errStr.includes('Quota exceeded') || errStr.includes('quota metric')) {
+    if (!isQuotaExhausted) {
+      isQuotaExhausted = true;
+      console.warn(
+        `[Firebase] Firestore Free Tier daily write/read quota reached. Switching to local persistence mode to keep the application running smoothly.`
+      );
+    }
+    return;
+  }
+
+  const errInfo: FirestoreErrorInfo = {
+    error: errStr,
+    authInfo: {},
+    operationType,
+    path
+  };
+  console.error('[Firebase] Firestore Error:', JSON.stringify(errInfo));
+}
+
 // Initialize bidirectional real-time synchronization
 export function startFirebaseSync(onSyncUpdate: () => void) {
   Object.entries(KEY_TO_COLLECTION).forEach(([localStorageKey, collectionName]) => {
     const colRef = collection(db, collectionName);
 
-    // Setup real-time listener from Firestore
-    onSnapshot(colRef, async (snapshot) => {
-      // Set the syncing flag to avoid echoing back to Firestore
-      isSyncingFromServer = true;
+    // Setup real-time listener from Firestore with required error callback
+    onSnapshot(
+      colRef,
+      async (snapshot) => {
+        if (isQuotaExhausted) return;
 
-      try {
-        if (snapshot.empty) {
-          // If Firestore collection is empty, check if we have local data to seed/bootstrap
-          const localValue = localStorage.getItem(localStorageKey);
-          if (localValue) {
-            const parsed = JSON.parse(localValue);
-            console.log(`[Firebase] Seeding empty Firestore collection "${collectionName}" with local storage data.`);
-            
-            if (localStorageKey === 'optima_companies_profiles' || localStorageKey === 'optima_user_passwords') {
-              // Dictionary map format
-              for (const [docId, docData] of Object.entries(parsed)) {
-                if (docId && docData) {
-                  await setDoc(doc(db, collectionName, docId), docData as DocumentData);
+        // Set the syncing flag to avoid echoing back to Firestore
+        isSyncingFromServer = true;
+
+        try {
+          if (snapshot.empty) {
+            // If Firestore collection is empty, check if we have local data to seed/bootstrap
+            const localValue = localStorage.getItem(localStorageKey);
+            if (localValue && !isQuotaExhausted) {
+              lastSyncedValues[localStorageKey] = localValue;
+              const parsed = JSON.parse(localValue);
+              
+              if (localStorageKey === 'optima_companies_profiles' || localStorageKey === 'optima_user_passwords') {
+                const entries = Object.entries(parsed);
+                if (entries.length > 0) {
+                  const batch = writeBatch(db);
+                  for (const [docId, docData] of entries) {
+                    if (docId && docData) {
+                      batch.set(doc(db, collectionName, docId), docData as DocumentData);
+                    }
+                  }
+                  await batch.commit();
                 }
-              }
-            } else if (Array.isArray(parsed)) {
-              // Array list format
-              for (const item of parsed) {
-                const docId = item.id || item.email; // Use id or email as document ID
-                if (docId) {
-                  await setDoc(doc(db, collectionName, docId), item);
+              } else if (Array.isArray(parsed) && parsed.length > 0) {
+                const batch = writeBatch(db);
+                for (const item of parsed) {
+                  const docId = item.id || item.email;
+                  if (docId) {
+                    batch.set(doc(db, collectionName, docId), item);
+                  }
                 }
+                await batch.commit();
               }
             }
+            isSyncingFromServer = false;
+            return;
           }
+
+          // Firestore has data, update LocalStorage
+          if (localStorageKey === 'optima_companies_profiles' || localStorageKey === 'optima_user_passwords') {
+            const dataMap: { [key: string]: any } = {};
+            snapshot.forEach((docSnap) => {
+              dataMap[docSnap.id] = docSnap.data();
+            });
+            const serialized = JSON.stringify(dataMap);
+            lastSyncedValues[localStorageKey] = serialized;
+            localStorage.setItem(localStorageKey, serialized);
+          } else {
+            const dataList: any[] = [];
+            snapshot.forEach((docSnap) => {
+              dataList.push(docSnap.data());
+            });
+            
+            if (localStorageKey === 'optima_catalog_kebutuhan') {
+              dataList.sort((a, b) => (b.id || '').localeCompare(a.id || ''));
+            } else if (localStorageKey === 'optima_bids_history') {
+              dataList.sort((a, b) => new Date(b.date || 0).getTime() - new Date(a.date || 0).getTime());
+            } else if (localStorageKey === 'optima_vendor_catalog') {
+              dataList.sort((a, b) => (a.id || '').localeCompare(b.id || ''));
+            }
+
+            const serialized = JSON.stringify(dataList);
+            lastSyncedValues[localStorageKey] = serialized;
+            localStorage.setItem(localStorageKey, serialized);
+          }
+
+          // Trigger React re-render
+          onSyncUpdate();
+          window.dispatchEvent(new CustomEvent('optima-db-updated', { detail: { key: localStorageKey } }));
+        } catch (err) {
+          handleFirestoreError(err, OperationType.GET, collectionName);
+        } finally {
           isSyncingFromServer = false;
-          return;
         }
-
-        // Firestore has data, update LocalStorage
-        if (localStorageKey === 'optima_companies_profiles' || localStorageKey === 'optima_user_passwords') {
-          // Rebuild as dictionary map
-          const dataMap: { [key: string]: any } = {};
-          snapshot.forEach((doc) => {
-            dataMap[doc.id] = doc.data();
-          });
-          localStorage.setItem(localStorageKey, JSON.stringify(dataMap));
-        } else {
-          // Rebuild as array
-          const dataList: any[] = [];
-          snapshot.forEach((doc) => {
-            dataList.push(doc.data());
-          });
-          
-          // Sort lists appropriately to keep order consistent
-          if (localStorageKey === 'optima_catalog_kebutuhan') {
-            dataList.sort((a, b) => b.id.localeCompare(a.id));
-          } else if (localStorageKey === 'optima_bids_history') {
-            dataList.sort((a, b) => new Date(b.date || 0).getTime() - new Date(a.date || 0).getTime());
-          } else if (localStorageKey === 'optima_vendor_catalog') {
-            dataList.sort((a, b) => a.id.localeCompare(b.id));
-          }
-
-          localStorage.setItem(localStorageKey, JSON.stringify(dataList));
-        }
-
-        // Trigger React re-render by calling the callback and dispatching global event
-        onSyncUpdate();
-        window.dispatchEvent(new CustomEvent('optima-db-updated', { detail: { key: localStorageKey } }));
-      } catch (err) {
-        console.error(`[Firebase] Error syncing collection "${collectionName}" from Firestore:`, err);
-      } finally {
-        isSyncingFromServer = false;
+      },
+      (error) => {
+        handleFirestoreError(error, OperationType.GET, collectionName);
       }
-    });
+    );
   });
 
-  // Intercept window.localStorage.setItem to push local modifications to Firestore
+  // Intercept window.localStorage.setItem to push local modifications to Firestore with debouncing & diff check
   const originalSetItem = window.localStorage.setItem;
   window.localStorage.setItem = function (key, value) {
     originalSetItem.apply(this, [key, value]);
 
     const collectionName = KEY_TO_COLLECTION[key];
-    if (collectionName && !isSyncingFromServer) {
-      try {
-        const parsedData = JSON.parse(value);
-        pushLocalToFirestore(collectionName, parsedData, key);
-      } catch (e) {
-        console.error(`[Firebase] Error preparing sync for key "${key}":`, e);
+    if (collectionName && !isSyncingFromServer && !isQuotaExhausted) {
+      if (lastSyncedValues[key] === value) {
+        return; // Data has not changed, skip redundant write
       }
+
+      if (debounceTimers[key]) {
+        clearTimeout(debounceTimers[key]);
+      }
+
+      debounceTimers[key] = setTimeout(() => {
+        try {
+          const parsedData = JSON.parse(value);
+          lastSyncedValues[key] = value;
+          pushLocalToFirestore(collectionName, parsedData, key);
+        } catch (e) {
+          console.error(`[Firebase] Error preparing sync for key "${key}":`, e);
+        }
+      }, 1000);
     }
   };
 }
 
-// Push local state updates to Firestore (Create, Update, Delete)
+// Push local state updates to Firestore with batching & error guards
 async function pushLocalToFirestore(collectionName: string, localData: any, localStorageKey: string) {
+  if (isQuotaExhausted) return;
+
   try {
     const colRef = collection(db, collectionName);
     const serverSnapshot = await getDocs(colRef);
     const serverDocsMap = new Map<string, DocumentData>();
-    serverSnapshot.forEach(doc => {
-      serverDocsMap.set(doc.id, doc.data());
+    serverSnapshot.forEach(docSnap => {
+      serverDocsMap.set(docSnap.id, docSnap.data());
     });
 
+    const batch = writeBatch(db);
+    let operationCount = 0;
+
     if (localStorageKey === 'optima_companies_profiles' || localStorageKey === 'optima_user_passwords') {
-      // Map dictionary synchronization
       const localKeys = Object.keys(localData);
 
-      // Write or update existing local entries to Firestore
       for (const [docId, docData] of Object.entries(localData)) {
         if (docId && docData) {
-          await setDoc(doc(db, collectionName, docId), docData as DocumentData);
+          const existingData = serverDocsMap.get(docId);
+          // Only write if newly added or data content has changed
+          if (!existingData || JSON.stringify(existingData) !== JSON.stringify(docData)) {
+            batch.set(doc(db, collectionName, docId), docData as DocumentData);
+            operationCount++;
+          }
         }
       }
 
-      // Delete remote documents that no longer exist locally
       for (const serverId of serverDocsMap.keys()) {
         if (!localKeys.includes(serverId)) {
-          console.log(`[Firebase] Deleting document "${serverId}" from collection "${collectionName}"`);
-          await deleteDoc(doc(db, collectionName, serverId));
+          batch.delete(doc(db, collectionName, serverId));
+          operationCount++;
         }
       }
     } else if (Array.isArray(localData)) {
-      // Array list synchronization
       const localIds = localData.map(item => item.id || item.email).filter(Boolean);
 
-      // Write or update local array items to Firestore
       for (const item of localData) {
         const docId = item.id || item.email;
         if (docId) {
-          await setDoc(doc(db, collectionName, docId), item);
+          const existingData = serverDocsMap.get(docId);
+          // Only write if newly added or data content has changed
+          if (!existingData || JSON.stringify(existingData) !== JSON.stringify(item)) {
+            batch.set(doc(db, collectionName, docId), item);
+            operationCount++;
+          }
         }
       }
 
-      // Delete remote documents that are no longer in the local array
       for (const serverId of serverDocsMap.keys()) {
         if (!localIds.includes(serverId)) {
-          console.log(`[Firebase] Deleting document "${serverId}" from collection "${collectionName}"`);
-          await deleteDoc(doc(db, collectionName, serverId));
+          batch.delete(doc(db, collectionName, serverId));
+          operationCount++;
         }
       }
     }
+
+    if (operationCount > 0) {
+      await batch.commit();
+    }
   } catch (err) {
-    console.error(`[Firebase] Error pushing local data to collection "${collectionName}":`, err);
+    handleFirestoreError(err, OperationType.WRITE, collectionName);
   }
 }
+
