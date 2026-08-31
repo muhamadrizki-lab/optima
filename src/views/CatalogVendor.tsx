@@ -55,6 +55,7 @@ export default function CatalogVendor({
   const [selectedType, setSelectedType] = useState<string>('ALL'); // ALL, SUPPLIER, VENDOR_JASA
   const [selectedCategory, setSelectedCategory] = useState<string>('ALL'); // ALL, BAN, AKI, SPARE_PART, JASA
   const [selectedStatus, setSelectedStatus] = useState<string>('ALL'); // ALL, AVAILABLE, PRE_ORDER
+  const [selectedArea, setSelectedArea] = useState<string>('ALL'); // ALL, JAKARTA, BEKASI, TANGERANG, BOGOR, DEPOK, KARAWANG, BANTEN, etc.
   const [sortBy, setSortBy] = useState<'NEWEST' | 'PRICE_LOW' | 'PRICE_HIGH' | 'STOCK_HIGH'>('NEWEST');
   const [viewMode, setViewMode] = useState<'TABLE' | 'CARD'>('TABLE');
   const [isCategoryDropdownOpen, setIsCategoryDropdownOpen] = useState(false);
@@ -91,6 +92,7 @@ export default function CatalogVendor({
     location: string;
     imageUrl: string;
     status: 'AVAILABLE' | 'OUT_OF_STOCK' | 'PRE_ORDER';
+    indentDuration: string;
   }>({
     title: '',
     category: 'SPARE_PART',
@@ -109,7 +111,8 @@ export default function CatalogVendor({
     deliveryInfo: 'Pengiriman 1-2 hari kerja',
     location: 'Jabodetabek',
     imageUrl: 'https://images.unsplash.com/photo-1486006920555-c77dce18193b?auto=format&fit=crop&w=800&q=80',
-    status: 'AVAILABLE'
+    status: 'AVAILABLE',
+    indentDuration: ''
   });
 
   const categories = [
@@ -132,6 +135,24 @@ export default function CatalogVendor({
       if (selectedCategory !== 'ALL' && item.category !== selectedCategory) return false;
       // Status filter
       if (selectedStatus !== 'ALL' && item.status !== selectedStatus) return false;
+      // Area filter
+      if (selectedArea !== 'ALL') {
+        if (!item.location) return false;
+        const itemLoc = item.location.toLowerCase();
+        const filterLoc = selectedArea.toLowerCase();
+        if (filterLoc === 'jakarta') {
+          const isJkt = itemLoc.includes('jakarta') || 
+                        itemLoc.includes('dki') || 
+                        itemLoc.includes('utara') || 
+                        itemLoc.includes('barat') || 
+                        itemLoc.includes('timur') || 
+                        itemLoc.includes('pusat') || 
+                        itemLoc.includes('selatan');
+          if (!isJkt) return false;
+        } else if (!itemLoc.includes(filterLoc)) {
+          return false;
+        }
+      }
       // Search query
       if (searchQuery.trim()) {
         const q = searchQuery.toLowerCase();
@@ -203,7 +224,8 @@ export default function CatalogVendor({
         deliveryInfo: item.deliveryInfo || '',
         location: item.location || '',
         imageUrl: item.imageUrl,
-        status: item.status
+        status: item.status,
+        indentDuration: item.indentDuration || ''
       });
     } else {
       setEditingItem(null);
@@ -228,7 +250,8 @@ export default function CatalogVendor({
         deliveryInfo: 'Siap kirim 1-2 hari kerja area Jabodetabek',
         location: 'Jakarta',
         imageUrl: 'https://images.unsplash.com/photo-1486006920555-c77dce18193b?auto=format&fit=crop&w=800&q=80',
-        status: 'AVAILABLE'
+        status: 'AVAILABLE',
+        indentDuration: ''
       });
     }
     setIsFormModalOpen(true);
@@ -283,6 +306,7 @@ export default function CatalogVendor({
         location: formData.location,
         imageUrl: formData.imageUrl,
         status: formData.status,
+        indentDuration: formData.indentDuration,
         lastUpdated: new Date().toISOString().split('T')[0]
       };
       onUpdateItem(updated);
@@ -315,6 +339,7 @@ export default function CatalogVendor({
         location: formData.location,
         imageUrl: formData.imageUrl || 'https://images.unsplash.com/photo-1486006920555-c77dce18193b?auto=format&fit=crop&w=800&q=80',
         status: formData.status,
+        indentDuration: formData.indentDuration,
         lastUpdated: new Date().toISOString().split('T')[0]
       };
       onAddItem(newItem);
@@ -529,7 +554,26 @@ export default function CatalogVendor({
           </div>
 
           {/* Sort Option & View Mode Toggle */}
-          <div className="shrink-0 flex items-center gap-2">
+          <div className="shrink-0 flex flex-wrap items-center gap-2">
+            <span className="text-xs text-slate-400 font-medium hidden lg:inline flex items-center gap-1">
+              <MapPin className="w-3 h-3 text-slate-400" />
+              Area:
+            </span>
+            <select
+              value={selectedArea}
+              onChange={(e) => setSelectedArea(e.target.value)}
+              className="text-xs font-semibold bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-700 focus:ring-2 focus:ring-blue-600 focus:outline-none cursor-pointer"
+            >
+              <option value="ALL">📍 Semua Wilayah</option>
+              <option value="JAKARTA">Jakarta</option>
+              <option value="BEKASI">Bekasi</option>
+              <option value="TANGERANG">Tangerang</option>
+              <option value="BOGOR">Bogor</option>
+              <option value="DEPOK">Depok</option>
+              <option value="KARAWANG">Karawang</option>
+              <option value="BANTEN">Banten</option>
+            </select>
+
             <span className="text-xs text-slate-400 font-medium hidden lg:inline">Urutkan:</span>
             <select
               value={sortBy}
@@ -572,7 +616,7 @@ export default function CatalogVendor({
       </div>
 
       {/* Active Filter Banner */}
-      {(selectedCategory !== 'ALL' || selectedType !== 'ALL' || searchQuery) && (
+      {(selectedCategory !== 'ALL' || selectedType !== 'ALL' || selectedArea !== 'ALL' || searchQuery) && (
         <div className="bg-blue-50/90 border border-blue-200 rounded-2xl p-3.5 flex flex-wrap items-center justify-between gap-3 text-xs shadow-xs">
           <div className="flex flex-wrap items-center gap-2">
             <span className="font-bold text-blue-900 flex items-center gap-1.5">
@@ -600,6 +644,16 @@ export default function CatalogVendor({
               </span>
             )}
 
+            {selectedArea !== 'ALL' && (
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-teal-600 text-white font-bold rounded-xl text-xs shadow-xs">
+                📍 Wilayah: {selectedArea.charAt(0).toUpperCase() + selectedArea.slice(1).toLowerCase()}
+                <X 
+                  className="w-3.5 h-3.5 cursor-pointer hover:bg-teal-700 rounded-full p-0.5" 
+                  onClick={() => setSelectedArea('ALL')} 
+                />
+              </span>
+            )}
+
             {searchQuery && (
               <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-500 text-white font-bold rounded-xl text-xs shadow-xs">
                 Kata Kunci: "{searchQuery}"
@@ -619,6 +673,7 @@ export default function CatalogVendor({
             onClick={() => {
               setSelectedCategory('ALL');
               setSelectedType('ALL');
+              setSelectedArea('ALL');
               setSearchQuery('');
             }}
             className="text-rose-600 hover:text-rose-700 font-bold hover:underline flex items-center gap-1 text-xs ml-auto"
@@ -761,12 +816,33 @@ export default function CatalogVendor({
 
                       {/* 7. STOCK */}
                       <td className="py-3.5 px-3 text-center border-r border-slate-100">
-                        <span className={`font-bold font-mono px-2 py-0.5 rounded text-xs ${
-                          item.stock > 0 ? 'text-emerald-700 bg-emerald-50' : 'text-rose-600 bg-rose-50'
-                        }`}>
-                          {item.stock} {item.unit}
-                        </span>
-                        <span className="block text-[10px] text-slate-400 mt-0.5">Min: {item.minOrder} {item.unit}</span>
+                        <div className="flex flex-col items-center gap-1">
+                          <span className={`font-bold font-mono px-2 py-0.5 rounded text-xs ${
+                            item.stock > 0 ? 'text-emerald-700 bg-emerald-50' : 'text-rose-600 bg-rose-50'
+                          }`}>
+                            {item.stock} {item.unit}
+                          </span>
+                          
+                          {/* Ready / Inden Status Badge */}
+                          {item.status === 'AVAILABLE' ? (
+                            <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-emerald-100 text-emerald-800 rounded-md text-[10px] font-bold border border-emerald-200 shadow-3xs">
+                              Ready Stock
+                            </span>
+                          ) : item.status === 'PRE_ORDER' ? (
+                            <span className="inline-flex flex-col items-center px-1.5 py-0.5 bg-amber-100 text-amber-900 rounded-md text-[10px] font-bold border border-amber-200 shadow-3xs">
+                              <span>Inden / PO</span>
+                              {item.indentDuration && (
+                                <span className="text-[9px] font-medium text-amber-700">({item.indentDuration})</span>
+                              )}
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-rose-100 text-rose-800 rounded-md text-[10px] font-bold border border-rose-200 shadow-3xs">
+                              Habis
+                            </span>
+                          )}
+
+                          <span className="block text-[10px] text-slate-400 mt-0.5">Min: {item.minOrder} {item.unit}</span>
+                        </div>
                       </td>
 
                       {/* 8. HARGA */}
@@ -947,11 +1023,29 @@ export default function CatalogVendor({
                   {/* Stock, Delivery & Pricing Row */}
                   <div className="pt-3 border-t border-slate-100 flex flex-wrap items-end justify-between gap-3">
                     <div className="flex flex-wrap items-center gap-3 text-xs">
-                      <div className="bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-100">
-                        <span className="text-slate-400 block text-[10px]">Ketersediaan</span>
-                        <span className={`font-bold ${item.stock > 0 ? 'text-emerald-700' : 'text-red-600'}`}>
-                          {item.vendorType === 'VENDOR_JASA' ? `Kapasitas: ${item.stock} unit` : `Stok: ${item.stock} ${item.unit}`}
-                        </span>
+                      <div className="bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-100 flex flex-col justify-between min-h-[58px]">
+                        <div>
+                          <span className="text-slate-400 block text-[10px]">Ketersediaan</span>
+                          <span className={`font-bold text-xs ${item.stock > 0 ? 'text-emerald-700' : 'text-rose-600'}`}>
+                            {item.vendorType === 'VENDOR_JASA' ? `Kapasitas: ${item.stock} unit` : `Stok: ${item.stock} ${item.unit}`}
+                          </span>
+                        </div>
+                        {/* Ready / Inden status in card view */}
+                        <div className="mt-1">
+                          {item.status === 'AVAILABLE' ? (
+                            <span className="inline-flex px-1.5 py-0.5 bg-emerald-50 text-emerald-700 rounded text-[9px] font-bold border border-emerald-200">
+                              Ready Stock
+                            </span>
+                          ) : item.status === 'PRE_ORDER' ? (
+                            <span className="inline-flex px-1.5 py-0.5 bg-amber-50 text-amber-700 rounded text-[9px] font-bold border border-amber-200">
+                              Inden {item.indentDuration ? `(${item.indentDuration})` : ''}
+                            </span>
+                          ) : (
+                            <span className="inline-flex px-1.5 py-0.5 bg-rose-50 text-rose-700 rounded text-[9px] font-bold border border-rose-200">
+                              Habis
+                            </span>
+                          )}
+                        </div>
                       </div>
 
                       <div className="bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-100">
@@ -1095,10 +1189,26 @@ export default function CatalogVendor({
                   </div>
                 </div>
 
-                <div className="flex items-center gap-4 text-xs font-semibold">
+                <div className="flex flex-wrap items-center gap-3 text-xs font-semibold">
                   <div className="bg-white px-3 py-2 rounded-xl border border-slate-200">
                     <span className="text-slate-400 block text-[10px]">Stok Tersedia</span>
                     <span className="text-emerald-600 font-bold">{selectedItemDetail.stock} {selectedItemDetail.unit}</span>
+                  </div>
+                  <div className="bg-white px-3 py-2 rounded-xl border border-slate-200">
+                    <span className="text-slate-400 block text-[10px]">Ketersediaan</span>
+                    {selectedItemDetail.status === 'AVAILABLE' ? (
+                      <span className="text-emerald-700 font-bold bg-emerald-50 px-1.5 py-0.5 rounded text-[10px] border border-emerald-200">
+                        Ready Stock
+                      </span>
+                    ) : selectedItemDetail.status === 'PRE_ORDER' ? (
+                      <span className="text-amber-800 font-bold bg-amber-50 px-1.5 py-0.5 rounded text-[10px] border border-amber-200">
+                        Inden {selectedItemDetail.indentDuration ? `(${selectedItemDetail.indentDuration})` : ''}
+                      </span>
+                    ) : (
+                      <span className="text-rose-700 font-bold bg-rose-50 px-1.5 py-0.5 rounded text-[10px] border border-rose-200">
+                        Habis
+                      </span>
+                    )}
                   </div>
                   <div className="bg-white px-3 py-2 rounded-xl border border-slate-200">
                     <span className="text-slate-400 block text-[10px]">Min. Pemesanan</span>
@@ -1466,6 +1576,45 @@ export default function CatalogVendor({
                     placeholder="Contoh: Ready stock Gudang Cakung"
                   />
                 </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3 bg-slate-50 p-3.5 rounded-2xl border border-slate-150">
+                <div>
+                  <label className="font-bold text-slate-700 block mb-1">Status Ketersediaan Barang *</label>
+                  <select
+                    value={formData.status}
+                    onChange={(e) => setFormData({ ...formData, status: e.target.value as 'AVAILABLE' | 'OUT_OF_STOCK' | 'PRE_ORDER' })}
+                    className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs bg-white font-semibold focus:ring-2 focus:ring-blue-600 focus:outline-none"
+                  >
+                    <option value="AVAILABLE">🟢 Ready Stock</option>
+                    <option value="PRE_ORDER">🟡 Inden / Pre-Order (PO)</option>
+                    <option value="OUT_OF_STOCK">🔴 Stok Habis</option>
+                  </select>
+                </div>
+
+                {formData.status === 'PRE_ORDER' ? (
+                  <div>
+                    <label className="font-bold text-amber-900 block mb-1">Estimasi Durasi / Lama Inden *</label>
+                    <input
+                      type="text"
+                      required
+                      value={formData.indentDuration}
+                      onChange={(e) => setFormData({ ...formData, indentDuration: e.target.value })}
+                      className="w-full px-3 py-2 border border-amber-300 bg-amber-50/50 rounded-xl text-xs font-bold text-amber-800 focus:ring-2 focus:ring-amber-500 focus:outline-none"
+                      placeholder="Contoh: 7 Hari / 2 Minggu / 30 Hari"
+                    />
+                  </div>
+                ) : (
+                  <div>
+                    <label className="font-bold text-slate-400 block mb-1">Estimasi Durasi / Lama Inden</label>
+                    <input
+                      type="text"
+                      disabled
+                      value="Tidak Berlaku (Barang Ready)"
+                      className="w-full px-3 py-2 border border-slate-200 bg-slate-100 rounded-xl text-xs text-slate-400 cursor-not-allowed"
+                    />
+                  </div>
+                )}
               </div>
 
               <div className="pt-3 border-t border-slate-100 flex justify-end gap-2">

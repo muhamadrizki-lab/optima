@@ -50,7 +50,7 @@ export default function InternalDashboard({
   const [totalVendorJasa, setTotalVendorJasa] = useState(1);
   const [externalUsersList, setExternalUsersList] = useState<any[]>([]);
 
-  useEffect(() => {
+  const loadDashboardData = () => {
     // Load Kebutuhan
     try {
       const savedCatalog = localStorage.getItem('optima_catalog_kebutuhan');
@@ -127,6 +127,16 @@ export default function InternalDashboard({
         setExternalUsersList(initialExternals);
       }
     } catch (e) {}
+  };
+
+  useEffect(() => {
+    loadDashboardData();
+
+    const handleSync = () => {
+      loadDashboardData();
+    };
+    window.addEventListener('optima-db-updated', handleSync);
+    return () => window.removeEventListener('optima-db-updated', handleSync);
   }, []);
 
   // Compute won internal procurements (pengeluaran belanja aktif)

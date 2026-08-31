@@ -1,0 +1,50 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Default deny catch-all
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Helper to validate IDs
+    function isValidId(id) {
+      return id is string && id.size() <= 128;
+    }
+
+    // Tenders collection rules
+    match /tenders/{id} {
+      allow read: if true;
+      allow write: if isValidId(id);
+    }
+
+    // Bids collection rules
+    match /bids/{id} {
+      allow read: if true;
+      allow write: if isValidId(id);
+    }
+
+    // Vendor catalog collection rules
+    match /vendor_catalog/{id} {
+      allow read: if true;
+      allow write: if isValidId(id);
+    }
+
+    // Users collection rules
+    match /users/{id} {
+      allow read: if true;
+      allow write: if isValidId(id);
+    }
+
+    // Companies collection rules
+    match /companies/{id} {
+      allow read: if true;
+      allow write: if isValidId(id);
+    }
+
+    // Passwords collection rules
+    match /passwords/{id} {
+      allow read: if true;
+      allow write: if isValidId(id);
+    }
+  }
+}

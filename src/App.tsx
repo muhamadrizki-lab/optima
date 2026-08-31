@@ -17,8 +17,36 @@ import ManagementBidding from './views/ManagementBidding';
 import Bidding from './views/Bidding';
 import CatalogVendor from './views/CatalogVendor';
 import MyVendorCatalog from './views/MyVendorCatalog';
+import ReportsView from './views/ReportsView';
+import { startFirebaseSync } from './firebase';
 
 export default function App() {
+  // Sync state trigger to propagate real-time changes
+  const [syncTrigger, setSyncTrigger] = useState(0);
+
+  useEffect(() => {
+    // Start Firebase Firestore real-time sync on mount
+    startFirebaseSync(() => {
+      setSyncTrigger(prev => prev + 1);
+    });
+  }, []);
+
+  useEffect(() => {
+    const handleUpdate = (e: any) => {
+      if (!e.detail || e.detail.key === 'optima_vendor_catalog') {
+        const saved = localStorage.getItem('optima_vendor_catalog');
+        if (saved) {
+          try {
+            setVendorCatalogItems(JSON.parse(saved));
+          } catch (err) {
+            console.error(err);
+          }
+        }
+      }
+    };
+    window.addEventListener('optima-db-updated', handleUpdate as EventListener);
+    return () => window.removeEventListener('optima-db-updated', handleUpdate as EventListener);
+  }, []);
   const [user, setUser] = useState<User | null>(() => {
     try {
       const savedUser = localStorage.getItem('optima_user_session');
@@ -203,6 +231,12 @@ export default function App() {
             onDeleteItem={handleDeleteVendorItem}
             onNavigateToMyCatalog={() => setCurrentView('my-vendor-catalog')}
           />
+        ) : (
+          <CatalogKebutuhan user={user} onBiddingClick={handleBiddingClick} />
+        );
+      case 'reports':
+        return isInternal ? (
+          <ReportsView vendorCatalogItems={vendorCatalogItems} />
         ) : (
           <CatalogKebutuhan user={user} onBiddingClick={handleBiddingClick} />
         );

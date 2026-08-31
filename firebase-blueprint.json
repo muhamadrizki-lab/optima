@@ -1,0 +1,109 @@
+{
+  "entities": {
+    "tenders": {
+      "fields": {
+        "id": "string",
+        "title": "string",
+        "description": "string",
+        "imageUrl": "string",
+        "datePosted": "string",
+        "deadline": "string",
+        "status": "string",
+        "tnc": "string",
+        "top": "string",
+        "delivery": "string",
+        "tax": "string",
+        "ownerEstimate": "number",
+        "winnerName": "string",
+        "winnerAmount": "number",
+        "winnerDate": "string",
+        "specTable": "array"
+      }
+    },
+    "bids": {
+      "fields": {
+        "id": "string",
+        "tenderId": "string",
+        "tenderTitle": "string",
+        "vendorName": "string",
+        "vendorCompany": "string",
+        "vendorEmail": "string",
+        "amount": "number",
+        "deliveryTime": "string",
+        "warranty": "string",
+        "paymentTerms": "string",
+        "notes": "string",
+        "date": "string",
+        "status": "string",
+        "items": "array",
+        "attachments": "array",
+        "feedback": "string"
+      }
+    },
+    "vendor_catalog": {
+      "fields": {
+        "id": "string",
+        "title": "string",
+        "category": "string",
+        "vendorName": "string",
+        "companyName": "string",
+        "brand": "string",
+        "partNumber": "string",
+        "price": "number",
+        "unit": "string",
+        "minOrder": "number",
+        "specs": "array",
+        "imageUrl": "string",
+        "status": "string",
+        "categoryLabel": "string"
+      }
+    },
+    "users": {
+      "fields": {
+        "id": "string",
+        "email": "string",
+        "name": "string",
+        "role": "string",
+        "isInternalEmployee": "boolean",
+        "companyName": "string",
+        "phone": "string",
+        "specialty": "string"
+      }
+    },
+    "companies": {
+      "fields": {
+        "companyName": "string",
+        "specialty": "string",
+        "phone": "string",
+        "email": "string",
+        "address": "string",
+        "picName": "string",
+        "bankAccount": "string"
+      }
+    }
+  },
+  "firestore": {
+    "collections": {
+      "tenders": {
+        "entity": "tenders",
+        "path": "/tenders/{id}"
+      },
+      "bids": {
+        "entity": "bids",
+        "path": "/bids/{id}"
+      },
+      "vendor_catalog": {
+        "entity": "vendor_catalog",
+        "path": "/vendor_catalog/{id}"
+      },
+      "users": {
+        "entity": "users",
+        "path": "/users/{id}"
+      },
+      "companies": {
+        "entity": "companies",
+        "path": "/companies/{id}"
+      }
+    }
+  }
+}

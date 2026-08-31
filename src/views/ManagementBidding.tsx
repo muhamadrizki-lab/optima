@@ -34,6 +34,23 @@ export default function ManagementBidding() {
     return INITIAL_BIDS_DATA;
   });
 
+  React.useEffect(() => {
+    const handleSync = (e: any) => {
+      if (!e.detail || e.detail.key === 'optima_bids_history') {
+        const saved = localStorage.getItem('optima_bids_history');
+        if (saved) {
+          try {
+            setBids(JSON.parse(saved));
+          } catch (err) {
+            console.error(err);
+          }
+        }
+      }
+    };
+    window.addEventListener('optima-db-updated', handleSync);
+    return () => window.removeEventListener('optima-db-updated', handleSync);
+  }, []);
+
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<'ALL' | 'ACCEPTED' | 'PENDING' | 'REVIEWED' | 'NEGOTIATION' | 'REJECTED'>('ALL');
   const [selectedBidDetail, setSelectedBidDetail] = useState<Bid | null>(null);

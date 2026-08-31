@@ -169,6 +169,54 @@ export default function Bidding({ user, onBack, initialReqId }: BiddingProps) {
     return INITIAL_BIDS_DATA;
   });
 
+  useEffect(() => {
+    const handleSync = (e: any) => {
+      const key = e.detail?.key;
+      if (!key || key === 'optima_catalog_kebutuhan') {
+        const savedCatalog = localStorage.getItem('optima_catalog_kebutuhan');
+        if (savedCatalog) {
+          try {
+            const parsed = JSON.parse(savedCatalog);
+            if (Array.isArray(parsed)) {
+              const mapped: AvailableTender[] = parsed.map((item: any) => {
+                const existing = AVAILABLE_TENDERS.find(t => t.id === item.id);
+                return {
+                  id: item.id,
+                  title: item.title,
+                  category: existing ? existing.category : 'SPARE_PART',
+                  categoryLabel: existing ? existing.categoryLabel : 'Kebutuhan Logistik',
+                  oe: item.ownerEstimate || (existing ? existing.oe : 100000000),
+                  quantity: existing ? existing.quantity : 1,
+                  unit: existing ? existing.unit : 'Paket',
+                  deadline: item.datePosted || '2026-08-31',
+                  location: item.delivery || (existing ? existing.location : 'Jakarta'),
+                  specSummary: item.description || (item.specifications ? item.specifications.join(', ') : '')
+                };
+              });
+              const ids = new Set(mapped.map(m => m.id));
+              const leftovers = AVAILABLE_TENDERS.filter(t => !ids.has(t.id));
+              setTenderList([...mapped, ...leftovers]);
+            }
+          } catch (err) {
+            console.error(err);
+          }
+        }
+      }
+      if (!key || key === 'optima_bids_history') {
+        const savedBids = localStorage.getItem('optima_bids_history');
+        if (savedBids) {
+          try {
+            setBids(JSON.parse(savedBids));
+          } catch (err) {
+            console.error(err);
+          }
+        }
+      }
+    };
+    window.addEventListener('optima-db-updated', handleSync as EventListener);
+    return () => window.removeEventListener('optima-db-updated', handleSync as EventListener);
+  }, []);
+
   // Save bids to localStorage on update
   const saveBids = (newBids: Bid[]) => {
     setBids(newBids);

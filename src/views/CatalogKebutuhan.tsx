@@ -25,7 +25,8 @@ import {
   Sparkles,
   ChevronRight,
   Clock,
-  Trash2
+  Trash2,
+  ArrowUpDown
 } from 'lucide-react';
 import SafeImage from '../components/SafeImage';
 import PancaranLogo from '../components/PancaranLogo';
@@ -466,8 +467,37 @@ export default function CatalogKebutuhan({ user, onBiddingClick }: CatalogProps)
     return DEFAULT_CATALOG_ITEMS;
   });
 
+  useEffect(() => {
+    const handleSync = (e: any) => {
+      if (!e.detail || e.detail.key === 'optima_catalog_kebutuhan') {
+        const saved = localStorage.getItem('optima_catalog_kebutuhan');
+        if (saved) {
+          try {
+            const parsed = JSON.parse(saved);
+            if (Array.isArray(parsed)) {
+              setItems(parsed.map((item: any) => {
+                const match = DEFAULT_CATALOG_ITEMS.find(d => d.id === item.id);
+                return {
+                  ...item,
+                  specTable: (item.specTable && item.specTable.length > 0) ? item.specTable : (match?.specTable || []),
+                  deadline: item.deadline || match?.deadline || '2026-08-31T17:00:00',
+                  datePosted: item.datePosted || match?.datePosted || '2026-08-15'
+                };
+              }));
+            }
+          } catch (err) {
+            console.error(err);
+          }
+        }
+      }
+    };
+    window.addEventListener('optima-db-updated', handleSync as EventListener);
+    return () => window.removeEventListener('optima-db-updated', handleSync as EventListener);
+  }, []);
+
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<'ALL' | 'OPEN' | 'CLOSED'>('ALL');
+  const [sortBy, setSortBy] = useState<'TERBARU' | 'TERLAMA' | 'DEADLINE' | 'ANGGARAN_TINGGI' | 'ANGGARAN_RENDAH'>('TERBARU');
   const [isCreating, setIsCreating] = useState(false);
   const [editingTender, setEditingTender] = useState<CatalogItem | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -820,6 +850,29 @@ export default function CatalogKebutuhan({ user, onBiddingClick }: CatalogProps)
       item.description.toLowerCase().includes(searchTerm.toLowerCase());
     const matchStatus = statusFilter === 'ALL' || item.status === statusFilter;
     return matchSearch && matchStatus;
+  }).sort((a, b) => {
+    if (sortBy === 'TERBARU') {
+      const dateA = a.datePosted ? new Date(a.datePosted).getTime() : 0;
+      const dateB = b.datePosted ? new Date(b.datePosted).getTime() : 0;
+      return dateB - dateA;
+    }
+    if (sortBy === 'TERLAMA') {
+      const dateA = a.datePosted ? new Date(a.datePosted).getTime() : 0;
+      const dateB = b.datePosted ? new Date(b.datePosted).getTime() : 0;
+      return dateA - dateB;
+    }
+    if (sortBy === 'DEADLINE') {
+      const dateA = a.deadline ? new Date(a.deadline).getTime() : Infinity;
+      const dateB = b.deadline ? new Date(b.deadline).getTime() : Infinity;
+      return dateA - dateB;
+    }
+    if (sortBy === 'ANGGARAN_TINGGI') {
+      return (b.ownerEstimate || 0) - (a.ownerEstimate || 0);
+    }
+    if (sortBy === 'ANGGARAN_RENDAH') {
+      return (a.ownerEstimate || 0) - (b.ownerEstimate || 0);
+    }
+    return 0;
   });
 
   return (
@@ -1237,11 +1290,29 @@ export default function CatalogKebutuhan({ user, onBiddingClick }: CatalogProps)
               />
             </div>
             
-            <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
-              <div className="flex items-center gap-1 bg-white p-1 rounded-xl border border-slate-200 text-xs font-semibold">
+            <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto justify-end">
+              {/* Sort Selection */}
+              <div className="relative flex items-center bg-white px-3 py-2 rounded-xl border border-slate-200 text-xs font-semibold text-slate-700 shadow-3xs w-full sm:w-auto shrink-0">
+                <ArrowUpDown className="w-3.5 h-3.5 text-slate-400 mr-2 shrink-0" />
+                <span className="text-slate-455 mr-1 font-normal">Urutkan:</span>
+                <select
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value as any)}
+                  className="bg-transparent border-none text-xs font-bold text-slate-800 focus:outline-none focus:ring-0 cursor-pointer pr-1"
+                >
+                  <option value="TERBARU">Tender Terbaru</option>
+                  <option value="TERLAMA">Tender Terlama</option>
+                  <option value="DEADLINE">Deadline Terdekat</option>
+                  <option value="ANGGARAN_TINGGI">Anggaran Tertinggi</option>
+                  <option value="ANGGARAN_RENDAH">Anggaran Terendah</option>
+                </select>
+              </div>
+
+              {/* Status Tabs */}
+              <div className="flex items-center gap-1 bg-white p-1 rounded-xl border border-slate-200 text-xs font-semibold w-full sm:w-auto overflow-x-auto scrollbar-none">
                 <button
                   onClick={() => setStatusFilter('ALL')}
-                  className={`px-3.5 py-1.5 rounded-lg transition-all cursor-pointer ${
+                  className={`px-3.5 py-1.5 rounded-lg transition-all cursor-pointer whitespace-nowrap ${
                     statusFilter === 'ALL' ? 'bg-blue-600 text-white font-bold' : 'text-slate-600 hover:text-slate-900'
                   }`}
                 >
@@ -1249,7 +1320,7 @@ export default function CatalogKebutuhan({ user, onBiddingClick }: CatalogProps)
                 </button>
                 <button
                   onClick={() => setStatusFilter('OPEN')}
-                  className={`px-3.5 py-1.5 rounded-lg transition-all cursor-pointer ${
+                  className={`px-3.5 py-1.5 rounded-lg transition-all cursor-pointer whitespace-nowrap ${
                     statusFilter === 'OPEN' ? 'bg-emerald-600 text-white font-bold' : 'text-slate-600 hover:text-slate-900'
                   }`}
                 >
@@ -1257,7 +1328,7 @@ export default function CatalogKebutuhan({ user, onBiddingClick }: CatalogProps)
                 </button>
                 <button
                   onClick={() => setStatusFilter('CLOSED')}
-                  className={`px-3.5 py-1.5 rounded-lg transition-all cursor-pointer ${
+                  className={`px-3.5 py-1.5 rounded-lg transition-all cursor-pointer whitespace-nowrap ${
                     statusFilter === 'CLOSED' ? 'bg-slate-800 text-white font-bold' : 'text-slate-600 hover:text-slate-900'
                   }`}
                 >

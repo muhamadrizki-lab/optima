@@ -118,4 +118,5 @@ export interface VendorCatalogItem {
   location?: string;
   lastUpdated: string;
   status: 'AVAILABLE' | 'OUT_OF_STOCK' | 'PRE_ORDER';
+  indentDuration?: string;
 }

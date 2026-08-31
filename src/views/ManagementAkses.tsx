@@ -26,6 +26,23 @@ export default function ManagementAkses() {
     ];
   });
 
+  React.useEffect(() => {
+    const handleSync = (e: any) => {
+      if (!e.detail || e.detail.key === 'optima_access_users') {
+        const saved = localStorage.getItem('optima_access_users');
+        if (saved) {
+          try {
+            setUsers(JSON.parse(saved));
+          } catch (err) {
+            console.error(err);
+          }
+        }
+      }
+    };
+    window.addEventListener('optima-db-updated', handleSync);
+    return () => window.removeEventListener('optima-db-updated', handleSync);
+  }, []);
+
   const [formData, setFormData] = useState({
     name: '',
     companyName: '',

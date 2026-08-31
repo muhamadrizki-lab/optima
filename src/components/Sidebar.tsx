@@ -10,7 +10,8 @@ import {
     PackagePlus,
     ShoppingBag,
     CheckCircle2,
-    Shield
+    Shield,
+    FileSpreadsheet
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -24,6 +25,7 @@ export default function Sidebar({ user, currentView, onChangeView }: SidebarProp
     { name: 'Dashboard', id: 'dashboard', icon: LayoutDashboard, badge: 'Overview' },
     { name: 'Management Pengadaan', id: 'catalog', icon: BookOpen },
     { name: 'Katalog Vendor & Supplier', id: 'catalog-vendor', icon: ShoppingBag },
+    { name: 'Laporan & Ekspor', id: 'reports', icon: FileSpreadsheet, badge: 'Excel' },
     { name: 'Management Akses & Akun', id: 'access', icon: Users },
   ];
 
