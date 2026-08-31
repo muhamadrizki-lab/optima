@@ -548,22 +548,6 @@ export default function VendorChatModal({
 
             {/* CHAT MESSAGES SCROLL AREA */}
             <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4">
-              
-              {/* Tender Context Card */}
-              {activeConversation.tenderId && (
-                <div className="bg-white/80 border border-slate-200 rounded-2xl p-3.5 max-w-lg mx-auto shadow-xs text-center space-y-1">
-                  <span className="text-[10px] font-extrabold uppercase tracking-wider text-blue-700 bg-blue-50 px-2 py-0.5 rounded-full border border-blue-200">
-                    Fokus Pembahasan Tender
-                  </span>
-                  <p className="font-bold text-slate-900 text-xs">
-                    {activeConversation.tenderId}: {activeConversation.tenderTitle}
-                  </p>
-                  <p className="text-[11px] text-slate-500">
-                    Semua percakapan dan bukti lampiran di sini dicatat secara otomatis untuk transparansi dan audit procurement.
-                  </p>
-                </div>
-              )}
-
               {activeMessages.map((msg) => {
                 const isInternalMsg = msg.senderRole === 'INTERNAL';
                 // Decide alignment based on who is viewing
