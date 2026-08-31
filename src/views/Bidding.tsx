@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { User, Bid, ItemCategory } from '../types';
+import React, { useState, useEffect, useMemo } from 'react';
+import { User, Bid, ItemCategory, VendorCatalogItem } from '../types';
 import PancaranLogo from '../components/PancaranLogo';
 import { INITIAL_BIDS_DATA } from '../data/biddingData';
 import { 
@@ -30,6 +30,7 @@ interface BiddingProps {
   user?: User | null;
   onBack?: () => void;
   initialReqId?: string | null;
+  vendorCatalogItems?: VendorCatalogItem[];
 }
 
 interface AvailableTender {
@@ -120,7 +121,7 @@ const AVAILABLE_TENDERS: AvailableTender[] = [
   }
 ];
 
-export default function Bidding({ user, onBack, initialReqId }: BiddingProps) {
+export default function Bidding({ user, onBack, initialReqId, vendorCatalogItems }: BiddingProps) {
   // Dynamic list of tenders merging localStorage catalog items
   const [tenderList, setTenderList] = useState<AvailableTender[]>(() => {
     try {
@@ -235,6 +236,31 @@ export default function Bidding({ user, onBack, initialReqId }: BiddingProps) {
   const [selectedTenderId, setSelectedTenderId] = useState<string>(defaultTender.id);
   const selectedTender = tenderList.find(t => t.id === selectedTenderId) || tenderList[0] || AVAILABLE_TENDERS[0];
 
+  // Load current vendor's catalog items
+  const myCatalogItems = useMemo(() => {
+    const rawItems = vendorCatalogItems || (() => {
+      try {
+        const saved = localStorage.getItem('optima_vendor_catalog');
+        return saved ? JSON.parse(saved) : [];
+      } catch (e) {
+        return [];
+      }
+    })();
+    
+    if (user && user.role === 'EXTERNAL') {
+      const filtered = rawItems.filter((item: any) => 
+        (user.companyName && item.companyName === user.companyName) ||
+        (user.id && item.vendorId === user.id) ||
+        (user.name && item.vendorName === user.name)
+      );
+      if (filtered.length > 0) return filtered;
+    }
+    return rawItems;
+  }, [vendorCatalogItems, user]);
+
+  const [selectedCatalogItemId, setSelectedCatalogItemId] = useState<string>('CUSTOM');
+  const [offeredProductName, setOfferedProductName] = useState<string>('');
+
   const [unitPrice, setUnitPrice] = useState<number>(
     selectedTender ? Math.round(selectedTender.oe / selectedTender.quantity * 0.95) : 3950000
   );
@@ -252,6 +278,8 @@ export default function Bidding({ user, onBack, initialReqId }: BiddingProps) {
   const [deliveryLocation, setDeliveryLocation] = useState<string>(selectedTender ? `Franco ${selectedTender.location}` : 'Franco Gudang Depo Cakung');
   const [leadTime, setLeadTime] = useState<string>('3-5 Hari Kerja');
   const [taxOption, setTaxOption] = useState<string>('Include PPH & PPN 11%');
+  const [availabilityType, setAvailabilityType] = useState<'READY' | 'INDENT'>('READY');
+  const [indentDuration, setIndentDuration] = useState<string>('');
   const [attachmentFileName, setAttachmentFileName] = useState<string>('Surat_Penawaran_Harga_Resmi_2026.pdf');
 
   // Submit Feedback & Detail Modal
@@ -347,6 +375,50 @@ export default function Bidding({ user, onBack, initialReqId }: BiddingProps) {
     }
   }, [initialReqId, tenderList]);
 
+  // Auto sync and fill the form based on tender selection and matching catalog items
+  useEffect(() => {
+    if (showSubmitModal) {
+      const activeTender = tenderList.find(t => t.id === selectedTenderId) || defaultTender;
+      if (activeTender) {
+        const matchItem = myCatalogItems.find((item: any) => item.category === activeTender.category);
+        if (matchItem) {
+          setSelectedCatalogItemId(matchItem.id);
+          setOfferedProductName(matchItem.title);
+          setUnitPrice(matchItem.price);
+          setAvailabilityType(matchItem.availabilityType === 'INDENT' ? 'INDENT' : 'READY');
+          setIndentDuration(matchItem.indentDuration || '');
+        } else {
+          setSelectedCatalogItemId('CUSTOM');
+          setOfferedProductName('');
+          setUnitPrice(Math.round(activeTender.oe / activeTender.quantity * 0.95));
+          setAvailabilityType('READY');
+          setIndentDuration('');
+        }
+      }
+    }
+  }, [showSubmitModal, selectedTenderId, myCatalogItems, defaultTender, tenderList]);
+
+  const handleSelectCatalogItem = (itemId: string) => {
+    setSelectedCatalogItemId(itemId);
+    if (itemId === 'CUSTOM') {
+      setOfferedProductName('');
+      const tender = tenderList.find(t => t.id === selectedTenderId);
+      if (tender) {
+        setUnitPrice(Math.round(tender.oe / tender.quantity * 0.95));
+      }
+      setAvailabilityType('READY');
+      setIndentDuration('');
+    } else {
+      const found = myCatalogItems.find((item: any) => item.id === itemId);
+      if (found) {
+        setOfferedProductName(found.title);
+        setUnitPrice(found.price);
+        setAvailabilityType(found.availabilityType === 'INDENT' ? 'INDENT' : 'READY');
+        setIndentDuration(found.indentDuration || '');
+      }
+    }
+  };
+
   // Currency Formatter
   const formatRp = (amount: number) => {
     return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(amount);
@@ -371,6 +443,7 @@ export default function Bidding({ user, onBack, initialReqId }: BiddingProps) {
       id: `BID-${new Date().getFullYear()}-${Math.floor(100 + Math.random() * 900)}`,
       reqId: selectedTender.id,
       reqTitle: selectedTender.title,
+      offeredProduct: offeredProductName || selectedTender.title,
       vendorId: user?.id || 'VEND-CURRENT',
       vendorName: user?.companyName || user?.name || 'PT Mitra Vendor Mandiri',
       vendorCompany: user?.companyName || 'PT Mitra Vendor Mandiri',
@@ -390,6 +463,8 @@ export default function Bidding({ user, onBack, initialReqId }: BiddingProps) {
       deliveryLocation: deliveryLocation,
       taxOption: taxOption,
       estimatedLeadTime: leadTime,
+      availabilityType: availabilityType,
+      indentDuration: availabilityType === 'INDENT' ? indentDuration : '',
       dateSubmitted: new Date().toISOString().split('T')[0],
       status: 'PENDING',
       internalNotes: 'Penawaran baru diterima di portal. Menunggu review kelayakan administrasi & harga oleh tim Procurement.',
@@ -888,6 +963,50 @@ export default function Bidding({ user, onBack, initialReqId }: BiddingProps) {
                 </div>
               </div>
 
+              {/* Detail Barang / Jasa Yang Ditawarkan */}
+              <div className="space-y-4 bg-slate-50 p-4 rounded-2xl border border-slate-200">
+                <h3 className="text-xs font-bold text-slate-800 uppercase flex items-center gap-1.5">
+                  <Briefcase className="w-4 h-4 text-blue-600" />
+                  1. Produk / Jasa yang Ditawarkan Vendor
+                </h3>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Pilihan dari Katalog */}
+                  <div className="space-y-1">
+                    <label className="block text-[11px] font-semibold text-slate-600">
+                      Pilih dari Katalog Saya (Auto-fill Harga)
+                    </label>
+                    <select
+                      value={selectedCatalogItemId}
+                      onChange={(e) => handleSelectCatalogItem(e.target.value)}
+                      className="w-full px-3 py-2 border border-slate-300 rounded-xl text-xs bg-white font-medium text-slate-800 focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value="CUSTOM">➕ Masukkan Produk Kustom (Isi Manual)</option>
+                      {myCatalogItems.map((item: any) => (
+                        <option key={item.id} value={item.id}>
+                          [{item.category}] {item.title} — {formatRp(item.price)}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Input Isi Penawaran */}
+                  <div className="space-y-1">
+                    <label className="block text-[11px] font-semibold text-slate-600">
+                      Nama Barang / Jasa Penawaran *
+                    </label>
+                    <input
+                      type="text"
+                      value={offeredProductName}
+                      onChange={(e) => setOfferedProductName(e.target.value)}
+                      className="w-full px-3 py-2 border border-slate-300 rounded-xl text-xs font-bold focus:ring-2 focus:ring-blue-500 text-slate-800"
+                      placeholder="Contoh: Ban Truk Bridgestone Ecopia 11R22.5"
+                      required
+                    />
+                  </div>
+                </div>
+              </div>
+
               {/* Harga Penawaran */}
               <div className="space-y-3 bg-slate-50 p-4 rounded-2xl border border-slate-200">
                 <h3 className="text-xs font-bold text-slate-800 uppercase flex items-center gap-1.5">
@@ -963,19 +1082,49 @@ export default function Bidding({ user, onBack, initialReqId }: BiddingProps) {
                     <Truck className="w-4 h-4 text-blue-600" />
                     Pengiriman & Garansi
                   </h4>
-                  <div>
-                    <label className="block text-[11px] font-medium text-slate-600 mb-1">Opsi Pengiriman</label>
-                    <select
-                      value={deliveryOption}
-                      onChange={(e) => setDeliveryOption(e.target.value)}
-                      className="w-full px-3 py-2 border border-slate-300 rounded-xl text-xs bg-white font-medium"
-                    >
-                      <option value="Free Delivery">Free Delivery (Franco Gudang Pancaran)</option>
-                      <option value="Loco Gudang Vendor">Biaya Kirim Ditanggung Pembeli</option>
-                    </select>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <label className="block text-[11px] font-semibold text-slate-600 mb-1">Status Ketersediaan</label>
+                      <select
+                        value={availabilityType}
+                        onChange={(e) => setAvailabilityType(e.target.value as 'READY' | 'INDENT')}
+                        className="w-full px-3 py-1.5 border border-slate-300 rounded-lg text-xs bg-white font-medium text-slate-800 focus:ring-2 focus:ring-blue-500"
+                      >
+                        <option value="READY">📦 Ready Stock</option>
+                        <option value="INDENT">⏳ Inden / Pre-Order</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-[11px] font-semibold text-slate-600 mb-1">Opsi Pengiriman</label>
+                      <select
+                        value={deliveryOption}
+                        onChange={(e) => setDeliveryOption(e.target.value)}
+                        className="w-full px-3 py-1.5 border border-slate-300 rounded-lg text-xs bg-white font-medium text-slate-800 focus:ring-2 focus:ring-blue-500"
+                      >
+                        <option value="Free Delivery">Free Delivery (Franco Gudang Pancaran)</option>
+                        <option value="Loco Gudang Vendor">Biaya Kirim Ditanggung Pembeli</option>
+                      </select>
+                    </div>
                   </div>
+
+                  {availabilityType === 'INDENT' && (
+                    <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl space-y-1.5 animate-in fade-in slide-in-from-top-1 duration-200">
+                      <label className="block text-[11px] font-bold text-amber-800">
+                        Estimasi Ready Sampai Kapan? *
+                      </label>
+                      <input
+                        type="text"
+                        value={indentDuration}
+                        onChange={(e) => setIndentDuration(e.target.value)}
+                        className="w-full px-3 py-1.5 border border-amber-300 rounded-lg text-xs font-bold focus:ring-2 focus:ring-amber-500 bg-white text-amber-900"
+                        placeholder="Contoh: Ready 15 September 2026 atau 3 Minggu"
+                        required={availabilityType === 'INDENT'}
+                      />
+                    </div>
+                  )}
+
                   <div>
-                    <label className="block text-[11px] font-medium text-slate-600 mb-1">Garansi Produk (Bulan)</label>
+                    <label className="block text-[11px] font-semibold text-slate-600 mb-1">Garansi Produk (Bulan)</label>
                     <input
                       type="text"
                       value={warrantyMonths}
@@ -1050,6 +1199,12 @@ export default function Bidding({ user, onBack, initialReqId }: BiddingProps) {
                   <div className="text-xs text-slate-400 font-semibold">Paket Tender yang Diikuti:</div>
                   <div className="text-base font-bold text-slate-900 mt-0.5">{selectedBidDetail.reqTitle}</div>
                   <div className="text-xs text-slate-500 font-mono mt-0.5">Ref ID: {selectedBidDetail.reqId}</div>
+                  {selectedBidDetail.offeredProduct && (
+                    <div className="mt-2 bg-blue-50 text-blue-800 border border-blue-200/60 px-3 py-1.5 rounded-xl text-xs">
+                      <span className="font-bold uppercase text-[10px] block text-blue-700">Barang/Jasa Yang Ditawarkan:</span>
+                      <span className="font-semibold text-slate-800">{selectedBidDetail.offeredProduct}</span>
+                    </div>
+                  )}
                 </div>
                 <div className="shrink-0 text-right">
                   <div className="text-xs text-slate-400 font-semibold mb-1">Status Pengajuan:</div>
@@ -1104,14 +1259,30 @@ export default function Bidding({ user, onBack, initialReqId }: BiddingProps) {
                 </div>
               </div>
 
-              {/* Delivery & Tax */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {/* Delivery, Availability, & Tax */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-200">
                   <div className="text-[10px] font-bold text-slate-400 uppercase">Pengiriman (Delivery)</div>
                   <div className="text-xs font-bold text-slate-800 mt-1">{selectedBidDetail.deliveryOption || 'Free Delivery'}</div>
                   <div className="text-[11px] text-slate-500 mt-0.5">Lokasi: {selectedBidDetail.deliveryLocation || 'Depo Cakung'}</div>
                   {selectedBidDetail.estimatedLeadTime && (
                     <div className="text-[11px] text-slate-500">Lead Time: {selectedBidDetail.estimatedLeadTime}</div>
+                  )}
+                </div>
+
+                <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-200">
+                  <div className="text-[10px] font-bold text-slate-400 uppercase">Ketersediaan Stok</div>
+                  <div className="text-xs font-bold mt-1">
+                    {selectedBidDetail.availabilityType === 'INDENT' ? (
+                      <span className="text-amber-600">⏳ Inden / Pre-Order</span>
+                    ) : (
+                      <span className="text-emerald-600">📦 Ready Stock</span>
+                    )}
+                  </div>
+                  {selectedBidDetail.availabilityType === 'INDENT' && selectedBidDetail.indentDuration && (
+                    <div className="text-[11px] font-bold text-amber-800 mt-1 bg-amber-50/80 border border-amber-200/80 px-2 py-0.5 rounded-lg inline-block">
+                      Ready: {selectedBidDetail.indentDuration}
+                    </div>
                   )}
                 </div>
 

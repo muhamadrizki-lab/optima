@@ -51,6 +51,7 @@ export interface Bid {
   id: string;
   reqId: string;
   reqTitle: string;
+  offeredProduct?: string;
   vendorId?: string;
   vendorName: string;
   vendorEmail?: string;
@@ -70,6 +71,8 @@ export interface Bid {
   deliveryLocation?: string;
   taxOption?: string;
   estimatedLeadTime?: string;
+  availabilityType?: 'READY' | 'INDENT';
+  indentDuration?: string;
   dateSubmitted: string;
   status: 'PENDING' | 'REVIEWED' | 'ACCEPTED' | 'REJECTED' | 'NEGOTIATION';
   internalNotes?: string;

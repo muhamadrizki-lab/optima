@@ -51,6 +51,8 @@ interface BidderItem {
   delivery: string;
   status: 'ACCEPTED' | 'REVIEWED' | 'PENDING' | 'REJECTED' | 'NEGOTIATION';
   notes?: string;
+  availabilityType?: 'READY' | 'INDENT';
+  indentDuration?: string;
 }
 
 const DEFAULT_CATALOG_ITEMS: CatalogItem[] = [
@@ -765,11 +767,21 @@ export default function CatalogKebutuhan({ user, onBiddingClick }: CatalogProps)
   const getBiddersForTender = (tender: CatalogItem): BidderItem[] => {
     const targetCount = Math.max(1, tender.bidsCount || 6);
 
-    // Check if there are real bids in biddingData
-    const matchingRealBids = INITIAL_BIDS_DATA.filter(b => b.reqId === tender.id);
+    // Retrieve bids including user's added bids from localStorage
+    let realBidsList = INITIAL_BIDS_DATA;
+    try {
+      const savedBids = localStorage.getItem('optima_bids_history');
+      if (savedBids) {
+        realBidsList = JSON.parse(savedBids);
+      }
+    } catch (e) {
+      console.error('Error parsing bids in getBiddersForTender:', e);
+    }
+
+    const matchingRealBids = realBidsList.filter(b => b.reqId === tender.id);
     
     const realMapped: BidderItem[] = matchingRealBids.map(b => ({
-      vendorId: b.vendorId,
+      vendorId: b.vendorId || '',
       vendorName: b.vendorName,
       vendorEmail: b.vendorEmail || 'vendor@gmail.com',
       vendorPhone: b.vendorPhone || '0812-0000-0000',
@@ -779,7 +791,9 @@ export default function CatalogKebutuhan({ user, onBiddingClick }: CatalogProps)
       top: b.paymentMethod || 'Net 30 Hari',
       delivery: b.deliveryOption || 'Free Delivery',
       status: tender.winnerVendorName === b.vendorName ? 'ACCEPTED' : b.status,
-      notes: b.tncNotes || b.internalNotes
+      notes: b.tncNotes || b.internalNotes,
+      availabilityType: b.availabilityType,
+      indentDuration: b.indentDuration
     }));
 
     const vendorPool = [
@@ -1767,6 +1781,13 @@ export default function CatalogKebutuhan({ user, onBiddingClick }: CatalogProps)
                                     {isCurrentWinner && <Award className="w-4 h-4 text-emerald-600" />}
                                   </div>
                                   <div className="text-[11px] text-slate-400 mt-0.5">{bidder.vendorEmail} • {bidder.vendorPhone}</div>
+                                  {bidder.availabilityType === 'INDENT' && (
+                                    <div className="mt-1">
+                                      <span className="inline-flex items-center text-[9px] font-bold text-amber-800 bg-amber-50 border border-amber-200/60 px-1.5 py-0.5 rounded-md gap-0.5">
+                                        ⏳ Inden: {bidder.indentDuration || 'Kontak Vendor'}
+                                      </span>
+                                    </div>
+                                  )}
                                 </td>
 
                                 <td className="px-4 py-3.5 text-right whitespace-nowrap font-mono">
@@ -1991,6 +2012,13 @@ export default function CatalogKebutuhan({ user, onBiddingClick }: CatalogProps)
                               {isWinner && <Award className="w-4 h-4 text-emerald-600" />}
                             </div>
                             <div className="text-[10px] text-slate-400 font-normal">{bidder.vendorEmail}</div>
+                            {bidder.availabilityType === 'INDENT' && (
+                              <div className="mt-1">
+                                <span className="inline-flex items-center text-[9px] font-bold text-amber-800 bg-amber-50 border border-amber-200/60 px-1.5 py-0.5 rounded-md gap-0.5">
+                                  ⏳ Inden: {bidder.indentDuration || 'Kontak Vendor'}
+                                </span>
+                              </div>
+                            )}
                           </td>
                           <td className="px-4 py-3 text-right font-mono font-bold text-blue-600">{formatRp(bidder.amount)}</td>
                           <td className="px-4 py-3 text-center text-slate-500 text-xs">{bidder.dateSubmitted}</td>

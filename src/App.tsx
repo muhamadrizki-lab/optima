@@ -218,6 +218,7 @@ export default function App() {
           <Bidding 
             user={user}
             initialReqId={selectedBiddingReqId}
+            vendorCatalogItems={vendorCatalogItems}
             onBack={() => setCurrentView(user?.role === 'INTERNAL' ? 'catalog' : 'catalog-ext')} 
           />
         );
