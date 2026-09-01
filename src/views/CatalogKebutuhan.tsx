@@ -567,7 +567,7 @@ export default function CatalogKebutuhan({ user, onBiddingClick, onOpenChat }: C
   }, []);
 
   const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState<'ALL' | 'OPEN' | 'CLOSED'>('ALL');
+  const [statusFilter, setStatusFilter] = useState<'ALL' | 'OPEN' | 'CLOSED' | 'WON'>('ALL');
   const [sortBy, setSortBy] = useState<'TERBARU' | 'TERLAMA' | 'DEADLINE' | 'ANGGARAN_TINGGI' | 'ANGGARAN_RENDAH'>('TERBARU');
   const [isCreating, setIsCreating] = useState(false);
   const [editingTender, setEditingTender] = useState<CatalogItem | null>(null);
@@ -1023,7 +1023,8 @@ export default function CatalogKebutuhan({ user, onBiddingClick, onOpenChat }: C
     const matchSearch = item.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       item.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
       item.description.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchStatus = statusFilter === 'ALL' || item.status === statusFilter;
+    const matchStatus = statusFilter === 'ALL' || 
+      (statusFilter === 'WON' ? Boolean(item.winnerVendorName || (item.winnerAmount && Number(item.winnerAmount) > 0)) : item.status === statusFilter);
     return matchSearch && matchStatus;
   }).sort((a, b) => {
     if (sortBy === 'TERBARU') {
@@ -1530,6 +1531,14 @@ export default function CatalogKebutuhan({ user, onBiddingClick, onOpenChat }: C
                   }`}
                 >
                   Selesai / Ditutup ({items.filter(i => i.status === 'CLOSED').length})
+                </button>
+                <button
+                  onClick={() => setStatusFilter('WON')}
+                  className={`px-3.5 py-1.5 rounded-lg transition-all cursor-pointer whitespace-nowrap ${
+                    statusFilter === 'WON' ? 'bg-amber-600 text-white font-bold' : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  🏆 Tender Menang ({items.filter(i => i.winnerVendorName || (i.winnerAmount && Number(i.winnerAmount) > 0)).length})
                 </button>
               </div>
             </div>

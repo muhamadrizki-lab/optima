@@ -997,6 +997,102 @@ export default function InternalDashboard({
         </div>
       </div>
 
+      {/* SECTION: DAFTAR TENDER MENANG & REALISASI PO */}
+      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-100">
+          <div className="flex items-center gap-2.5">
+            <div className="p-2.5 bg-amber-50 text-amber-600 rounded-xl border border-amber-100 shrink-0">
+              <Trophy className="w-5 h-5" />
+            </div>
+            <div>
+              <h2 className="text-lg font-black text-slate-900 flex items-center gap-2">
+                Daftar Tender Menang & Penerbitan PO
+              </h2>
+              <p className="text-xs text-slate-500 mt-0.5">
+                Visibilitas seluruh paket pengadaan yang telah disetujui pemenangnya dan resmi diterbitkan PO.
+              </p>
+            </div>
+          </div>
+          <span className="px-3 py-1 text-xs font-bold bg-amber-100 text-amber-800 rounded-full self-start sm:self-auto">
+            {wonItems.length} Pengadaan Selesai
+          </span>
+        </div>
+
+        {wonItems.length === 0 ? (
+          <div className="p-8 text-center text-slate-400 italic text-sm">
+            Belum ada paket pengadaan yang ditetapkan pemenangnya.
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs border-collapse">
+              <thead>
+                <tr className="border-b border-slate-100 text-slate-400 font-bold uppercase tracking-wider">
+                  <th className="py-3 px-4 font-bold">ID & Judul Pengadaan</th>
+                  <th className="py-3 px-4 font-bold">Vendor Pemenang</th>
+                  <th className="py-3 px-4 text-right font-bold">Estimasi OE</th>
+                  <th className="py-3 px-4 text-right font-bold">Nilai PO (Kesepakatan)</th>
+                  <th className="py-3 px-4 text-right font-bold text-emerald-600">Efisiensi Belanja</th>
+                  <th className="py-3 px-4 text-center font-bold">Tanggal PO</th>
+                  <th className="py-3 px-4 text-center font-bold">Status</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-50 font-semibold text-slate-700">
+                {wonItems.map((won, idx) => {
+                  const oest = won.ownerEstimate || won.amount;
+                  const saving = Math.max(0, oest - won.amount);
+                  const savingPct = oest > 0 ? Math.round((saving / oest) * 100) : 0;
+                  return (
+                    <tr key={idx} className="hover:bg-slate-50/50 transition-colors">
+                      <td className="py-3.5 px-4 max-w-xs">
+                        <span className="text-[10px] font-mono font-bold text-slate-400 uppercase bg-slate-100 px-1.5 py-0.5 rounded">
+                          {won.id}
+                        </span>
+                        <p className="text-xs font-bold text-slate-900 mt-1 line-clamp-2">{won.title}</p>
+                      </td>
+                      <td className="py-3.5 px-4">
+                        <p 
+                          onClick={() => setSelectedCompanyModal(won.vendorName)}
+                          className="text-blue-600 hover:text-blue-800 hover:underline cursor-pointer flex items-center gap-1"
+                          title={`Klik untuk melihat detail ${won.vendorName}`}
+                        >
+                          <span className="truncate">{won.vendorName}</span>
+                          <ExternalLink className="w-3 h-3 text-blue-500 shrink-0" />
+                        </p>
+                        <p className="text-[10px] text-slate-400 font-medium italic mt-0.5 line-clamp-1">"{won.notes || 'Penetapan resmi'}"</p>
+                      </td>
+                      <td className="py-3.5 px-4 text-right text-slate-500 font-mono">
+                        Rp {oest.toLocaleString('id-ID')}
+                      </td>
+                      <td className="py-3.5 px-4 text-right text-emerald-600 font-black font-mono">
+                        Rp {won.amount.toLocaleString('id-ID')}
+                      </td>
+                      <td className="py-3.5 px-4 text-right font-mono">
+                        {saving > 0 ? (
+                          <>
+                            <span className="text-emerald-600 font-bold block">Rp {saving.toLocaleString('id-ID')}</span>
+                            <span className="text-[10px] text-emerald-500 font-bold block">({savingPct}% hemat)</span>
+                          </>
+                        ) : (
+                          <span className="text-slate-400 font-normal block">-</span>
+                        )}
+                      </td>
+                      <td className="py-3.5 px-4 text-center text-slate-500 text-[11px]">
+                        {won.date}
+                      </td>
+                      <td className="py-3.5 px-4 text-center">
+                        <span className="px-2.5 py-1 text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-full inline-block uppercase tracking-wide">
+                          RESMI TERBIT PO
+                        </span>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
       {/* Pop Up Detail Company Modal */}
       <CompanyDetailModal
         companyName={selectedCompanyModal}
