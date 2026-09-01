@@ -1770,8 +1770,8 @@ export default function CatalogKebutuhan({ user, onBiddingClick, onOpenChat }: C
                         )}
 
                         {/* Footer Actions & OE Stats */}
-                        <div className="mt-auto pt-4 border-t border-slate-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                          <div className="flex flex-wrap gap-x-8 gap-y-3">
+                        <div className="mt-auto pt-4 border-t border-slate-100 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
+                          <div className="flex flex-row items-center gap-x-5 sm:gap-x-6 flex-wrap sm:flex-nowrap">
                             <div>
                               <p className="text-xs text-slate-500 font-medium mb-0.5 flex items-center">
                                 <Target className="w-3.5 h-3.5 mr-1 text-emerald-500" />
@@ -1782,28 +1782,33 @@ export default function CatalogKebutuhan({ user, onBiddingClick, onOpenChat }: C
                               </p>
                             </div>
                             
+                            <div className="h-8 w-px bg-slate-200 hidden sm:block"></div>
+
                             <div 
                               onClick={() => setSelectedTenderForBids(item)}
-                              className="cursor-pointer group p-2 -m-2 rounded-xl hover:bg-blue-50 transition-all border border-transparent hover:border-blue-200"
+                              className="cursor-pointer group p-1.5 rounded-xl hover:bg-blue-50/80 transition-all border border-transparent hover:border-blue-100"
                               title="Klik untuk melihat siapa saja vendor yang bidding"
                             >
                               <p className="text-xs text-slate-500 font-medium mb-0.5 flex items-center group-hover:text-blue-600 transition-colors">
                                 <Users className="w-3.5 h-3.5 mr-1 text-slate-500 group-hover:text-blue-600" />
-                                Total Bidding <span className="text-[10px] text-blue-600 font-bold ml-1.5 bg-blue-100 px-1.5 py-0.2 rounded-md group-hover:bg-blue-200">(Siapa Saja?)</span>
+                                Total Bidding <span className="text-[10px] text-blue-600 font-bold ml-1 bg-blue-100 px-1 rounded-md group-hover:bg-blue-200">(Detail)</span>
                               </p>
-                              <p className="text-lg font-black text-slate-800 group-hover:text-blue-700 transition-colors flex items-center gap-2">
+                              <p className="text-lg font-black text-slate-800 group-hover:text-blue-700 transition-colors flex items-center gap-1.5">
                                 <span>{getBiddersForTender(item).length} Bidders</span>
-                                <span className="text-[10px] text-blue-600 underline font-semibold">Klik Detail</span>
+                                <span className="text-[10px] text-blue-600 underline font-semibold">Lihat</span>
                               </p>
                             </div>
+
+                            <div className="h-8 w-px bg-slate-200 hidden sm:block"></div>
+
                             <div 
                               onClick={() => setSelectedTenderForBids(item)}
-                              className="cursor-pointer group p-2 -m-2 rounded-xl hover:bg-emerald-50 transition-all border border-transparent hover:border-emerald-200"
+                              className="cursor-pointer group p-1.5 rounded-xl hover:bg-emerald-50/80 transition-all border border-transparent hover:border-emerald-100"
                               title="Tracking Penawaran Terendah"
                             >
                               <p className="text-xs text-slate-500 font-medium mb-0.5 flex items-center group-hover:text-emerald-600 transition-colors">
                                 <TrendingDown className="w-3.5 h-3.5 mr-1 text-emerald-500 group-hover:text-emerald-600" />
-                                Penawaran Terendah (Tracking)
+                                Penawaran Terendah
                               </p>
                               <p className="text-lg font-black text-emerald-600 group-hover:text-emerald-700 transition-colors">
                                 {(() => {

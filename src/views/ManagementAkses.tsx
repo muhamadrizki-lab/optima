@@ -13,12 +13,33 @@ export default function ManagementAkses() {
       const saved = localStorage.getItem('optima_access_users');
       if (saved) {
         const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed)) return parsed;
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
       }
     } catch (e) {
       console.error('Error loading users:', e);
     }
-    return [];
+    // Pre-seed default accounts
+    const seed: AccessDetail[] = [
+      { id: '1', name: 'Muhamad Rizki Alfian', companyName: 'PT Pancaran Darat Transport', phone: '0812-9988-7766', email: 'muhamad.rizki@pancaran-logistic.id', role: 'INTERNAL', status: 'ACTIVE' },
+      { id: '2', name: 'Budi Santoso', companyName: 'Pancaran Group', phone: '0812-1122-3344', email: 'budi.s@pancaran-logistic.id', role: 'INTERNAL', status: 'ACTIVE' },
+      { id: 'VEND-01', name: 'Hendro Wijaya', companyName: 'PT Mandiri Ban Pratama', phone: '0812-8899-2231', email: 'sales@mandiriban.co.id', role: 'EXTERNAL', vendorType: 'SUPPLIER', status: 'ACTIVE' },
+      { id: 'VEND-01-ALT', name: 'Hendro Wijaya', companyName: 'PT Mandiri Ban Pratama', phone: '0812-8899-2231', email: 'mandiriban@gmail.com', role: 'EXTERNAL', vendorType: 'SUPPLIER', status: 'ACTIVE' },
+      { id: 'VEND-02', name: 'Bambang Hendrawan', companyName: 'CV Sumber Karet Nusantara', phone: '0813-7721-0099', email: 'info@sumberkaret.com', role: 'EXTERNAL', vendorType: 'SUPPLIER', status: 'ACTIVE' },
+      { id: 'VEND-02-ALT', name: 'Bambang Hendrawan', companyName: 'CV Sumber Karet Nusantara', phone: '0813-7721-0099', email: 'sumberkaret@gmail.com', role: 'EXTERNAL', vendorType: 'SUPPLIER', status: 'ACTIVE' },
+      { id: 'VEND-03', name: 'Agus Dinata', companyName: 'PT Surya Accu Dinamika', phone: '0811-9022-4411', email: 'order@suryaaccu.co.id', role: 'EXTERNAL', vendorType: 'SUPPLIER', status: 'ACTIVE' },
+      { id: 'VEND-03-ALT', name: 'Agus Dinata', companyName: 'PT Surya Accu Dinamika', phone: '0811-9022-4411', email: 'suryaaccu@gmail.com', role: 'EXTERNAL', vendorType: 'SUPPLIER', status: 'ACTIVE' },
+      { id: 'VEND-04', name: 'Dedi Pratama', companyName: 'PT Pancaran Suku Cadang Utama', phone: '0815-1234-7788', email: 'spareparts@pancaransukucadang.id', role: 'EXTERNAL', vendorType: 'SUPPLIER', status: 'ACTIVE' },
+      { id: 'VEND-04-ALT', name: 'Dedi Pratama', companyName: 'PT Pancaran Suku Cadang Utama', phone: '0815-1234-7788', email: 'pancaransukucadang@gmail.com', role: 'EXTERNAL', vendorType: 'SUPPLIER', status: 'ACTIVE' },
+      { id: 'VEND-05', name: 'Rian Kurniawan', companyName: 'CV Multi Servis Armada', phone: '0821-4455-6677', email: 'cs@multiservisarmada.com', role: 'EXTERNAL', vendorType: 'VENDOR_JASA', status: 'ACTIVE' },
+      { id: 'VEND-05-ALT', name: 'Rian Kurniawan', companyName: 'CV Multi Servis Armada', phone: '0821-4455-6677', email: 'multiservis@gmail.com', role: 'EXTERNAL', vendorType: 'VENDOR_JASA', status: 'ACTIVE' },
+      { id: 'VEND-06', name: 'PT Surya Gemilang', companyName: 'PT Surya Gemilang', phone: '0812-8899-2231', email: 'vendor@suryagemilang.com', role: 'EXTERNAL', vendorType: 'SUPPLIER', status: 'ACTIVE' },
+      { id: 'VEND-06-ALT', name: 'PT Surya Gemilang', companyName: 'PT Surya Gemilang', phone: '0812-8899-2231', email: 'vendor@gmail.com', role: 'EXTERNAL', vendorType: 'SUPPLIER', status: 'ACTIVE' },
+      { id: 'VEND-07', name: 'Budi Hartono', companyName: 'CV Makmur Jaya', phone: '0813-7788-9900', email: 'info@makmurjaya.co.id', role: 'EXTERNAL', vendorType: 'VENDOR_JASA', status: 'PENDING' },
+      { id: 'VEND-GPS', name: 'PT Global GPS Telematika', companyName: 'PT Global GPS Telematika', phone: '0811-3344-5566', email: 'vendor@ptglobalgps.com', role: 'EXTERNAL', vendorType: 'SUPPLIER', status: 'ACTIVE' },
+      { id: 'VEND-GPS-ALT', name: 'PT Global GPS Telematika', companyName: 'PT Global GPS Telematika', phone: '0811-3344-5566', email: 'ptglobalgps@gmail.com', role: 'EXTERNAL', vendorType: 'SUPPLIER', status: 'ACTIVE' },
+    ];
+    localStorage.setItem('optima_access_users', JSON.stringify(seed));
+    return seed;
   });
 
   React.useEffect(() => {
