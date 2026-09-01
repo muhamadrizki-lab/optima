@@ -1037,6 +1037,64 @@ export default function Bidding({ user, onBack, initialReqId, vendorCatalogItems
                     <span className="text-base font-black">{formatRp(totalBidAmount)}</span>
                   </div>
                 </div>
+
+                {/* Stock & Availability (Moved here for better separation) */}
+                <div className="pt-3 border-t border-slate-200 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="block text-[11px] font-bold text-slate-700 uppercase">Status Ketersediaan Barang *</label>
+                      <button 
+                        type="button"
+                        onClick={() => setManagingFilter({ id: 'availability', title: 'Status Ketersediaan', items: availabilityOptions })}
+                        className="p-0.5 hover:bg-slate-200 rounded-md text-slate-400 hover:text-slate-600 transition-colors"
+                      >
+                        <Settings className="w-3 h-3" />
+                      </button>
+                    </div>
+                    <select
+                      value={availabilityType}
+                      onChange={(e) => setAvailabilityType(e.target.value)}
+                      className="w-full px-3 py-2 border border-slate-300 rounded-xl text-xs bg-white font-bold text-slate-800 focus:ring-2 focus:ring-blue-500 shadow-sm"
+                    >
+                      {availabilityOptions.map((opt, i) => (
+                        <option key={i} value={opt.value}>{opt.label}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {availabilityType === 'READY' ? (
+                    <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl space-y-1.5 animate-in fade-in slide-in-from-top-1 duration-200">
+                      <label className="block text-[11px] font-bold text-emerald-800 uppercase">
+                        Jumlah Ready Stock Saat Ini *
+                      </label>
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="number"
+                          value={readyStockQty}
+                          onChange={(e) => setReadyStockQty(e.target.value)}
+                          className="flex-1 px-3 py-1.5 border border-emerald-300 rounded-lg text-xs font-bold focus:ring-2 focus:ring-emerald-500 bg-white text-emerald-900"
+                          placeholder="Masukkan jumlah stok..."
+                          required={availabilityType === 'READY'}
+                        />
+                        <span className="text-[10px] font-bold text-emerald-600 uppercase">Unit/Pcs</span>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl space-y-1.5 animate-in fade-in slide-in-from-top-1 duration-200">
+                      <label className="block text-[11px] font-bold text-amber-800 uppercase">
+                        Estimasi Ready Sampai Kapan? *
+                      </label>
+                      <input
+                        type="text"
+                        value={indentDuration}
+                        onChange={(e) => setIndentDuration(e.target.value)}
+                        className="w-full px-3 py-1.5 border border-amber-300 rounded-lg text-xs font-bold focus:ring-2 focus:ring-amber-500 bg-white text-amber-900"
+                        placeholder="Contoh: Ready 15 September 2026 atau 3 Minggu"
+                        required={availabilityType === 'INDENT'}
+                      />
+                    </div>
+                  )}
+                </div>
               </div>
 
               {/* TNC & TOP */}
@@ -1082,28 +1140,7 @@ export default function Bidding({ user, onBack, initialReqId, vendorCatalogItems
                     <Truck className="w-4 h-4 text-blue-600" />
                     Pengiriman & Garansi
                   </h4>
-                  <div className="grid grid-cols-2 gap-2">
-                    <div>
-                      <div className="flex items-center justify-between mb-1">
-                        <label className="block text-[11px] font-semibold text-slate-600">Status Ketersediaan</label>
-                        <button 
-                          type="button"
-                          onClick={() => setManagingFilter({ id: 'availability', title: 'Status Ketersediaan', items: availabilityOptions })}
-                          className="p-0.5 hover:bg-slate-200 rounded-md text-slate-400 hover:text-slate-600 transition-colors"
-                        >
-                          <Settings className="w-3 h-3" />
-                        </button>
-                      </div>
-                      <select
-                        value={availabilityType}
-                        onChange={(e) => setAvailabilityType(e.target.value)}
-                        className="w-full px-3 py-1.5 border border-slate-300 rounded-lg text-xs bg-white font-medium text-slate-800 focus:ring-2 focus:ring-blue-500"
-                      >
-                        {availabilityOptions.map((opt, i) => (
-                          <option key={i} value={opt.value}>{opt.label}</option>
-                        ))}
-                      </select>
-                    </div>
+                  <div className="space-y-3">
                     <div>
                       <div className="flex items-center justify-between mb-1">
                         <label className="block text-[11px] font-semibold text-slate-600">Opsi Pengiriman</label>
@@ -1118,59 +1155,24 @@ export default function Bidding({ user, onBack, initialReqId, vendorCatalogItems
                       <select
                         value={deliveryOption}
                         onChange={(e) => setDeliveryOption(e.target.value)}
-                        className="w-full px-3 py-1.5 border border-slate-300 rounded-lg text-xs bg-white font-medium text-slate-800 focus:ring-2 focus:ring-blue-500"
+                        className="w-full px-3 py-2 border border-slate-300 rounded-xl text-xs bg-white font-medium text-slate-800 focus:ring-2 focus:ring-blue-500"
                       >
                         {deliveryOptions.map((opt, i) => (
                           <option key={i} value={opt}>{opt}</option>
                         ))}
                       </select>
                     </div>
-                  </div>
 
-                  {availabilityType === 'INDENT' && (
-                    <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl space-y-1.5 animate-in fade-in slide-in-from-top-1 duration-200">
-                      <label className="block text-[11px] font-bold text-amber-800">
-                        Estimasi Ready Sampai Kapan? *
-                      </label>
+                    <div>
+                      <label className="block text-[11px] font-semibold text-slate-600 mb-1">Garansi Produk (Bulan)</label>
                       <input
                         type="text"
-                        value={indentDuration}
-                        onChange={(e) => setIndentDuration(e.target.value)}
-                        className="w-full px-3 py-1.5 border border-amber-300 rounded-lg text-xs font-bold focus:ring-2 focus:ring-amber-500 bg-white text-amber-900"
-                        placeholder="Contoh: Ready 15 September 2026 atau 3 Minggu"
-                        required={availabilityType === 'INDENT'}
+                        value={warrantyMonths}
+                        onChange={(e) => setWarrantyMonths(e.target.value)}
+                        className="w-full px-3 py-2 border border-slate-300 rounded-xl text-xs"
+                        placeholder="12 Bulan"
                       />
                     </div>
-                  )}
-
-                  {availabilityType === 'READY' && (
-                    <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl space-y-1.5 animate-in fade-in slide-in-from-top-1 duration-200">
-                      <label className="block text-[11px] font-bold text-emerald-800">
-                        Jumlah Ready Stock Saat Ini *
-                      </label>
-                      <div className="flex items-center gap-2">
-                        <input
-                          type="number"
-                          value={readyStockQty}
-                          onChange={(e) => setReadyStockQty(e.target.value)}
-                          className="flex-1 px-3 py-1.5 border border-emerald-300 rounded-lg text-xs font-bold focus:ring-2 focus:ring-emerald-500 bg-white text-emerald-900"
-                          placeholder="Masukkan jumlah stok..."
-                          required={availabilityType === 'READY'}
-                        />
-                        <span className="text-[10px] font-bold text-emerald-600 uppercase">Unit/Pcs</span>
-                      </div>
-                    </div>
-                  )}
-
-                  <div>
-                    <label className="block text-[11px] font-semibold text-slate-600 mb-1">Garansi Produk (Bulan)</label>
-                    <input
-                      type="text"
-                      value={warrantyMonths}
-                      onChange={(e) => setWarrantyMonths(e.target.value)}
-                      className="w-full px-3 py-1.5 border border-slate-300 rounded-lg text-xs"
-                      placeholder="12 Bulan"
-                    />
                   </div>
                 </div>
               </div>
