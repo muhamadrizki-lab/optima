@@ -306,6 +306,16 @@ export default function InternalDashboard({
       actionView: 'catalog'
     },
     { 
+      name: 'Tender Menang', 
+      value: wonItems.length.toString(), 
+      detail: 'Status Menang PO',
+      icon: Trophy, 
+      color: 'text-teal-600', 
+      bg: 'bg-teal-50', 
+      border: 'border-teal-100',
+      actionView: 'catalog'
+    },
+    { 
       name: 'Total Pengeluaran & PO', 
       value: totalPengeluaran > 0 ? `Rp ${(totalPengeluaran / 1000000).toLocaleString('id-ID')} Jt` : 'Rp 0',
       fullValue: `Rp ${totalPengeluaran.toLocaleString('id-ID')}`,
@@ -385,7 +395,7 @@ export default function InternalDashboard({
       </div>
 
       {/* Top Stat Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-7 gap-4">
         {stats.map((stat, idx) => {
           const Icon = stat.icon;
           return (
@@ -603,7 +613,7 @@ export default function InternalDashboard({
               <div>
                 <h4 className="text-sm font-bold text-slate-800 mb-3">Rincian Informasi & Data Terkait:</h4>
                 <div className="space-y-2.5">
-                  {(selectedStat.name === 'Total Pengeluaran & PO' || selectedStat.name === 'Total Realisasi Belanja (PO)') && (
+                  {(selectedStat.name === 'Total Pengeluaran & PO' || selectedStat.name === 'Total Realisasi Belanja (PO)' || selectedStat.name === 'Menang Tender' || selectedStat.name === 'Tender Menang') && (
                     <div className="space-y-3">
                       <div className="p-4 bg-emerald-50 rounded-2xl border border-emerald-200/80 flex items-center justify-between">
                         <div>
