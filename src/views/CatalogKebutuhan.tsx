@@ -1023,6 +1023,12 @@ export default function CatalogKebutuhan({ user, onBiddingClick, onOpenChat }: C
     const matchSearch = item.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       item.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
       item.description.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    // Strict Filtering for Vendors: Only show OPEN tenders in "Lihat Pengadaan"
+    if (!isInternal) {
+      return matchSearch && item.status === 'OPEN';
+    }
+
     const matchStatus = statusFilter === 'ALL' || 
       (statusFilter === 'WON' ? Boolean(item.winnerVendorName || (item.winnerAmount && Number(item.winnerAmount) > 0)) : item.status === statusFilter);
     return matchSearch && matchStatus;
@@ -1506,41 +1512,43 @@ export default function CatalogKebutuhan({ user, onBiddingClick, onOpenChat }: C
                 </select>
               </div>
 
-              {/* Status Tabs */}
-              <div className="flex items-center gap-1 bg-white p-1 rounded-xl border border-slate-200 text-xs font-semibold w-full sm:w-auto overflow-x-auto scrollbar-none">
-                <button
-                  onClick={() => setStatusFilter('ALL')}
-                  className={`px-3.5 py-1.5 rounded-lg transition-all cursor-pointer whitespace-nowrap ${
-                    statusFilter === 'ALL' ? 'bg-blue-600 text-white font-bold' : 'text-slate-600 hover:text-slate-900'
-                  }`}
-                >
-                  Semua ({items.length})
-                </button>
-                <button
-                  onClick={() => setStatusFilter('OPEN')}
-                  className={`px-3.5 py-1.5 rounded-lg transition-all cursor-pointer whitespace-nowrap ${
-                    statusFilter === 'OPEN' ? 'bg-emerald-600 text-white font-bold' : 'text-slate-600 hover:text-slate-900'
-                  }`}
-                >
-                  Dibuka ({items.filter(i => i.status === 'OPEN').length})
-                </button>
-                <button
-                  onClick={() => setStatusFilter('CLOSED')}
-                  className={`px-3.5 py-1.5 rounded-lg transition-all cursor-pointer whitespace-nowrap ${
-                    statusFilter === 'CLOSED' ? 'bg-slate-800 text-white font-bold' : 'text-slate-600 hover:text-slate-900'
-                  }`}
-                >
-                  Selesai / Ditutup ({items.filter(i => i.status === 'CLOSED').length})
-                </button>
-                <button
-                  onClick={() => setStatusFilter('WON')}
-                  className={`px-3.5 py-1.5 rounded-lg transition-all cursor-pointer whitespace-nowrap ${
-                    statusFilter === 'WON' ? 'bg-amber-600 text-white font-bold' : 'text-slate-600 hover:text-slate-900'
-                  }`}
-                >
-                  🏆 Tender Menang ({items.filter(i => i.winnerVendorName || (i.winnerAmount && Number(i.winnerAmount) > 0)).length})
-                </button>
-              </div>
+              {/* Status Tabs - Only shown for Internal (Management View) */}
+              {isInternal && (
+                <div className="flex items-center gap-1 bg-white p-1 rounded-xl border border-slate-200 text-xs font-semibold w-full sm:w-auto overflow-x-auto scrollbar-none">
+                  <button
+                    onClick={() => setStatusFilter('ALL')}
+                    className={`px-3.5 py-1.5 rounded-lg transition-all cursor-pointer whitespace-nowrap ${
+                      statusFilter === 'ALL' ? 'bg-blue-600 text-white font-bold' : 'text-slate-600 hover:text-slate-900'
+                    }`}
+                  >
+                    Semua ({items.length})
+                  </button>
+                  <button
+                    onClick={() => setStatusFilter('OPEN')}
+                    className={`px-3.5 py-1.5 rounded-lg transition-all cursor-pointer whitespace-nowrap ${
+                      statusFilter === 'OPEN' ? 'bg-emerald-600 text-white font-bold' : 'text-slate-600 hover:text-slate-900'
+                    }`}
+                  >
+                    Dibuka ({items.filter(i => i.status === 'OPEN').length})
+                  </button>
+                  <button
+                    onClick={() => setStatusFilter('CLOSED')}
+                    className={`px-3.5 py-1.5 rounded-lg transition-all cursor-pointer whitespace-nowrap ${
+                      statusFilter === 'CLOSED' ? 'bg-slate-800 text-white font-bold' : 'text-slate-600 hover:text-slate-900'
+                    }`}
+                  >
+                    Selesai / Ditutup ({items.filter(i => i.status === 'CLOSED').length})
+                  </button>
+                  <button
+                    onClick={() => setStatusFilter('WON')}
+                    className={`px-3.5 py-1.5 rounded-lg transition-all cursor-pointer whitespace-nowrap ${
+                      statusFilter === 'WON' ? 'bg-amber-600 text-white font-bold' : 'text-slate-600 hover:text-slate-900'
+                    }`}
+                  >
+                    🏆 Tender Menang ({items.filter(i => i.winnerVendorName || (i.winnerAmount && Number(i.winnerAmount) > 0)).length})
+                  </button>
+                </div>
+              )}
             </div>
           </div>
 
