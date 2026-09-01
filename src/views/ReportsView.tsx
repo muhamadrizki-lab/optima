@@ -34,7 +34,7 @@ interface ReportsViewProps {
 }
 
 export default function ReportsView({ vendorCatalogItems = INITIAL_VENDOR_CATALOG }: ReportsViewProps) {
-  const [activeTab, setActiveTab] = useState<'summary' | 'catalog' | 'procurement' | 'bidding'>('summary');
+  const [activeTab, setActiveTab] = useState<'catalog' | 'procurement' | 'bidding'>('catalog');
   
   // Search and Filters
   const [searchQuery, setSearchQuery] = useState('');
@@ -686,17 +686,6 @@ export default function ReportsView({ vendorCatalogItems = INITIAL_VENDOR_CATALO
       {/* NAVIGATION TABS */}
       <div className="flex border-b border-slate-200 gap-1 overflow-x-auto pb-px">
         <button
-          onClick={() => { setActiveTab('summary'); resetFilters(); }}
-          className={`px-4 py-3 text-xs font-bold border-b-2 transition-all shrink-0 flex items-center gap-2 ${
-            activeTab === 'summary' 
-              ? 'border-blue-600 text-blue-600' 
-              : 'border-transparent text-slate-500 hover:text-slate-900 hover:border-slate-300'
-          }`}
-        >
-          <Activity className="w-4 h-4" />
-          Ringkasan Eksekutif
-        </button>
-        <button
           onClick={() => { setActiveTab('catalog'); resetFilters(); }}
           className={`px-4 py-3 text-xs font-bold border-b-2 transition-all shrink-0 flex items-center gap-2 ${
             activeTab === 'catalog' 
@@ -731,9 +720,8 @@ export default function ReportsView({ vendorCatalogItems = INITIAL_VENDOR_CATALO
         </button>
       </div>
 
-      {/* FILTER CONTROLS BAR (Hidden on Summary Tab) */}
-      {activeTab !== 'summary' && (
-        <div className="bg-white rounded-2xl p-4 border border-slate-200 shadow-3xs flex flex-wrap gap-3 items-center justify-between">
+      {/* FILTER CONTROLS BAR */}
+      <div className="bg-white rounded-2xl p-4 border border-slate-200 shadow-3xs flex flex-wrap gap-3 items-center justify-between">
           <div className="flex flex-wrap gap-2.5 items-center flex-1 min-w-0">
             {/* Search Input */}
             <div className="relative min-w-[200px] max-w-sm flex-1">
@@ -894,138 +882,9 @@ export default function ReportsView({ vendorCatalogItems = INITIAL_VENDOR_CATALO
             <span>Ekspor ke Excel</span>
           </button>
         </div>
-      )}
 
       {/* MAIN TAB CONTENT */}
       <div className="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
-        {/* =======================================================
-            TAB 1: EXECUTIVE SUMMARY 
-            ======================================================= */}
-        {activeTab === 'summary' && (
-          <div className="p-6 space-y-6">
-            <h2 className="text-lg font-black text-slate-900 tracking-tight flex items-center gap-2">
-              <Activity className="w-5 h-5 text-blue-600" />
-              Kinerja Transaksi & Audit Pengadaan
-            </h2>
-
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Left Column: Procurement Savings Chart Mock / Status */}
-              <div className="border border-slate-150 rounded-2xl p-5 space-y-4 bg-slate-50/50">
-                <h3 className="text-sm font-bold text-slate-800">Evaluasi Efisiensi Tender Pengadaan</h3>
-                
-                <div className="space-y-3.5 pt-2">
-                  <div>
-                    <div className="flex justify-between text-xs font-semibold mb-1">
-                      <span className="text-slate-500">Pagu HPS Tender Selesai (1 Paket Won)</span>
-                      <span className="text-slate-800 font-mono font-bold">Rp {summaryStats.totalHpsCompleted.toLocaleString('id-ID')}</span>
-                    </div>
-                    <div className="w-full bg-slate-200 rounded-full h-3">
-                      <div className="bg-slate-700 h-3 rounded-full" style={{ width: '100%' }}></div>
-                    </div>
-                  </div>
-
-                  <div>
-                    <div className="flex justify-between text-xs font-semibold mb-1">
-                      <span className="text-slate-500">Realisasi Kontrak PO Diterbitkan</span>
-                      <span className="text-emerald-700 font-mono font-bold">Rp {summaryStats.totalPoRealisasi.toLocaleString('id-ID')}</span>
-                    </div>
-                    <div className="w-full bg-slate-200 rounded-full h-3">
-                      <div className="bg-emerald-500 h-3 rounded-full" style={{ width: `${(summaryStats.totalPoRealisasi / (summaryStats.totalHpsCompleted || 1)) * 100}%` }}></div>
-                    </div>
-                  </div>
-
-                  <div>
-                    <div className="flex justify-between text-xs font-semibold mb-1">
-                      <span className="text-blue-700 font-bold">Total Efisiensi Finansial (Penghematan)</span>
-                      <span className="text-blue-700 font-bold font-mono">Rp {summaryStats.savings.toLocaleString('id-ID')} ({summaryStats.savingsPercentage.toFixed(1)}%)</span>
-                    </div>
-                    <div className="w-full bg-slate-200 rounded-full h-3">
-                      <div className="bg-blue-600 h-3 rounded-full" style={{ width: `${(summaryStats.savings / (summaryStats.totalHpsCompleted || 1)) * 100}%` }}></div>
-                    </div>
-                  </div>
-
-                  <div className="pt-1 flex justify-between items-center text-[11px] text-slate-500 border-t border-slate-200/80">
-                    <span>Total Pagu Semua Paket ({summaryStats.totalTenders} Tender):</span>
-                    <span className="font-bold text-slate-700 font-mono">Rp {summaryStats.totalBudgetHps.toLocaleString('id-ID')}</span>
-                  </div>
-                </div>
-
-                <div className="text-xs bg-emerald-50 border border-emerald-150 rounded-xl p-3 text-emerald-800 font-medium">
-                  💡 <b>Rekomendasi Audit:</b> Tim Procurement Pancaran Group berhasil melakukan negosiasi harga efektif sehingga menghemat sebesar <b>{summaryStats.savingsPercentage.toFixed(1)}% (Rp {summaryStats.savings.toLocaleString('id-ID')})</b> dari pagu HPS tender yang telah diselesaikan. Sisa anggaran berjalan sebesar <b>Rp {summaryStats.remainingOpenBudget.toLocaleString('id-ID')}</b> tetap terkontrol.
-                </div>
-              </div>
-
-              {/* Right Column: Catalog Performance Summary */}
-              <div className="border border-slate-150 rounded-2xl p-5 space-y-4 bg-slate-50/50">
-                <h3 className="text-sm font-bold text-slate-800">Analisis Sirkulasi Katalog Vendor</h3>
-                
-                <div className="grid grid-cols-2 gap-4 pt-2">
-                  <div className="bg-white p-3.5 rounded-xl border border-slate-200">
-                    <span className="text-slate-400 text-[10px] block font-bold uppercase">Volume Produk SKU</span>
-                    <span className="text-lg font-black text-slate-800">{summaryStats.totalCatalogProducts} Items</span>
-                    <span className="text-[10px] text-slate-400 block mt-1">Suku cadang, Ban, Aki aktif</span>
-                  </div>
-
-                  <div className="bg-white p-3.5 rounded-xl border border-slate-200">
-                    <span className="text-slate-400 text-[10px] block font-bold uppercase">Volume Penjualan</span>
-                    <span className="text-lg font-black text-emerald-700">{summaryStats.totalCatalogSoldQty} Unit</span>
-                    <span className="text-[10px] text-emerald-600 block font-semibold mt-1">Terjual & Direquest PO</span>
-                  </div>
-
-                  <div className="bg-white p-3.5 rounded-xl border border-slate-200">
-                    <span className="text-slate-400 text-[10px] block font-bold uppercase">Rasio Bidder per Tender</span>
-                    <span className="text-lg font-black text-slate-800">
-                      {summaryStats.totalTenders > 0 ? (summaryStats.totalBidsCount / summaryStats.totalTenders).toFixed(1) : 0} Proposal
-                    </span>
-                    <span className="text-[10px] text-slate-400 block mt-1">Rata-rata persaingan vendor</span>
-                  </div>
-
-                  <div className="bg-white p-3.5 rounded-xl border border-slate-200">
-                    <span className="text-slate-400 text-[10px] block font-bold uppercase">Total Omset Vendor</span>
-                    <span className="text-lg font-black text-teal-700">Rp {summaryStats.totalCatalogRevenue.toLocaleString('id-ID')}</span>
-                    <span className="text-[10px] text-teal-600 block font-semibold mt-1">Perputaran finansial mitra</span>
-                  </div>
-                </div>
-
-                <div className="text-xs bg-blue-50 border border-blue-150 rounded-xl p-3 text-blue-800 font-medium">
-                  🚚 <b>Aktivitas Distribusi Logistik:</b> Wilayah operasional Jabodetabek masih mendominasi pengadaan barang sebesar <b>85%</b> dari total pengiriman, terutama didorong oleh pesanan ban radial berat.
-                </div>
-              </div>
-            </div>
-
-            {/* Quick Export Summary Checklist */}
-            <div className="bg-slate-50 border border-slate-200 rounded-2xl p-5 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-              <div>
-                <h3 className="text-sm font-black text-slate-900">Unduh Laporan Format Microsoft Excel</h3>
-                <p className="text-xs text-slate-500 mt-1">Pilih kategori laporan di samping untuk mendownload lembar kerja audit resmi perusahaan.</p>
-              </div>
-              <div className="flex flex-wrap gap-2.5">
-                <button
-                  onClick={() => handleExportExcel('catalog')}
-                  className="flex items-center gap-1.5 px-3 py-2 bg-emerald-100 hover:bg-emerald-200 text-emerald-800 rounded-xl text-xs font-bold border border-emerald-200 transition-all"
-                >
-                  <FileSpreadsheet className="w-4 h-4 text-emerald-700" />
-                  Katalog & Terjual
-                </button>
-                <button
-                  onClick={() => handleExportExcel('procurement')}
-                  className="flex items-center gap-1.5 px-3 py-2 bg-blue-100 hover:bg-blue-200 text-blue-800 rounded-xl text-xs font-bold border border-blue-200 transition-all"
-                >
-                  <FileSpreadsheet className="w-4 h-4 text-blue-700" />
-                  Pengadaan Tender
-                </button>
-                <button
-                  onClick={() => handleExportExcel('bidding')}
-                  className="flex items-center gap-1.5 px-3 py-2 bg-amber-100 hover:bg-amber-200 text-amber-800 rounded-xl text-xs font-bold border border-amber-200 transition-all"
-                >
-                  <FileSpreadsheet className="w-4 h-4 text-amber-700" />
-                  Proposal Bidding
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
         {/* =======================================================
             TAB 2: LAPORAN KATALOG VENDOR & SUPPLIER 
             ======================================================= */}

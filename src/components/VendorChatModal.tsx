@@ -92,6 +92,15 @@ export default function VendorChatModal({
   const [showPresetMenu, setShowPresetMenu] = useState(false);
   const [showQuickTemplates, setShowQuickTemplates] = useState(false);
   const [isSimulatingReply, setIsSimulatingReply] = useState(false);
+
+  // New Chat modal state
+  const [isNewChatModalOpen, setIsNewChatModalOpen] = useState(false);
+  const [newChatVendorSearch, setNewChatVendorSearch] = useState('');
+  const [selectedVendorObj, setSelectedVendorObj] = useState<{ name: string; email: string; phone?: string; category?: string } | null>(null);
+  const [customVendorNameInput, setCustomVendorNameInput] = useState('');
+  const [customVendorEmailInput, setCustomVendorEmailInput] = useState('');
+  const [selectedTenderIdInput, setSelectedTenderIdInput] = useState('REQ-001');
+  const [initialGreetingInput, setInitialGreetingInput] = useState('');
   
   // Custom sender role toggle so users can simulate typing as Internal or External Vendor
   const [senderRoleOverride, setSenderRoleOverride] = useState<'INTERNAL' | 'EXTERNAL'>('INTERNAL');
@@ -100,6 +109,116 @@ export default function VendorChatModal({
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const isInternal = currentUser?.role === 'INTERNAL';
+
+  // Master vendor dictionary for starting new chats
+  const PRESET_VENDORS_FOR_CHAT = [
+    { name: 'PT Tesvendor', email: 'sales@tesvendor.co.id', category: 'General Logistics & Sparepart', phone: '0812-3344-5566' }
+  ];
+
+  const PRESET_TENDERS_FOR_CHAT = [
+    { id: 'REQ-001', title: 'REQ-001: Pengadaan Ban Truk Heavy Duty 11R22.5' },
+    { id: 'REQ-002', title: 'REQ-002: Pengadaan Aki Heavy Duty GS Astra N100' },
+    { id: 'REQ-003', title: 'REQ-003: Pengadaan Suku Cadang Sistem Pengereman & Kopling Hino 500' },
+    { id: 'REQ-004', title: 'REQ-004: Pengadaan Pelumas & Oli Mesin Heavy Duty SAE 15W-40' },
+    { id: 'REQ-005', title: 'REQ-005: Pengadaan Perangkat Laptop Workstation IT & Scanner Barcode' },
+    { id: '', title: 'Diskusi Umum / Tanpa Referensi Tender Specific' }
+  ];
+
+  const handleCreateNewConversation = (
+    vendorName: string,
+    vendorEmail: string,
+    tenderId?: string,
+    greetingMessage?: string
+  ) => {
+    if (!vendorName.trim()) return;
+
+    const matchedTender = PRESET_TENDERS_FOR_CHAT.find(t => t.id === tenderId);
+    const tenderTitle = matchedTender?.title ? matchedTender.title.split(': ')[1] || matchedTender.title : (tenderId ? `Tender ${tenderId}` : 'Diskusi Pengadaan Logistik');
+
+    // Check if conversation already exists for this vendor
+    const existingIndex = conversations.findIndex(c => 
+      c.vendorName.toLowerCase() === vendorName.toLowerCase() ||
+      (vendorEmail && c.vendorEmail.toLowerCase() === vendorEmail.toLowerCase())
+    );
+
+    if (existingIndex !== -1) {
+      const existingConv = conversations[existingIndex];
+      setActiveConvId(existingConv.id);
+      setIsNewChatModalOpen(false);
+
+      if (greetingMessage && greetingMessage.trim()) {
+        handleSendMessage(greetingMessage, 'INTERNAL');
+      }
+      return;
+    }
+
+    const newConvId = `conv-new-${Date.now()}`;
+    const now = new Date();
+    const hours = String(now.getHours()).padStart(2, '0');
+    const minutes = String(now.getMinutes()).padStart(2, '0');
+    const timestampStr = `Hari ini, ${hours}:${minutes} WIB`;
+
+    const newConv: ChatConversation = {
+      id: newConvId,
+      vendorName: vendorName.trim(),
+      vendorEmail: vendorEmail.trim() || `${vendorName.toLowerCase().replace(/[^a-z0-9]/g, '')}@vendor.co.id`,
+      tenderId: tenderId || undefined,
+      tenderTitle: tenderTitle,
+      lastMessage: greetingMessage?.trim() || 'Percakapan baru dimulai.',
+      lastTimestamp: timestampStr,
+      isOnline: true,
+      unreadCount: 0
+    };
+
+    const updatedConvs = [newConv, ...conversations];
+    setConversations(updatedConvs);
+
+    const initialMsgs: ChatMessage[] = greetingMessage?.trim() ? [
+      {
+        id: `msg-${Date.now()}`,
+        conversationId: newConvId,
+        senderId: 'USR-INT',
+        senderName: currentUser?.name || 'Muhamad Rizki (Procurement Pancaran)',
+        senderRole: 'INTERNAL',
+        message: greetingMessage.trim(),
+        timestamp: timestampStr,
+        isRead: true
+      }
+    ] : [
+      {
+        id: `msg-${Date.now()}`,
+        conversationId: newConvId,
+        senderId: 'SYSTEM',
+        senderName: 'Sistem Informasi Pancaran',
+        senderRole: 'INTERNAL',
+        message: `Percakapan baru dengan ${vendorName} telah dibuat. Silakan ajukan pertanyaan atau koordinasi tender.`,
+        timestamp: timestampStr,
+        isRead: true
+      }
+    ];
+
+    const updatedMessagesMap = {
+      ...messagesMap,
+      [newConvId]: initialMsgs
+    };
+
+    setMessagesMap(updatedMessagesMap);
+    setActiveConvId(newConvId);
+    setIsNewChatModalOpen(false);
+
+    // Reset form states
+    setSelectedVendorObj(null);
+    setCustomVendorNameInput('');
+    setCustomVendorEmailInput('');
+    setInitialGreetingInput('');
+
+    try {
+      localStorage.setItem('optima_chat_conversations', JSON.stringify(updatedConvs));
+      localStorage.setItem('optima_chat_messages', JSON.stringify(updatedMessagesMap));
+    } catch (e) {
+      console.error(e);
+    }
+  };
 
   // Set default sender role based on logged in user
   useEffect(() => {
@@ -411,8 +530,16 @@ export default function VendorChatModal({
           
           {/* LEFT SIDEBAR: CONVERSATION LIST */}
           <div className="w-72 sm:w-80 lg:w-88 border-r border-slate-200 bg-slate-50/70 flex flex-col shrink-0">
-            {/* Search Bar */}
+            {/* Search Bar & New Chat Button */}
             <div className="p-3 border-b border-slate-200/80 bg-white space-y-2">
+              <button
+                onClick={() => setIsNewChatModalOpen(true)}
+                className="w-full py-2.5 px-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl text-xs font-bold transition-all shadow-sm shadow-blue-500/20 flex items-center justify-center gap-2 cursor-pointer"
+              >
+                <PlusCircle className="w-4 h-4" />
+                <span>+ Mulai Chat Baru / Pilih Vendor</span>
+              </button>
+
               <div className="relative">
                 <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
                 <input
@@ -510,8 +637,17 @@ export default function VendorChatModal({
               })}
 
               {filteredConversations.length === 0 && (
-                <div className="p-6 text-center text-slate-400 text-xs">
-                  Tidak ada percakapan vendor ditemukan.
+                <div className="p-6 text-center space-y-3">
+                  <p className="text-slate-400 text-xs">
+                    Tidak ada percakapan vendor ditemukan.
+                  </p>
+                  <button
+                    onClick={() => setIsNewChatModalOpen(true)}
+                    className="px-3.5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition-all shadow-xs cursor-pointer inline-flex items-center gap-1.5"
+                  >
+                    <PlusCircle className="w-4 h-4" />
+                    <span>Mulai Chat Baru</span>
+                  </button>
                 </div>
               )}
             </div>
@@ -526,15 +662,25 @@ export default function VendorChatModal({
                   <MessageSquare className="w-8 h-8" />
                 </div>
                 <h3 className="font-bold text-slate-800 text-base mb-1">Belum Ada Percakapan Dipilih</h3>
-                <p className="text-xs text-slate-500 max-w-sm">
-                  Pilih salah satu percakapan vendor di sebelah kiri atau klik &quot;Chat Vendor&quot; dari katalog/tender untuk memulai negosiasi.
+                <p className="text-xs text-slate-500 max-w-sm mb-4">
+                  Pilih salah satu percakapan vendor di sebelah kiri atau pilih akun vendor untuk memulai chat baru.
                 </p>
-                <button
-                  onClick={handleResetDefaultChats}
-                  className="mt-4 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition-all shadow-xs cursor-pointer"
-                >
-                  Muat Contoh Percakapan Default
-                </button>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setIsNewChatModalOpen(true)}
+                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition-all shadow-xs cursor-pointer flex items-center gap-1.5"
+                  >
+                    <PlusCircle className="w-4 h-4" />
+                    <span>Pilih Akun Vendor & Mulai Chat Baru</span>
+                  </button>
+                  <button
+                    onClick={handleResetDefaultChats}
+                    className="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5"
+                  >
+                    <RotateCcw className="w-3.5 h-3.5" />
+                    <span>Muat Percakapan Default</span>
+                  </button>
+                </div>
               </div>
             ) : (
               <>
@@ -764,6 +910,161 @@ export default function VendorChatModal({
         </div>
 
       </div>
+
+      {/* MODAL PILIH NAMA VENDOR UNTUK MULAI CHAT BARU */}
+      {isNewChatModalOpen && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-950/80 backdrop-blur-sm p-3 sm:p-4 animate-fadeIn">
+          <div className="bg-white rounded-3xl shadow-2xl border border-slate-200 w-full max-w-md overflow-hidden flex flex-col max-h-[90vh] animate-scaleUp">
+            {/* Header */}
+            <div className="px-5 py-4 bg-slate-900 text-white flex items-center justify-between shrink-0">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-xl bg-blue-600 text-white flex items-center justify-center font-bold">
+                  <UserCheck className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="font-extrabold text-sm text-white">Mulai Chat Baru</h3>
+                  <p className="text-[11px] text-slate-400">Pilih nama vendor untuk membuka ruang obrolan</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setIsNewChatModalOpen(false)}
+                className="p-1.5 text-slate-400 hover:text-white hover:bg-slate-800 rounded-full transition-colors cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Content Body */}
+            <div className="p-5 overflow-y-auto space-y-4 text-slate-800">
+              <div>
+                <label className="block text-xs font-extrabold text-slate-800 mb-2 flex items-center justify-between">
+                  <span>Pilih atau Ketik Nama Vendor:</span>
+                  {(selectedVendorObj || customVendorNameInput.trim()) && (
+                    <span className="text-[10px] text-blue-600 font-bold bg-blue-50 px-2 py-0.5 rounded-full border border-blue-200">
+                      ✓ Terpilih: {selectedVendorObj ? selectedVendorObj.name : customVendorNameInput.trim()}
+                    </span>
+                  )}
+                </label>
+
+                {/* Search & Custom Input Box */}
+                <div className="relative mb-3">
+                  <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                  <input
+                    type="text"
+                    value={newChatVendorSearch}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setNewChatVendorSearch(val);
+                      setCustomVendorNameInput(val);
+                      // Check if matches an existing vendor
+                      const found = PRESET_VENDORS_FOR_CHAT.find(v => v.name.toLowerCase() === val.trim().toLowerCase());
+                      if (found) {
+                        setSelectedVendorObj(found);
+                      } else {
+                        setSelectedVendorObj(null);
+                      }
+                    }}
+                    placeholder="Cari atau ketik nama PT vendor..."
+                    className="w-full pl-9 pr-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none"
+                  />
+                </div>
+
+                {/* Registered Vendor List */}
+                <div className="max-h-60 overflow-y-auto border border-slate-200 rounded-2xl divide-y divide-slate-100 bg-slate-50/50">
+                  {/* Custom Name Option if typed name is not in preset */}
+                  {newChatVendorSearch.trim() && !PRESET_VENDORS_FOR_CHAT.some(v => v.name.toLowerCase() === newChatVendorSearch.trim().toLowerCase()) && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSelectedVendorObj(null);
+                        setCustomVendorNameInput(newChatVendorSearch.trim());
+                      }}
+                      className={`w-full text-left p-3 flex items-center justify-between transition-colors cursor-pointer ${
+                        !selectedVendorObj && customVendorNameInput.trim() === newChatVendorSearch.trim()
+                          ? 'bg-blue-600 text-white font-bold'
+                          : 'bg-blue-50/50 hover:bg-blue-100/70 text-blue-900 font-semibold'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2">
+                        <PlusCircle className="w-4 h-4 shrink-0" />
+                        <span className="text-xs">Gunakan nama vendor baru: <strong>"{newChatVendorSearch.trim()}"</strong></span>
+                      </div>
+                      <CheckCheck className="w-4 h-4 shrink-0" />
+                    </button>
+                  )}
+
+                  {/* Filtered Preset Vendors */}
+                  {PRESET_VENDORS_FOR_CHAT
+                    .filter(v => 
+                      v.name.toLowerCase().includes(newChatVendorSearch.toLowerCase()) || 
+                      v.category.toLowerCase().includes(newChatVendorSearch.toLowerCase())
+                    )
+                    .map((v, idx) => {
+                      const isSelected = selectedVendorObj?.name === v.name;
+                      return (
+                        <button
+                          key={idx}
+                          type="button"
+                          onClick={() => {
+                            setSelectedVendorObj(v);
+                            setCustomVendorNameInput('');
+                            setNewChatVendorSearch(v.name);
+                          }}
+                          className={`w-full text-left p-3 flex items-center justify-between transition-colors cursor-pointer ${
+                            isSelected ? 'bg-blue-600 text-white shadow-xs' : 'hover:bg-blue-50/80 text-slate-800'
+                          }`}
+                        >
+                          <div>
+                            <p className={`font-bold text-xs ${isSelected ? 'text-white' : 'text-slate-900'}`}>
+                              {v.name}
+                            </p>
+                            <p className={`text-[10px] mt-0.5 ${isSelected ? 'text-blue-100' : 'text-slate-500'}`}>
+                              <span className="font-medium">{v.category}</span>
+                            </p>
+                          </div>
+                          {isSelected && <CheckCheck className="w-4 h-4 text-white shrink-0" />}
+                        </button>
+                      );
+                    })}
+                </div>
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="px-5 py-3.5 bg-slate-50 border-t border-slate-200 flex items-center justify-end gap-2 shrink-0">
+              <button
+                type="button"
+                onClick={() => setIsNewChatModalOpen(false)}
+                className="px-4 py-2 text-xs font-bold text-slate-600 hover:text-slate-800 hover:bg-slate-200/60 rounded-xl transition-colors cursor-pointer"
+              >
+                Batal
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  const finalName = selectedVendorObj ? selectedVendorObj.name : (customVendorNameInput.trim() || newChatVendorSearch.trim());
+                  const finalEmail = selectedVendorObj ? selectedVendorObj.email : `${finalName.toLowerCase().replace(/[^a-z0-9]/g, '')}@vendor.co.id`;
+                  if (!finalName) {
+                    alert('Silakan pilih atau ketik nama vendor terlebih dahulu.');
+                    return;
+                  }
+                  handleCreateNewConversation(
+                    finalName,
+                    finalEmail,
+                    'REQ-UMUM',
+                    ''
+                  );
+                }}
+                disabled={!selectedVendorObj && !customVendorNameInput.trim() && !newChatVendorSearch.trim()}
+                className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-bold text-xs rounded-xl shadow-md transition-all cursor-pointer flex items-center gap-1.5"
+              >
+                <MessageSquare className="w-4 h-4" />
+                <span>Mulai Chat</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Lightbox Modal */}
       <ImageLightboxModal

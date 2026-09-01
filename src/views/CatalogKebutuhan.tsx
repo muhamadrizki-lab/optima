@@ -98,7 +98,8 @@ export const DEFAULT_CATALOG_ITEMS: CatalogItem[] = [
     locationDelivery: 'Depo Pancaran Cakung, Jl. Raya Bekasi KM 24, Jakarta Timur',
     delivery: 'Depo Pancaran Cakung, Jl. Raya Bekasi KM 24, Jakarta Timur',
     taxTerm: 'Include PPH',
-    tax: 'Include PPH'
+    tax: 'Include PPH',
+    bidsCount: 1
   },
   {
     id: 'REQ-002',
@@ -128,7 +129,8 @@ export const DEFAULT_CATALOG_ITEMS: CatalogItem[] = [
     locationDelivery: 'Depo Pancaran Marunda, Kawasan Industri Marunda Center, Jakarta Utara',
     delivery: 'Depo Pancaran Marunda, Kawasan Industri Marunda Center, Jakarta Utara',
     taxTerm: 'Include PPH',
-    tax: 'Include PPH'
+    tax: 'Include PPH',
+    bidsCount: 1
   },
   {
     id: 'REQ-003',
@@ -160,7 +162,8 @@ export const DEFAULT_CATALOG_ITEMS: CatalogItem[] = [
     locationDelivery: 'Gudang Utama Dadap, Pergudangan Nusa Indah, Dadap, Tangerang',
     delivery: 'Gudang Utama Dadap, Pergudangan Nusa Indah, Dadap, Tangerang',
     taxTerm: 'Include PPH',
-    tax: 'Include PPH'
+    tax: 'Include PPH',
+    bidsCount: 1
   },
   {
     id: 'REQ-004',
@@ -190,7 +193,8 @@ export const DEFAULT_CATALOG_ITEMS: CatalogItem[] = [
     locationDelivery: 'Depo Pancaran Surabaya, Kawasan Industri Rungkut, Surabaya, Jawa Timur',
     delivery: 'Depo Pancaran Surabaya, Kawasan Industri Rungkut, Surabaya, Jawa Timur',
     taxTerm: 'Include PPH',
-    tax: 'Include PPH'
+    tax: 'Include PPH',
+    bidsCount: 1
   },
   {
     id: 'REQ-005',
@@ -220,7 +224,8 @@ export const DEFAULT_CATALOG_ITEMS: CatalogItem[] = [
     locationDelivery: 'Head Office PT Pancaran Darma Transport, Sunter Agung, Jakarta Utara',
     delivery: 'Head Office PT Pancaran Darma Transport, Sunter Agung, Jakarta Utara',
     taxTerm: 'Include PPH',
-    tax: 'Include PPH'
+    tax: 'Include PPH',
+    bidsCount: 1
   }
 ];
 
@@ -506,7 +511,8 @@ const sanitizeAndDeduplicateItems = (rawItems: any[]): CatalogItem[] => {
       specTable: (item.specTable && item.specTable.length > 0) ? item.specTable : (match?.specTable || []),
       deadline: item.deadline || match?.deadline || '2026-08-31T17:00:00',
       datePosted: item.datePosted || match?.datePosted || '2026-08-15',
-      warranty: item.warranty || match?.warranty || 'Garansi Resmi Distributor'
+      warranty: item.warranty || match?.warranty || 'Garansi Resmi Distributor',
+      lowestBid: item.lowestBid || Math.round(ownerEstimate * 0.95)
     });
   }
   return result;
@@ -927,10 +933,8 @@ export default function CatalogKebutuhan({ user, onBiddingClick, onOpenChat }: C
     }
   };
 
-  // Generate Bidders list for a given tender matching bidsCount exactly
+  // Generate Bidders list for a given tender matching bidsCount
   const getBiddersForTender = (tender: CatalogItem): BidderItem[] => {
-    const targetCount = Math.max(1, tender.bidsCount || 6);
-
     // Retrieve bids including user's added bids from localStorage
     let realBidsList = INITIAL_BIDS_DATA;
     try {
@@ -960,29 +964,19 @@ export default function CatalogKebutuhan({ user, onBiddingClick, onOpenChat }: C
       indentDuration: b.indentDuration
     }));
 
+    // Target count is strictly based on tender.bidsCount or real bids
+    // If tender.bidsCount is 0, targetCount is 0 (no mock bidders generated)
+    const targetCount = tender.bidsCount !== undefined ? tender.bidsCount : realMapped.length;
+
     const vendorPool = [
-      { name: 'PT Teknologi Maju Bersama', email: 'sales@teknologimaju.com', phone: '0812-3344-5566', ratio: 0.91, notes: 'Penawaran kompetitif & garansi resmi.' },
-      { name: 'PT Mandiri Ban Pratama', email: 'sales@mandiriban.co.id', phone: '0812-8899-2341', ratio: 0.93, notes: 'Distributor resmi Bridgestone & GT.' },
-      { name: 'CV Komputer Cemerlang', email: 'tender@komputercemerlang.co.id', phone: '0813-9988-7766', ratio: 0.94, notes: 'Spesifikasi lengkap sesuai TOR.' },
-      { name: 'PT Mitra Vendor Nusantara', email: 'vendor@gmail.com', phone: '0812-9988-7766', ratio: 0.96, notes: 'Vendor rekanan aktif terverifikasi.' },
-      { name: 'PT Global Solusi Mandiri', email: 'info@globalsolusi.id', phone: '0821-4455-8899', ratio: 1.02, notes: 'Paket bundling dukungan penuh.' },
-      { name: 'PT Daya Sel Elektrika', email: 'b2b@dayaselelektrika.co.id', phone: '0811-9876-5432', ratio: 0.95, notes: 'Suku cadang heavy duty asli.' },
-      { name: 'PT Surya Accu Dinamika', email: 'sales@suryaaccu.co.id', phone: '0812-1122-3344', ratio: 0.97, notes: 'Komponen original pabrik.' },
-      { name: 'CV Utama Sparepart Jaya', email: 'sales@utamasparepart.com', phone: '0813-2233-4455', ratio: 0.98, notes: 'Suku cadang OEM kualitas A.' },
-      { name: 'PT Fleet Guard System', email: 'corporate@fleetguard.co.id', phone: '0815-5566-7788', ratio: 0.99, notes: 'Pelumas & filter standar ISO.' },
-      { name: 'PT Trans Suku Cadang', email: 'procurement@transsukucadang.com', phone: '0817-6677-8899', ratio: 1.01, notes: 'Ready stock pengiriman cepat.' },
-      { name: 'PT Sentosa Bengkel Utama', email: 'service@sentosabengkel.co.id', phone: '0818-7788-9900', ratio: 1.03, notes: 'Servis mekanik tersertifikasi.' },
-      { name: 'PT Astra Otoparts Fleet', email: 'b2b@astraotoparts.co.id', phone: '0819-8899-0011', ratio: 0.92, notes: 'Garansi resmi Astra Otoparts.' },
-      { name: 'PT Bridgestone Tire Distributor', email: 'sales@bridgestonedist.co.id', phone: '0821-9900-1122', ratio: 0.95, notes: 'Distributor utama ban radial.' },
-      { name: 'PT Hino Parts Indonesia', email: 'fleet@hinoparts.co.id', phone: '0822-0011-2233', ratio: 0.96, notes: 'Genuine parts Hino Truck.' },
-      { name: 'CV Nusantara Auto Tech', email: 'info@nusantaraauto.co.id', phone: '0823-1122-3344', ratio: 0.97, notes: 'Paket perawatan armada lengkap.' }
+      { name: 'PT Tesvendor', email: 'sales@tesvendor.co.id', phone: '0812-3344-5566', ratio: 0.95, notes: 'Penawaran kompetitif & garansi resmi.' }
     ];
 
     const result: BidderItem[] = [...realMapped];
 
-    // Add generated bidders until reaching targetCount
+    // Add generated bidders until reaching targetCount ONLY if targetCount > 0
     let poolIndex = 0;
-    while (result.length < targetCount && poolIndex < vendorPool.length) {
+    while (targetCount > 0 && result.length < targetCount && poolIndex < vendorPool.length) {
       const v = vendorPool[poolIndex];
       poolIndex++;
 
@@ -1211,6 +1205,17 @@ export default function CatalogKebutuhan({ user, onBiddingClick, onOpenChat }: C
                   />
                 </div>
                 <div>
+                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Ketentuan Garansi / Warranty</label>
+                  <input 
+                    type="text" 
+                    required 
+                    placeholder="Contoh: Garansi Resmi Distributor 12-36 Bulan" 
+                    value={editingTender.warranty || ''} 
+                    onChange={e => setEditingTender({...editingTender, warranty: e.target.value})} 
+                    className="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500" 
+                  />
+                </div>
+                <div>
                   <label className="block text-xs font-bold text-slate-700 uppercase mb-1 flex items-center gap-1.5">
                     <Clock className="w-3.5 h-3.5 text-blue-600" />
                     Batas Akhir / Deadline Tender
@@ -1382,6 +1387,17 @@ export default function CatalogKebutuhan({ user, onBiddingClick, onOpenChat }: C
                     placeholder="Contoh: Net 30 Hari setelah barang diterima dan invoice lengkap." 
                     value={newPost.top} 
                     onChange={e => setNewPost({...newPost, top: e.target.value})} 
+                    className="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500" 
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Ketentuan Garansi / Warranty</label>
+                  <input 
+                    type="text" 
+                    required 
+                    placeholder="Contoh: Garansi Resmi Distributor 12-36 Bulan" 
+                    value={newPost.warranty} 
+                    onChange={e => setNewPost({...newPost, warranty: e.target.value})} 
                     className="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500" 
                   />
                 </div>
@@ -1766,32 +1782,38 @@ export default function CatalogKebutuhan({ user, onBiddingClick, onOpenChat }: C
                               </p>
                             </div>
                             
-                            {item.bidsCount !== undefined && (
-                              <>
-                                <div 
-                                  onClick={() => setSelectedTenderForBids(item)}
-                                  className="cursor-pointer group p-2 -m-2 rounded-xl hover:bg-blue-50 transition-all border border-transparent hover:border-blue-200"
-                                  title="Klik untuk melihat detail seluruh penawaran vendor"
-                                >
-                                  <p className="text-xs text-slate-500 font-medium mb-0.5 flex items-center group-hover:text-blue-600 transition-colors">
-                                    <Users className="w-3.5 h-3.5 mr-1 text-slate-500 group-hover:text-blue-600" />
-                                    Total Penawaran <span className="text-[10px] text-blue-600 font-bold ml-1.5">(Lihat Detail)</span>
-                                  </p>
-                                  <p className="text-lg font-black text-slate-800 group-hover:text-blue-700 transition-colors">
-                                    {item.bidsCount} Bidders
-                                  </p>
-                                </div>
-                                <div>
-                                  <p className="text-xs text-slate-500 font-medium mb-0.5 flex items-center">
-                                    <TrendingDown className="w-3.5 h-3.5 mr-1 text-blue-500" />
-                                    Penawaran Terendah
-                                  </p>
-                                  <p className="text-lg font-black text-blue-600">
-                                    {item.lowestBid ? formatRp(item.lowestBid) : '-'}
-                                  </p>
-                                </div>
-                              </>
-                            )}
+                            <div 
+                              onClick={() => setSelectedTenderForBids(item)}
+                              className="cursor-pointer group p-2 -m-2 rounded-xl hover:bg-blue-50 transition-all border border-transparent hover:border-blue-200"
+                              title="Klik untuk melihat siapa saja vendor yang bidding"
+                            >
+                              <p className="text-xs text-slate-500 font-medium mb-0.5 flex items-center group-hover:text-blue-600 transition-colors">
+                                <Users className="w-3.5 h-3.5 mr-1 text-slate-500 group-hover:text-blue-600" />
+                                Total Bidding <span className="text-[10px] text-blue-600 font-bold ml-1.5 bg-blue-100 px-1.5 py-0.2 rounded-md group-hover:bg-blue-200">(Siapa Saja?)</span>
+                              </p>
+                              <p className="text-lg font-black text-slate-800 group-hover:text-blue-700 transition-colors flex items-center gap-2">
+                                <span>{getBiddersForTender(item).length} Bidders</span>
+                                <span className="text-[10px] text-blue-600 underline font-semibold">Klik Detail</span>
+                              </p>
+                            </div>
+                            <div 
+                              onClick={() => setSelectedTenderForBids(item)}
+                              className="cursor-pointer group p-2 -m-2 rounded-xl hover:bg-emerald-50 transition-all border border-transparent hover:border-emerald-200"
+                              title="Tracking Penawaran Terendah"
+                            >
+                              <p className="text-xs text-slate-500 font-medium mb-0.5 flex items-center group-hover:text-emerald-600 transition-colors">
+                                <TrendingDown className="w-3.5 h-3.5 mr-1 text-emerald-500 group-hover:text-emerald-600" />
+                                Penawaran Terendah (Tracking)
+                              </p>
+                              <p className="text-lg font-black text-emerald-600 group-hover:text-emerald-700 transition-colors">
+                                {(() => {
+                                  const bidders = getBiddersForTender(item);
+                                  if (bidders.length === 0) return '-';
+                                  const lowest = Math.min(...bidders.map(b => b.amount));
+                                  return formatRp(lowest);
+                                })()}
+                              </p>
+                            </div>
                           </div>
                           
                           {/* Right Action Buttons */}
@@ -1877,7 +1899,7 @@ export default function CatalogKebutuhan({ user, onBiddingClick, onOpenChat }: C
                 </div>
                 <div>
                   <span className="text-[10px] font-bold text-slate-400 uppercase">Total Bidders Masuk</span>
-                  <p className="text-sm font-bold text-slate-800">{settingWinnerTender.bidsCount || 0} Vendor</p>
+                  <p className="text-sm font-bold text-slate-800">{getBiddersForTender(settingWinnerTender).length} Vendor</p>
                 </div>
                 <div>
                   <span className="text-[10px] font-bold text-slate-400 uppercase">Status Pengadaan</span>
@@ -2011,6 +2033,19 @@ export default function CatalogKebutuhan({ user, onBiddingClick, onOpenChat }: C
                         <tbody className="divide-y divide-slate-100 font-medium">
                           {(() => {
                             const sortedBidders = getBiddersForTender(settingWinnerTender);
+                            if (sortedBidders.length === 0) {
+                              return (
+                                <tr>
+                                  <td colSpan={6} className="px-4 py-8 text-center text-slate-400">
+                                    <div className="flex flex-col items-center justify-center space-y-2">
+                                      <Users className="w-7 h-7 text-slate-300 mx-auto" />
+                                      <p className="font-bold text-slate-600 text-xs">Belum Ada Penawaran Vendor Masuk</p>
+                                      <p className="text-xs text-slate-400">Gunakan tab "Input Penetapan Pemenang Kustom" jika ingin menentukan pemenang secara manual.</p>
+                                    </div>
+                                  </td>
+                                </tr>
+                              );
+                            }
                             const rank1Bidder = sortedBidders[0];
 
                             return sortedBidders.map((bidder, idx) => {
