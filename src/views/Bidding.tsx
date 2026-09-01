@@ -24,7 +24,8 @@ import {
   Calendar,
   Layers,
   Briefcase,
-  Trash2
+  Trash2,
+  Settings
 } from 'lucide-react';
 
 interface BiddingProps {
@@ -222,15 +223,45 @@ export default function Bidding({ user, onBack, initialReqId, vendorCatalogItems
   const [warrantyDescription, setWarrantyDescription] = useState<string>('Garansi Resmi Pabrik & Bebas Cacat Material');
   const [tncNotes, setTncNotes] = useState<string>('Pengiriman bertahap sesuai jadwal BAST. Dilengkapi surat keagenan resmi dan sertifikat SNI.');
   
-  const [paymentMethod, setPaymentMethod] = useState<string>('Net 30 Days');
+  const [paymentMethod, setPaymentMethod] = useState<string>('Net 30 Days (30 Hari)');
+  const [paymentOptions, setPaymentOptions] = useState<string[]>([
+    'Net 30 Days (30 Hari)',
+    'Net 45 Days (45 Hari - Rekomendasi)',
+    'Net 60 Days',
+    'DP 30% + Pelunasan 70%',
+    'Cash on Delivery (COD)'
+  ]);
+
   const [downPayment, setDownPayment] = useState<number>(0);
-  const [deliveryOption, setDeliveryOption] = useState<string>('Free Delivery');
+
+  const [deliveryOption, setDeliveryOption] = useState<string>('Free Delivery (Franco Gudang Pancaran)');
+  const [deliveryOptions, setDeliveryOptions] = useState<string[]>([
+    'Free Delivery (Franco Gudang Pancaran)',
+    'Loco Gudang Vendor (Biaya Kirim Ditanggung Pembeli)',
+    'Self-Pickup (Ambil Sendiri)'
+  ]);
+
   const [deliveryLocation, setDeliveryLocation] = useState<string>(selectedTender ? `Franco ${selectedTender.location}` : 'Franco Gudang Depo Cakung');
   const [leadTime, setLeadTime] = useState<string>('3-5 Hari Kerja');
   const [taxOption, setTaxOption] = useState<string>('Include PPH & PPN 11%');
-  const [availabilityType, setAvailabilityType] = useState<'READY' | 'INDENT'>('READY');
+
+  const [availabilityType, setAvailabilityType] = useState<string>('READY');
+  const [readyStockQty, setReadyStockQty] = useState<string>('');
+  const [availabilityOptions, setAvailabilityOptions] = useState<{value: string, label: string}[]>([
+    { value: 'READY', label: '📦 Ready Stock' },
+    { value: 'INDENT', label: '⏳ Inden / Pre-Order' }
+  ]);
+
   const [indentDuration, setIndentDuration] = useState<string>('');
   const [attachmentFileName, setAttachmentFileName] = useState<string>('Surat_Penawaran_Harga_Resmi_2026.pdf');
+
+  // Filter Management UI State
+  const [managingFilter, setManagingFilter] = useState<{
+    id: 'payment' | 'availability' | 'delivery';
+    title: string;
+    items: any[];
+  } | null>(null);
+  const [newFilterItem, setNewFilterItem] = useState('');
 
   // Submit Feedback & Detail Modal
   const [showSuccessToast, setShowSuccessToast] = useState(false);
@@ -1011,21 +1042,29 @@ export default function Bidding({ user, onBack, initialReqId, vendorCatalogItems
               {/* TNC & TOP */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-3 bg-slate-50 p-4 rounded-2xl border border-slate-200">
-                  <h4 className="text-xs font-bold text-slate-800 uppercase flex items-center gap-1.5">
-                    <CreditCard className="w-4 h-4 text-blue-600" />
-                    Metode Pembayaran (TOP)
-                  </h4>
+                  <div className="flex items-center justify-between gap-2">
+                    <h4 className="text-xs font-bold text-slate-800 uppercase flex items-center gap-1.5">
+                      <CreditCard className="w-4 h-4 text-blue-600" />
+                      Metode Pembayaran (TOP)
+                    </h4>
+                    <button 
+                      type="button"
+                      onClick={() => setManagingFilter({ id: 'payment', title: 'Metode Pembayaran', items: paymentOptions })}
+                      className="p-1 hover:bg-slate-200 rounded-md text-slate-400 hover:text-slate-600 transition-colors"
+                      title="Atur Opsi Pembayaran"
+                    >
+                      <Settings className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
                   <select
                     value={paymentMethod}
                     onChange={(e) => setPaymentMethod(e.target.value)}
                     className="w-full px-3 py-2 border border-slate-300 rounded-xl text-xs bg-white font-medium"
                     required
                   >
-                    <option value="Net 30 Days">Net 30 Days (30 Hari)</option>
-                    <option value="Net 45 Days">Net 45 Days (45 Hari - Rekomendasi)</option>
-                    <option value="Net 60 Days">Net 60 Days</option>
-                    <option value="DP 30% + Pelunasan 70%">DP 30% + Pelunasan 70%</option>
-                    <option value="Cash on Delivery (COD)">Cash on Delivery (COD)</option>
+                    {paymentOptions.map((opt, i) => (
+                      <option key={i} value={opt}>{opt}</option>
+                    ))}
                   </select>
                   <div>
                     <label className="block text-[11px] font-medium text-slate-600 mb-1">Masa Berlaku Penawaran</label>
@@ -1045,25 +1084,45 @@ export default function Bidding({ user, onBack, initialReqId, vendorCatalogItems
                   </h4>
                   <div className="grid grid-cols-2 gap-2">
                     <div>
-                      <label className="block text-[11px] font-semibold text-slate-600 mb-1">Status Ketersediaan</label>
+                      <div className="flex items-center justify-between mb-1">
+                        <label className="block text-[11px] font-semibold text-slate-600">Status Ketersediaan</label>
+                        <button 
+                          type="button"
+                          onClick={() => setManagingFilter({ id: 'availability', title: 'Status Ketersediaan', items: availabilityOptions })}
+                          className="p-0.5 hover:bg-slate-200 rounded-md text-slate-400 hover:text-slate-600 transition-colors"
+                        >
+                          <Settings className="w-3 h-3" />
+                        </button>
+                      </div>
                       <select
                         value={availabilityType}
-                        onChange={(e) => setAvailabilityType(e.target.value as 'READY' | 'INDENT')}
+                        onChange={(e) => setAvailabilityType(e.target.value)}
                         className="w-full px-3 py-1.5 border border-slate-300 rounded-lg text-xs bg-white font-medium text-slate-800 focus:ring-2 focus:ring-blue-500"
                       >
-                        <option value="READY">📦 Ready Stock</option>
-                        <option value="INDENT">⏳ Inden / Pre-Order</option>
+                        {availabilityOptions.map((opt, i) => (
+                          <option key={i} value={opt.value}>{opt.label}</option>
+                        ))}
                       </select>
                     </div>
                     <div>
-                      <label className="block text-[11px] font-semibold text-slate-600 mb-1">Opsi Pengiriman</label>
+                      <div className="flex items-center justify-between mb-1">
+                        <label className="block text-[11px] font-semibold text-slate-600">Opsi Pengiriman</label>
+                        <button 
+                          type="button"
+                          onClick={() => setManagingFilter({ id: 'delivery', title: 'Opsi Pengiriman', items: deliveryOptions })}
+                          className="p-0.5 hover:bg-slate-200 rounded-md text-slate-400 hover:text-slate-600 transition-colors"
+                        >
+                          <Settings className="w-3 h-3" />
+                        </button>
+                      </div>
                       <select
                         value={deliveryOption}
                         onChange={(e) => setDeliveryOption(e.target.value)}
                         className="w-full px-3 py-1.5 border border-slate-300 rounded-lg text-xs bg-white font-medium text-slate-800 focus:ring-2 focus:ring-blue-500"
                       >
-                        <option value="Free Delivery">Free Delivery (Franco Gudang Pancaran)</option>
-                        <option value="Loco Gudang Vendor">Biaya Kirim Ditanggung Pembeli</option>
+                        {deliveryOptions.map((opt, i) => (
+                          <option key={i} value={opt}>{opt}</option>
+                        ))}
                       </select>
                     </div>
                   </div>
@@ -1081,6 +1140,25 @@ export default function Bidding({ user, onBack, initialReqId, vendorCatalogItems
                         placeholder="Contoh: Ready 15 September 2026 atau 3 Minggu"
                         required={availabilityType === 'INDENT'}
                       />
+                    </div>
+                  )}
+
+                  {availabilityType === 'READY' && (
+                    <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl space-y-1.5 animate-in fade-in slide-in-from-top-1 duration-200">
+                      <label className="block text-[11px] font-bold text-emerald-800">
+                        Jumlah Ready Stock Saat Ini *
+                      </label>
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="number"
+                          value={readyStockQty}
+                          onChange={(e) => setReadyStockQty(e.target.value)}
+                          className="flex-1 px-3 py-1.5 border border-emerald-300 rounded-lg text-xs font-bold focus:ring-2 focus:ring-emerald-500 bg-white text-emerald-900"
+                          placeholder="Masukkan jumlah stok..."
+                          required={availabilityType === 'READY'}
+                        />
+                        <span className="text-[10px] font-bold text-emerald-600 uppercase">Unit/Pcs</span>
+                      </div>
                     </div>
                   )}
 
@@ -1532,6 +1610,116 @@ export default function Bidding({ user, onBack, initialReqId, vendorCatalogItems
           </div>
         );
       })()}
+      {/* Filter Management Modal */}
+      {managingFilter && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
+          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+            <div className="p-6 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+              <div className="flex items-center gap-3">
+                <div className="p-2.5 bg-blue-600 text-white rounded-xl shadow-md">
+                  <Settings className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-base font-black text-slate-900">Kelola Opsi {managingFilter.title}</h3>
+                  <p className="text-[10px] font-medium text-slate-500 uppercase tracking-wider">Tambah atau Hapus Item List</p>
+                </div>
+              </div>
+              <button 
+                onClick={() => setManagingFilter(null)}
+                className="p-2 hover:bg-slate-100 text-slate-400 hover:text-slate-600 rounded-full transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="p-6 space-y-6">
+              <div className="space-y-2">
+                <label className="text-[11px] font-bold text-slate-600 uppercase">Input Item Baru</label>
+                <div className="flex gap-2">
+                  <input 
+                    type="text" 
+                    value={newFilterItem}
+                    onChange={(e) => setNewFilterItem(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), (() => {
+                      if (!newFilterItem.trim()) return;
+                      if (managingFilter.id === 'payment') setPaymentOptions([...paymentOptions, newFilterItem]);
+                      else if (managingFilter.id === 'delivery') setDeliveryOptions([...deliveryOptions, newFilterItem]);
+                      else if (managingFilter.id === 'availability') setAvailabilityOptions([...availabilityOptions, { value: newFilterItem.toUpperCase().replace(/\s+/g, '_'), label: newFilterItem }]);
+                      setNewFilterItem('');
+                    })())}
+                    placeholder={`Masukkan ${managingFilter.title} baru...`}
+                    className="flex-1 px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
+                  />
+                  <button 
+                    onClick={() => {
+                      if (!newFilterItem.trim()) return;
+                      if (managingFilter.id === 'payment') setPaymentOptions([...paymentOptions, newFilterItem]);
+                      else if (managingFilter.id === 'delivery') setDeliveryOptions([...deliveryOptions, newFilterItem]);
+                      else if (managingFilter.id === 'availability') setAvailabilityOptions([...availabilityOptions, { value: newFilterItem.toUpperCase().replace(/\s+/g, '_'), label: newFilterItem }]);
+                      setNewFilterItem('');
+                    }}
+                    className="p-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl shadow-lg shadow-blue-200 transition-all active:scale-95"
+                  >
+                    <Plus className="w-5 h-5" />
+                  </button>
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                <label className="text-[11px] font-bold text-slate-600 uppercase">List Item Aktif ({
+                  managingFilter.id === 'payment' ? paymentOptions.length : 
+                  managingFilter.id === 'delivery' ? deliveryOptions.length : availabilityOptions.length
+                })</label>
+                <div className="space-y-2 max-h-[30vh] overflow-y-auto pr-2 custom-scrollbar">
+                  {(managingFilter.id === 'payment' ? paymentOptions : 
+                    managingFilter.id === 'delivery' ? deliveryOptions : availabilityOptions
+                  ).map((item, idx) => (
+                    <div key={idx} className="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-200/60 group hover:border-blue-200 transition-all">
+                      <span className="text-xs font-bold text-slate-700">{typeof item === 'string' ? item : item.label}</span>
+                      <button 
+                        onClick={() => {
+                          if (managingFilter.id === 'payment') {
+                            const newList = [...paymentOptions];
+                            newList.splice(idx, 1);
+                            setPaymentOptions(newList);
+                          } else if (managingFilter.id === 'delivery') {
+                            const newList = [...deliveryOptions];
+                            newList.splice(idx, 1);
+                            setDeliveryOptions(newList);
+                          } else if (managingFilter.id === 'availability') {
+                            const newList = [...availabilityOptions];
+                            newList.splice(idx, 1);
+                            setAvailabilityOptions(newList);
+                          }
+                        }}
+                        className="p-1.5 bg-white hover:bg-rose-50 text-slate-300 hover:text-rose-600 rounded-lg border border-slate-100 hover:border-rose-200 transition-all shadow-sm"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  ))}
+                  {(managingFilter.id === 'payment' ? paymentOptions : 
+                    managingFilter.id === 'delivery' ? deliveryOptions : availabilityOptions
+                  ).length === 0 && (
+                    <div className="py-8 text-center bg-slate-50 rounded-2xl border-2 border-dashed border-slate-200">
+                      <p className="text-xs text-slate-400 font-medium italic">Belum ada item terdaftar</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            <div className="p-6 bg-slate-50 border-t border-slate-100 flex justify-end">
+              <button 
+                onClick={() => setManagingFilter(null)}
+                className="px-6 py-2.5 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold rounded-xl shadow-lg shadow-slate-200 transition-all active:scale-95"
+              >
+                Selesai
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
