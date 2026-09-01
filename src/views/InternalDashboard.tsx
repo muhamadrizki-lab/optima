@@ -183,36 +183,61 @@ export default function InternalDashboard({
       notes?: string;
     }> = [];
 
-    // From kebutuhanList (tenders that have a winner or closed with winnerAmount)
+    // From kebutuhanList
     kebutuhanList.forEach((item: any) => {
-      if (item.winnerAmount && Number(item.winnerAmount) > 0) {
+      const isExpired = item.deadline ? new Date(item.deadline).getTime() < Date.now() : false;
+      const isClosed = item.status === 'CLOSED' || isExpired;
+
+      if (isClosed) {
+        // Cari bid yang terkait dengan tender ini
+        const relatedBids = bidsList.filter(b => b.reqId === item.id);
+        
+        if (relatedBids.length > 0) {
+          // Sortir bid berdasarkan harga terendah, lalu waktu submit paling awal
+          const sortedBids = [...relatedBids].sort((a, b) => {
+            const priceA = Number(a.amount || a.price || 0);
+            const priceB = Number(b.amount || b.price || 0);
+            if (priceA !== priceB) {
+              return priceA - priceB;
+            }
+            // Jika harga sama, urutkan berdasarkan waktu submit tercepat
+            return new Date(a.dateSubmitted || 0).getTime() - new Date(b.dateSubmitted || 0).getTime();
+          });
+
+          const winningBid = sortedBids[0];
+          const price = Number(winningBid.amount || winningBid.price || 0);
+
+          list.push({
+            id: item.id,
+            title: item.title,
+            vendorName: winningBid.vendorName || 'Vendor Terpilih',
+            amount: price,
+            ownerEstimate: Number(item.ownerEstimate) || price,
+            date: item.winnerDate || item.datePosted || 'Terbaru',
+            notes: item.winnerNotes || 'Auto-kalkulasi (Peringkat #1 Harga Terendah & Tercepat)'
+          });
+        } else if (item.winnerAmount && Number(item.winnerAmount) > 0) {
+           list.push({
+             id: item.id,
+             title: item.title,
+             vendorName: item.winnerVendorName || 'Vendor Terpilih',
+             amount: Number(item.winnerAmount),
+             ownerEstimate: Number(item.ownerEstimate) || Number(item.winnerAmount),
+             date: item.winnerDate || item.datePosted || 'Terbaru',
+             notes: item.winnerNotes || 'Tender selesai, BAST & PO telah diterbitkan.'
+           });
+        }
+      } else if (item.winnerAmount && Number(item.winnerAmount) > 0) {
+        // Fallback for manually set winners if not closed yet?
         list.push({
           id: item.id,
           title: item.title,
           vendorName: item.winnerVendorName || 'Vendor Terpilih',
           amount: Number(item.winnerAmount),
           ownerEstimate: Number(item.ownerEstimate) || Number(item.winnerAmount),
-          date: item.winnerDate || item.datePosted || '2026-08-16',
+          date: item.winnerDate || item.datePosted || 'Terbaru',
           notes: item.winnerNotes || 'Tender selesai, BAST & PO telah diterbitkan.'
         });
-      }
-    });
-
-    // From accepted bids in bidsList
-    bidsList.forEach((bid: any) => {
-      if (bid.status === 'ACCEPTED') {
-        const price = Number(bid.price || bid.amount || 0);
-        if (price > 0 && !list.some(l => l.id === bid.reqId || l.title === bid.reqTitle)) {
-          list.push({
-            id: bid.reqId || `REQ-WIN-${bid.id}`,
-            title: bid.reqTitle || 'Pengadaan Logistik Internal',
-            vendorName: bid.vendorName,
-            amount: price,
-            ownerEstimate: price,
-            date: bid.dateSubmitted || 'Terbaru',
-            notes: bid.notes || 'Penawaran disetujui internal.'
-          });
-        }
       }
     });
 
