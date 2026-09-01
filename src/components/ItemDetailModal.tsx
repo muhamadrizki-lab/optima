@@ -1,5 +1,5 @@
 import React from 'react';
-import { X, Package, Tag, Building2, MapPin, Clock, ShieldCheck, Box, Info, ShoppingCart } from 'lucide-react';
+import { X, Package, Tag, Building2, MapPin, Clock, ShieldCheck, Box, Info } from 'lucide-react';
 import { VendorCatalogItem } from '../types';
 
 interface ItemDetailModalProps {
@@ -149,12 +149,6 @@ export default function ItemDetailModal({ item, onClose }: ItemDetailModalProps)
               className="flex-1 sm:flex-none px-6 py-2.5 bg-white hover:bg-slate-50 text-slate-600 font-bold text-xs rounded-xl border border-slate-200 transition-all active:scale-95"
             >
               Tutup Detail
-            </button>
-            <button 
-              className="flex-1 sm:flex-none px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow-lg shadow-blue-200 transition-all flex items-center justify-center gap-2 active:scale-95"
-            >
-              <ShoppingCart className="w-4 h-4" />
-              Ajukan Pengadaan
             </button>
           </div>
         </div>

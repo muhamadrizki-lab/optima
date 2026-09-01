@@ -35,7 +35,7 @@ import {
   Clock,
   Filter
 } from 'lucide-react';
-import { VendorCatalogItem } from '../types';
+import { VendorCatalogItem, CatalogItem } from '../types';
 import CompanyDetailModal from '../components/CompanyDetailModal';
 import ItemDetailModal from '../components/ItemDetailModal';
 import ProcurementDetailModal from '../components/ProcurementDetailModal';
