@@ -37,7 +37,7 @@ export default function PancaranLogo({
       )}
 
       {showText && (
-        <p className={`text-[10px] sm:text-[11px] font-medium tracking-tight leading-tight mt-1 max-w-[340px] sm:max-w-none ${
+        <p className={`hidden sm:block text-[10px] sm:text-[11px] font-medium tracking-tight leading-tight mt-1 max-w-[340px] sm:max-w-none ${
           textColor === 'white' ? 'text-slate-300' : 'text-slate-600'
         }`}>
           Oriented Procurement, Targeted Integrated Management for Aligned Tender

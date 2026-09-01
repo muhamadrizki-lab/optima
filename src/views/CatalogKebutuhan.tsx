@@ -2040,7 +2040,6 @@ export default function CatalogKebutuhan({ user, onBiddingClick, onOpenChat }: C
                             <th className="px-4 py-3">Nama Vendor Rekanan</th>
                             <th className="px-4 py-3 text-right">Nilai Penawaran</th>
                             <th className="px-4 py-3">Term of Payment (TOP) & Garansi</th>
-                            <th className="px-4 py-3 text-center">Status</th>
                             <th className="px-4 py-3 text-center">Tindakan</th>
                           </tr>
                         </thead>
@@ -2050,7 +2049,7 @@ export default function CatalogKebutuhan({ user, onBiddingClick, onOpenChat }: C
                             if (sortedBidders.length === 0) {
                               return (
                                 <tr>
-                                  <td colSpan={6} className="px-4 py-8 text-center text-slate-400">
+                                  <td colSpan={5} className="px-4 py-8 text-center text-slate-400">
                                     <div className="flex flex-col items-center justify-center space-y-2">
                                       <Users className="w-7 h-7 text-slate-300 mx-auto" />
                                       <p className="font-bold text-slate-600 text-xs">Belum Ada Penawaran Vendor Masuk</p>
@@ -2123,18 +2122,6 @@ export default function CatalogKebutuhan({ user, onBiddingClick, onOpenChat }: C
                                   <td className="px-4 py-3.5">
                                     <div className="font-bold text-slate-800">{bidder.top}</div>
                                     <div className="text-[11px] text-purple-700 font-semibold mt-0.5">🛡️ {bidder.warranty}</div>
-                                  </td>
-
-                                  <td className="px-4 py-3.5 text-center whitespace-nowrap">
-                                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
-                                      isCurrentWinner 
-                                        ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' 
-                                        : bidder.status === 'REVIEWED'
-                                          ? 'bg-blue-100 text-blue-800'
-                                          : 'bg-amber-100 text-amber-800'
-                                    }`}>
-                                      {isCurrentWinner ? '🏆 PEMENANG' : bidder.status}
-                                    </span>
                                   </td>
 
                                   <td className="px-4 py-3.5 text-center whitespace-nowrap">
@@ -2636,7 +2623,6 @@ export default function CatalogKebutuhan({ user, onBiddingClick, onOpenChat }: C
                       <th className="px-4 py-3">Nama Vendor</th>
                       <th className="px-4 py-3 text-right">Nilai Penawaran</th>
                       <th className="px-4 py-3 text-center">Tanggal & Waktu</th>
-                      <th className="px-4 py-3 text-center">Status</th>
                       {isInternal && <th className="px-4 py-3 text-center">Aksi Tim Internal</th>}
                     </tr>
                   </thead>
@@ -2687,17 +2673,7 @@ export default function CatalogKebutuhan({ user, onBiddingClick, onOpenChat }: C
                             </td>
                             <td className="px-4 py-3 text-right font-mono font-bold text-blue-600">{formatRp(bidder.amount)}</td>
                             <td className="px-4 py-3 text-center text-slate-500 text-xs">{bidder.dateSubmitted}</td>
-                            <td className="px-4 py-3 text-center">
-                              <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
-                                isWinner 
-                                  ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' 
-                                  : bidder.status === 'REVIEWED'
-                                    ? 'bg-blue-100 text-blue-800'
-                                    : 'bg-amber-100 text-amber-800'
-                              }`}>
-                                {isWinner ? '🏆 PEMENANG' : bidder.status}
-                              </span>
-                            </td>
+                            
                             {isInternal && (
                               <td className="px-4 py-3 text-center">
                                 {isWinner ? (

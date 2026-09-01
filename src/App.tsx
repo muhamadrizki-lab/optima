@@ -317,7 +317,7 @@ export default function App() {
             onOpenChat={() => handleOpenChat()}
           />
         )}
-        <main className="flex-1 overflow-y-auto relative">
+        <main className="flex-1 overflow-y-auto overflow-x-hidden relative">
           <div className="w-full bg-slate-900 relative h-[340px] shrink-0 overflow-hidden border-b border-slate-200">
              <video 
                src="https://res.cloudinary.com/x6bejifd/video/upload/v1786613786/vidssave.com_Pancaran_Group_720P_uosct4.mp4" 

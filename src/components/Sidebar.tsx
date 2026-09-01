@@ -25,7 +25,12 @@ interface SidebarProps {
 }
 
 export default function Sidebar({ user, currentView, onChangeView, onOpenChat }: SidebarProps) {
-  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return window.innerWidth < 1024; // Collapse by default on mobile/tablet
+    }
+    return false;
+  });
 
   const internalNav = [
     { name: 'Dashboard', id: 'dashboard', icon: LayoutDashboard, badge: 'Overview' },
@@ -45,19 +50,33 @@ export default function Sidebar({ user, currentView, onChangeView, onOpenChat }:
   const navItems = isInternal ? internalNav : externalNav;
 
   return (
-    <aside className={`${isCollapsed ? 'w-20' : 'w-72 lg:w-80'} bg-slate-900 text-white flex flex-col h-full border-r border-slate-800 shrink-0 select-none relative transition-all duration-300 ease-in-out`}>
-      
-      {/* Collapse Toggle Button */}
-      <button
-        onClick={() => setIsCollapsed(!isCollapsed)}
-        className="absolute -right-3.5 top-6 z-50 bg-slate-800 text-slate-300 hover:text-white border border-slate-700 rounded-full p-1.5 shadow-md cursor-pointer hover:bg-slate-700 transition-colors"
-        title={isCollapsed ? "Expand Menu" : "Collapse Menu"}
-      >
-        {isCollapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
-      </button>
+    <>
+      {/* Mobile Backdrop */}
+      {!isCollapsed && (
+        <div 
+          className="lg:hidden fixed inset-0 bg-slate-900/50 z-40 backdrop-blur-sm"
+          onClick={() => setIsCollapsed(true)}
+        />
+      )}
 
-      {/* Nav Menu Items */}
-      <div className="flex-1 py-5 px-3 space-y-1.5 overflow-y-auto overflow-x-hidden">
+      <aside className={`
+        ${isCollapsed ? 'w-0 lg:w-20 border-r-0 lg:border-r' : 'w-[280px] lg:w-80'} 
+        absolute lg:relative z-50 h-[calc(100vh-76px)] lg:h-full 
+        bg-slate-900 text-white flex flex-col border-r border-slate-800 shrink-0 select-none 
+        transition-all duration-300 ease-in-out overflow-x-hidden overflow-y-visible
+      `}>
+        
+        {/* Collapse Toggle Button */}
+        <button
+          onClick={() => setIsCollapsed(!isCollapsed)}
+          className={`absolute ${isCollapsed ? '-right-12 lg:-right-3.5 bg-blue-600 text-white shadow-lg shadow-blue-900/50 translate-x-full lg:translate-x-0' : '-right-3.5 bg-slate-800 text-slate-300 hover:text-white'} top-6 z-50 border border-slate-700 lg:border-slate-700 rounded-full p-2 lg:p-1.5 shadow-md cursor-pointer hover:bg-blue-500 lg:hover:bg-slate-700 transition-all duration-300`}
+          title={isCollapsed ? "Expand Menu" : "Collapse Menu"}
+        >
+          {isCollapsed ? <ChevronRight className="w-5 h-5 lg:w-4 lg:h-4" /> : <ChevronLeft className="w-4 h-4" />}
+        </button>
+
+        {/* Nav Menu Items */}
+        <div className="flex-1 py-5 px-3 space-y-1.5 overflow-y-auto overflow-x-hidden mt-8 lg:mt-0 opacity-100 transition-opacity duration-300 min-w-[280px] lg:min-w-0">
         <div className={`px-3 mb-3 text-[11px] font-bold text-slate-400 uppercase tracking-wider ${isCollapsed ? 'text-center text-[10px] px-0' : ''}`}>
           {isCollapsed ? (user.role === 'INTERNAL' ? 'TIM' : 'VND') : (user.role === 'INTERNAL' ? 'Menu Tim Internal' : 'Vendor Portal Menu')}
         </div>
@@ -130,6 +149,7 @@ export default function Sidebar({ user, currentView, onChangeView, onOpenChat }:
         )}
       </div>
     </aside>
+    </>
   );
 }
 
