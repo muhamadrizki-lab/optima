@@ -37,6 +37,8 @@ import {
 } from 'lucide-react';
 import { VendorCatalogItem } from '../types';
 import CompanyDetailModal from '../components/CompanyDetailModal';
+import ItemDetailModal from '../components/ItemDetailModal';
+import ProcurementDetailModal from '../components/ProcurementDetailModal';
 import ImageLightboxModal from '../components/ImageLightboxModal';
 import { INITIAL_VENDOR_CATALOG } from '../data/vendorCatalogData';
 import { INITIAL_BIDS_DATA } from '../data/biddingData';
@@ -56,6 +58,8 @@ export default function InternalDashboard({
 }: InternalDashboardProps) {
   const [selectedStat, setSelectedStat] = useState<any>(null);
   const [selectedCompanyModal, setSelectedCompanyModal] = useState<string | null>(null);
+  const [selectedItemModal, setSelectedItemModal] = useState<VendorCatalogItem | null>(null);
+  const [selectedProcurementModal, setSelectedProcurementModal] = useState<CatalogItem | null>(null);
   const [lightboxPhoto, setLightboxPhoto] = useState<{ url: string; title: string; subtitle?: string } | null>(null);
   
   const [totalKebutuhan, setTotalKebutuhan] = useState(0);
@@ -635,10 +639,27 @@ export default function InternalDashboard({
                         wonItems.map((won, idx) => (
                           <div key={idx} className="p-4 bg-white rounded-xl border border-slate-200/80 hover:border-emerald-300 transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
                             <div>
-                              <span className="text-[10px] font-mono font-bold text-slate-400 uppercase bg-slate-100 px-1.5 py-0.5 rounded">
+                              <span 
+                                onClick={() => {
+                                  setSelectedStat(null);
+                                  const tender = kebutuhanList.find(k => k.id === won.id);
+                                  if (tender) setSelectedProcurementModal(tender);
+                                }}
+                                className="text-[10px] font-mono font-bold text-indigo-600 uppercase bg-indigo-50 px-1.5 py-0.5 rounded cursor-pointer hover:bg-indigo-100"
+                                title={`Klik untuk rincian tender ${won.id}`}
+                              >
                                 {won.id}
                               </span>
-                              <p className="text-xs font-bold text-slate-800 mt-1">{won.title}</p>
+                              <p 
+                                onClick={() => {
+                                  setSelectedStat(null);
+                                  const tender = kebutuhanList.find(k => k.id === won.id);
+                                  if (tender) setSelectedProcurementModal(tender);
+                                }}
+                                className="text-xs font-bold text-slate-800 mt-1 cursor-pointer hover:text-indigo-600 transition-colors"
+                              >
+                                {won.title}
+                              </p>
                               <p 
                                 onClick={() => {
                                   setSelectedStat(null);
@@ -814,7 +835,17 @@ export default function InternalDashboard({
                             >
                               {bid.vendorName}
                             </p>
-                            <p className="text-[11px] text-slate-500">{bid.reqTitle}: Rp {bid.price?.toLocaleString('id-ID')}</p>
+                            <p 
+                              onClick={() => {
+                                setSelectedStat(null);
+                                const tender = kebutuhanList.find(k => k.id === bid.reqId);
+                                if (tender) setSelectedProcurementModal(tender);
+                              }}
+                              className="text-[11px] text-slate-500 hover:text-indigo-600 hover:underline cursor-pointer"
+                              title={`Klik untuk detail tender ${bid.reqId}`}
+                            >
+                              {bid.reqTitle}: Rp {bid.price?.toLocaleString('id-ID')}
+                            </p>
                           </div>
                           <span className={`px-2.5 py-1 text-xs font-bold rounded-lg border ${bid.status === 'ACCEPTED' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : bid.status === 'REJECTED' ? 'bg-rose-50 text-rose-700 border-rose-200' : bid.status === 'NEGOTIATION' ? 'bg-amber-50 text-amber-700 border-amber-200' : 'bg-blue-50 text-blue-700 border-blue-200'}`}>
                             {bid.status === 'ACCEPTED' ? 'DITERIMA' : bid.status === 'REJECTED' ? 'DITOLAK' : bid.status === 'NEGOTIATION' ? 'NEGO' : 'TERKIRIM'}
@@ -827,14 +858,25 @@ export default function InternalDashboard({
                   {selectedStat.name === 'Jenis Barang External' && (
                     <div className="space-y-2">
                       {items.map((item, i) => (
-                        <div key={i} className="p-3 bg-slate-50 rounded-xl border border-slate-200/60 flex items-center justify-between">
+                        <div 
+                          key={i} 
+                          onClick={() => {
+                            setSelectedStat(null);
+                            setSelectedItemModal(item);
+                          }}
+                          className="p-3 bg-white hover:bg-indigo-50/40 rounded-xl border border-slate-200/60 hover:border-indigo-200 flex items-center justify-between cursor-pointer transition-all group shadow-xs hover:shadow-md"
+                          title={`Klik untuk detail SKU: ${item.id}`}
+                        >
                           <div>
-                            <p className="text-xs font-bold text-slate-800">{item.title}</p>
-                            <p className="text-[11px] text-slate-500">{item.brand} • {item.vendorName}</p>
+                            <p className="text-xs font-bold text-slate-800 group-hover:text-indigo-700 transition-colors">{item.title}</p>
+                            <p className="text-[11px] text-slate-500">{item.brand} • {item.vendorName} • <span className="font-mono text-[9px] font-bold text-slate-400">{item.id}</span></p>
                           </div>
-                          <span className="px-2 py-1 bg-indigo-50 text-indigo-700 font-bold text-xs rounded-md">
-                            {item.category}
-                          </span>
+                          <div className="flex flex-col items-end gap-1">
+                            <span className="px-2 py-0.5 bg-indigo-50 text-indigo-700 font-bold text-[10px] rounded-md border border-indigo-100">
+                              {item.category}
+                            </span>
+                            <span className="text-[10px] font-black text-emerald-700">Rp {item.price.toLocaleString('id-ID')}</span>
+                          </div>
                         </div>
                       ))}
                     </div>
@@ -1037,6 +1079,17 @@ export default function InternalDashboard({
         companyName={selectedCompanyModal}
         isOpen={Boolean(selectedCompanyModal)}
         onClose={() => setSelectedCompanyModal(null)}
+      />
+
+      <ItemDetailModal 
+        item={selectedItemModal}
+        onClose={() => setSelectedItemModal(null)}
+      />
+
+      <ProcurementDetailModal
+        item={selectedProcurementModal}
+        bids={bidsList}
+        onClose={() => setSelectedProcurementModal(null)}
       />
     </div>
   );

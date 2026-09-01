@@ -28,6 +28,8 @@ import { VendorCatalogItem, CatalogItem, Bid } from '../types';
 import { INITIAL_VENDOR_CATALOG } from '../data/vendorCatalogData';
 import { INITIAL_BIDS_DATA } from '../data/biddingData';
 import CompanyDetailModal from '../components/CompanyDetailModal';
+import ItemDetailModal from '../components/ItemDetailModal';
+import ProcurementDetailModal from '../components/ProcurementDetailModal';
 
 interface ReportsViewProps {
   vendorCatalogItems?: VendorCatalogItem[];
@@ -45,6 +47,8 @@ export default function ReportsView({ vendorCatalogItems = INITIAL_VENDOR_CATALO
   const [filterDate, setFilterDate] = useState('');
   const [filterMonthYear, setFilterMonthYear] = useState('');
   const [selectedCompanyModal, setSelectedCompanyModal] = useState<string | null>(null);
+  const [selectedItemModal, setSelectedItemModal] = useState<VendorCatalogItem | null>(null);
+  const [selectedProcurementModal, setSelectedProcurementModal] = useState<CatalogItem | null>(null);
 
   // Real data state
   const [catalogItems, setCatalogItems] = useState<CatalogItem[]>([]);
@@ -944,9 +948,15 @@ export default function ReportsView({ vendorCatalogItems = INITIAL_VENDOR_CATALO
                   filteredCatalogData.map((item, index) => {
                     const sales = catalogSalesMap[item.id] || { soldQty: 0, revenue: 0 };
                     return (
-                      <tr key={`${item.id}-${index}`} className="hover:bg-slate-50/80 transition-colors">
+                      <tr key={`${item.id}-${index}`} className="hover:bg-slate-50/80 transition-colors group">
                         <td className="py-3 px-4 text-center text-slate-400 font-bold font-mono">{index + 1}</td>
-                        <td className="py-3 px-3 font-bold text-slate-600 font-mono text-[10px] uppercase">{item.id}</td>
+                        <td 
+                          onClick={() => setSelectedItemModal(item)}
+                          className="py-3 px-3 font-bold text-blue-600 font-mono text-[10px] uppercase cursor-pointer hover:underline group-hover:text-blue-700"
+                          title={`Klik untuk detail SKU: ${item.id}`}
+                        >
+                          {item.id}
+                        </td>
                         <td className="py-3 px-3">
                           <span className="font-bold text-slate-900 block leading-tight">{item.title}</span>
                           {item.indentDuration && (
@@ -1044,9 +1054,15 @@ export default function ReportsView({ vendorCatalogItems = INITIAL_VENDOR_CATALO
                   filteredProcurementData.map((item, index) => {
                     const bidsCount = bidsHistory.filter(b => b.reqId === item.id).length;
                     return (
-                      <tr key={`${item.id}-${index}`} className="hover:bg-slate-50/80 transition-colors">
+                      <tr key={`${item.id}-${index}`} className="hover:bg-slate-50/80 transition-colors group">
                         <td className="py-3 px-4 text-center text-slate-400 font-bold font-mono">{index + 1}</td>
-                        <td className="py-3 px-3 font-bold text-slate-600 font-mono text-[10px] uppercase">{item.id}</td>
+                        <td 
+                          onClick={() => setSelectedProcurementModal(item)}
+                          className="py-3 px-3 font-bold text-indigo-600 font-mono text-[10px] uppercase cursor-pointer hover:underline group-hover:text-indigo-700"
+                          title={`Klik untuk detail Tender: ${item.id}`}
+                        >
+                          {item.id}
+                        </td>
                         <td className="py-3 px-3">
                           <span className="font-bold text-slate-900 block leading-tight">{item.title}</span>
                           <span className="text-[10px] text-slate-400 block mt-1 line-clamp-1 font-normal">{item.description}</span>
@@ -1206,6 +1222,17 @@ export default function ReportsView({ vendorCatalogItems = INITIAL_VENDOR_CATALO
         companyName={selectedCompanyModal}
         isOpen={Boolean(selectedCompanyModal)}
         onClose={() => setSelectedCompanyModal(null)}
+      />
+
+      <ItemDetailModal 
+        item={selectedItemModal}
+        onClose={() => setSelectedItemModal(null)}
+      />
+
+      <ProcurementDetailModal
+        item={selectedProcurementModal}
+        bids={bidsHistory}
+        onClose={() => setSelectedProcurementModal(null)}
       />
     </div>
   );
