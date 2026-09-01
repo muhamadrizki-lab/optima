@@ -2635,7 +2635,7 @@ export default function CatalogKebutuhan({ user, onBiddingClick, onOpenChat }: C
                       <th className="px-4 py-3 text-center w-14">Rank</th>
                       <th className="px-4 py-3">Nama Vendor</th>
                       <th className="px-4 py-3 text-right">Nilai Penawaran</th>
-                      <th className="px-4 py-3 text-center">Tanggal Submit</th>
+                      <th className="px-4 py-3 text-center">Tanggal & Waktu</th>
                       <th className="px-4 py-3 text-center">Status</th>
                       {isInternal && <th className="px-4 py-3 text-center">Aksi Tim Internal</th>}
                     </tr>

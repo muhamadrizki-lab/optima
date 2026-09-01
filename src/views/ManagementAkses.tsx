@@ -1,9 +1,19 @@
 import React, { useState } from 'react';
 import { AccessDetail, Role, VendorType } from '../types';
 import CompanyDetailModal from '../components/CompanyDetailModal';
-import { Users, UserPlus, Shield, CheckCircle, XCircle, X } from 'lucide-react';
+import { Users, UserPlus, Shield, CheckCircle, XCircle, X, Trash2 } from 'lucide-react';
 
 export default function ManagementAkses() {
+  const [currentUserEmail] = useState(() => {
+    try {
+      const savedUser = localStorage.getItem('optima_user_session');
+      if (savedUser) return JSON.parse(savedUser).email;
+    } catch (e) {
+      console.error(e);
+    }
+    return '';
+  });
+
   const [activeTab, setActiveTab] = useState<'INTERNAL' | 'EXTERNAL'>('INTERNAL');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedCompanyModal, setSelectedCompanyModal] = useState<string | null>(null);
@@ -75,6 +85,18 @@ export default function ManagementAkses() {
       localStorage.setItem('optima_access_users', JSON.stringify(updated));
     } catch (e) {
       console.error('Error saving users status:', e);
+    }
+  };
+
+  const handleDelete = (id: string) => {
+    if (window.confirm('Yakin ingin menghapus akun ini secara permanen?')) {
+      const updated = users.filter(u => u.id !== id);
+      setUsers(updated);
+      try {
+        localStorage.setItem('optima_access_users', JSON.stringify(updated));
+      } catch (e) {
+        console.error('Error deleting user:', e);
+      }
     }
   };
 
@@ -226,6 +248,15 @@ export default function ManagementAkses() {
                         <XCircle className="w-3.5 h-3.5 mr-1" />
                         Reject
                       </button>
+                      {currentUserEmail === 'muhamad.rizki@pancaran-logistic.id' && (
+                        <button
+                          onClick={() => handleDelete(user.id)}
+                          title="Hapus Akun Permanen"
+                          className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-red-100 text-red-700 hover:bg-red-200 transition-colors"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      )}
                     </div>
                   </td>
                 </tr>

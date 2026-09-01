@@ -1098,7 +1098,7 @@ export default function ReportsView({ vendorCatalogItems = INITIAL_VENDOR_CATALO
                   <th className="py-3 px-3 text-center">Lead Time</th>
                   <th className="py-3 px-3">Top Syarat Pembayaran</th>
                   <th className="py-3 px-3 text-center">Status Evaluasi</th>
-                  <th className="py-3 px-3 text-center">Tanggal Submit</th>
+                  <th className="py-3 px-3 text-center">Tanggal & Waktu Submit</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 text-xs font-medium">

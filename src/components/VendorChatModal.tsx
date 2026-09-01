@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { 
   X, 
   Send, 
@@ -110,10 +110,35 @@ export default function VendorChatModal({
 
   const isInternal = currentUser?.role === 'INTERNAL';
 
-  // Master vendor dictionary for starting new chats
-  const PRESET_VENDORS_FOR_CHAT = [
-    { name: 'PT Tesvendor', email: 'sales@tesvendor.co.id', category: 'General Logistics & Sparepart', phone: '0812-3344-5566' }
-  ];
+  // Master vendor dictionary for starting new chats, dynamically loaded from DB
+  const PRESET_VENDORS_FOR_CHAT = useMemo(() => {
+    try {
+      const saved = localStorage.getItem('optima_access_users');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) {
+          // Filter only external active vendors, and eliminate duplicates by company name
+          const externalUsers = parsed.filter((u: any) => u.role === 'EXTERNAL' && u.status === 'ACTIVE');
+          const uniqueVendors = Array.from(new Map(externalUsers.map((u: any) => [u.companyName, u])).values());
+          
+          if (uniqueVendors.length > 0) {
+            return uniqueVendors.map((u: any) => ({
+              name: u.companyName || u.name,
+              email: u.email,
+              category: u.vendorType || 'General Vendor',
+              phone: u.phone || '-'
+            }));
+          }
+        }
+      }
+    } catch (e) {
+      console.error(e);
+    }
+    // Fallback if empty
+    return [
+      { name: 'PT Tesvendor', email: 'sales@tesvendor.co.id', category: 'General Logistics & Sparepart', phone: '0812-3344-5566' }
+    ];
+  }, []);
 
   const PRESET_TENDERS_FOR_CHAT = [
     { id: 'REQ-001', title: 'REQ-001: Pengadaan Ban Truk Heavy Duty 11R22.5' },

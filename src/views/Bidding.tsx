@@ -23,7 +23,8 @@ import {
   Plus, 
   Calendar,
   Layers,
-  Briefcase
+  Briefcase,
+  Trash2
 } from 'lucide-react';
 
 interface BiddingProps {
@@ -154,6 +155,26 @@ export default function Bidding({ user, onBack, initialReqId, vendorCatalogItems
       localStorage.setItem('optima_bids_history', JSON.stringify(newBids));
     } catch (e) {
       console.error('Error saving bids:', e);
+    }
+  };
+
+  const handleCancelBid = (bidId: string) => {
+    if (window.confirm('Yakin ingin membatalkan (menghapus) penawaran/bidding ini secara permanen?')) {
+      const updatedBids = bids.filter(b => b.id !== bidId);
+      saveBids(updatedBids);
+      
+      // Update global catalog bids (optional DB sync)
+      try {
+        const savedCatalogStr = localStorage.getItem('optima_vendor_catalog');
+        if (savedCatalogStr) {
+          const savedCatalog = JSON.parse(savedCatalogStr);
+          const newCatalog = savedCatalog.filter((item: any) => item.id !== bidId && item.reqId !== bidId);
+          localStorage.setItem('optima_vendor_catalog', JSON.stringify(newCatalog));
+          window.dispatchEvent(new Event('optima-db-updated'));
+        }
+      } catch (e) {
+        console.error('Error deleting from catalog:', e);
+      }
     }
   };
 
@@ -394,7 +415,7 @@ export default function Bidding({ user, onBack, initialReqId, vendorCatalogItems
       estimatedLeadTime: leadTime,
       availabilityType: availabilityType,
       indentDuration: availabilityType === 'INDENT' ? indentDuration : '',
-      dateSubmitted: new Date().toISOString().split('T')[0],
+      dateSubmitted: new Date().toISOString().slice(0, 16).replace('T', ' '),
       status: 'PENDING',
       internalNotes: 'Penawaran baru diterima di portal. Menunggu review kelayakan administrasi & harga oleh tim Procurement.',
       documents: [
@@ -743,7 +764,7 @@ export default function Bidding({ user, onBack, initialReqId, vendorCatalogItems
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-slate-50 border-b border-slate-200 text-[11px] font-extrabold uppercase text-slate-500 tracking-wider">
-                <th className="px-6 py-4">NO. PENAWARAN & TANGGAL</th>
+                <th className="px-6 py-4">NO. PENAWARAN & WAKTU</th>
                 <th className="px-6 py-4">PAKET TENDER YANG DI-BID</th>
                 <th className="px-6 py-4">KATEGORI</th>
                 <th className="px-6 py-4 text-right">NILAI PENAWARAN</th>
@@ -813,13 +834,24 @@ export default function Bidding({ user, onBack, initialReqId, vendorCatalogItems
 
                       {/* Actions */}
                       <td className="px-6 py-4 whitespace-nowrap text-center">
-                        <button
-                          onClick={() => setSelectedBidDetail(bid)}
-                          className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-xl text-xs font-bold transition-all border border-blue-200/60 cursor-pointer"
-                        >
-                          <Eye className="w-3.5 h-3.5" />
-                          Detail Isi Bid
-                        </button>
+                        <div className="flex items-center justify-center gap-2">
+                          <button
+                            onClick={() => setSelectedBidDetail(bid)}
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-xl text-xs font-bold transition-all border border-blue-200/60 cursor-pointer"
+                          >
+                            <Eye className="w-3.5 h-3.5" />
+                            Detail Isi Bid
+                          </button>
+                          {bid.status !== 'ACCEPTED' && (
+                            <button
+                              onClick={() => handleCancelBid(bid.id)}
+                              className="inline-flex items-center gap-1.5 px-2.5 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 rounded-xl text-xs font-bold transition-all border border-rose-200/60 cursor-pointer"
+                              title="Batalkan Penawaran"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          )}
+                        </div>
                       </td>
                     </tr>
                   );
