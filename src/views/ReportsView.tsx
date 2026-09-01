@@ -414,7 +414,7 @@ export default function ReportsView({ vendorCatalogItems = INITIAL_VENDOR_CATALO
       fileName = `Laporan_Katalog_Vendor_Pancaran_${new Date().toISOString().split('T')[0]}`;
       headers = [
         'No', 
-        'SKU / ID Barang', 
+        'ID Barang', 
         'Nama Produk / Layanan', 
         'Kategori', 
         'Nama Perusahaan Vendor', 
@@ -760,7 +760,7 @@ export default function ReportsView({ vendorCatalogItems = INITIAL_VENDOR_CATALO
               <input
                 type="text"
                 placeholder={
-                  activeTab === 'catalog' ? 'Cari SKU, Nama Barang, Vendor...' :
+                  activeTab === 'catalog' ? 'Cari ID, Nama Barang, Vendor...' :
                   activeTab === 'procurement' ? 'Cari Tender, Pemenang, Kode...' : 'Cari Bids, Vendor, No Tender...'
                 }
                 value={searchQuery}
@@ -925,7 +925,7 @@ export default function ReportsView({ vendorCatalogItems = INITIAL_VENDOR_CATALO
               <thead>
                 <tr className="bg-slate-900 text-white text-[11px] font-bold uppercase tracking-wider border-b border-slate-800 select-none">
                   <th className="py-3 px-4 text-center w-12">No</th>
-                  <th className="py-3 px-3">SKU / ID</th>
+                  <th className="py-3 px-3">ID</th>
                   <th className="py-3 px-3 min-w-[200px]">Nama Produk / Layanan</th>
                   <th className="py-3 px-3">Kategori</th>
                   <th className="py-3 px-3">Nama Vendor</th>
@@ -953,7 +953,7 @@ export default function ReportsView({ vendorCatalogItems = INITIAL_VENDOR_CATALO
                         <td 
                           onClick={() => setSelectedItemModal(item)}
                           className="py-3 px-3 font-bold text-blue-600 font-mono text-[10px] uppercase cursor-pointer hover:underline group-hover:text-blue-700"
-                          title={`Klik untuk detail SKU: ${item.id}`}
+                          title={`Klik untuk detail ID: ${item.id}`}
                         >
                           {item.id}
                         </td>

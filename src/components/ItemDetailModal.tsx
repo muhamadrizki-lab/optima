@@ -21,7 +21,7 @@ export default function ItemDetailModal({ item, onClose }: ItemDetailModalProps)
             </div>
             <div>
               <span className="text-[10px] font-bold uppercase tracking-wider text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full border border-blue-100">
-                Detail SKU: {item.id}
+                Detail ID: {item.id}
               </span>
               <h3 className="text-xl font-black text-slate-900 mt-1">{item.title}</h3>
             </div>

@@ -377,7 +377,7 @@ export default function CatalogVendor({
             <span className="px-2.5 py-0.5 text-xs font-bold uppercase rounded-full bg-blue-50 text-blue-700 border border-blue-100">
               {user?.role === 'INTERNAL' ? 'Pangkalan Data Pengadaan' : 'Eksplorasi Katalog & Penawaran'}
             </span>
-            <span className="text-xs text-slate-500 font-medium">• Total <strong className="text-slate-800">{items.length} Jenis Barang</strong> (SKU) Terdaftar</span>
+            <span className="text-xs text-slate-500 font-medium">• Total <strong className="text-slate-800">{items.length} Jenis Barang</strong> (ID) Terdaftar</span>
           </div>
           <h1 className="text-2xl font-black text-slate-900 tracking-tight">
             Katalog Vendor & Supplier

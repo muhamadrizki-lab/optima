@@ -261,7 +261,7 @@ export default function InternalDashboard({
     return Math.max(0, totalOwnerEstimateWon - totalPengeluaran);
   }, [totalOwnerEstimateWon, totalPengeluaran]);
 
-  // Hitung jumlah jenis barang external (SKU / Ragam item unik, bukan total qty unit)
+  // Hitung jumlah jenis barang external (ID / Ragam item unik, bukan total qty unit)
   const items = vendorCatalogItems && vendorCatalogItems.length > 0 ? vendorCatalogItems : INITIAL_VENDOR_CATALOG;
   const totalJenisBarangExternal = items.length;
 
@@ -334,7 +334,7 @@ export default function InternalDashboard({
     { 
       name: 'Jenis Barang External', 
       value: `${totalJenisBarangExternal} Jenis`, 
-      detail: 'Ragam SKU katalog (Bukan Qty)',
+      detail: 'Ragam ID katalog (Bukan Qty)',
       icon: Layers, 
       color: 'text-indigo-600', 
       bg: 'bg-indigo-50', 
@@ -865,7 +865,7 @@ export default function InternalDashboard({
                             setSelectedItemModal(item);
                           }}
                           className="p-3 bg-white hover:bg-indigo-50/40 rounded-xl border border-slate-200/60 hover:border-indigo-200 flex items-center justify-between cursor-pointer transition-all group shadow-xs hover:shadow-md"
-                          title={`Klik untuk detail SKU: ${item.id}`}
+                          title={`Klik untuk detail ID: ${item.id}`}
                         >
                           <div>
                             <p className="text-xs font-bold text-slate-800 group-hover:text-indigo-700 transition-colors">{item.title}</p>
@@ -979,7 +979,7 @@ export default function InternalDashboard({
             <div className="bg-amber-50/70 border border-amber-200/80 rounded-xl p-3 mb-5 flex items-start gap-2.5 text-xs text-amber-900">
               <Info className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
               <div>
-                <span className="font-bold">Penjelasan Parameter:</span> Angka di atas merepresentasikan <strong>{totalJenisBarangExternal} ragam/jenis produk unik (SKU)</strong> yang disediakan oleh vendor, <em>bukan total kuantitas unit fisik stok</em> yang ada di gudang.
+                <span className="font-bold">Penjelasan Parameter:</span> Angka di atas merepresentasikan <strong>{totalJenisBarangExternal} ragam/jenis produk unik (ID)</strong> yang disediakan oleh vendor, <em>bukan total kuantitas unit fisik stok</em> yang ada di gudang.
               </div>
             </div>
 
